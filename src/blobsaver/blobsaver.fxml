@@ -3,26 +3,29 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="blobsaver.Controller">
-   <children>
-      <Label text="ECID:" />
-      <HBox prefHeight="100.0" prefWidth="200.0">
-         <children>
-            <TextField fx:id="ecidField" />
-         </children>
-      </HBox>
-      <Label text="Device" />
-      <HBox prefHeight="100.0" prefWidth="200.0">
-         <children>
-            <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0" />
-            <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0" />
-         </children>
-      </HBox>
-      <Label text="Internal Name/Board Configuration:" />
-       <TextField fx:id="boardConfigField" disable="true"/>
-       <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" text="Manually specify apnonce:"
-                 onAction="#apnonceCheckBoxHandler"/>
-      <TextField fx:id="apnonceField" disable="true"/>
-       <Button mnemonicParsing="false" text="Go" onAction="#go"/>
-   </children>
+<VBox xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+      minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8"
+      fx:controller="blobsaver.Controller">
+    <Label text="ECID:"/>
+    <HBox prefHeight="100.0" prefWidth="200.0">
+        <TextField fx:id="ecidField"/>
+    </HBox>
+    <Label text="Device"/>
+    <HBox prefHeight="100.0" prefWidth="200.0">
+        <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0"/>
+        <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0"/>
+    </HBox>
+    <Label fx:id="versionLabel" text="Version"/>
+    <CheckBox fx:id="versionCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler" selected="true"
+              text="Use Latest Version"/>
+    <TextField fx:id="versionField" disable="true"/>
+    <Label text="Internal Name/Board Configuration:"/>
+    <TextField fx:id="boardConfigField" disable="true"/>
+    <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
+              text="Manually specify apnonce:"/>
+    <TextField fx:id="apnonceField" disable="true"/>
+    <HBox prefHeight="100.0" prefWidth="200.0">
+        <Button mnemonicParsing="false" onAction="#go" text="Go"/>
+        <Button mnemonicParsing="false" text="Save options" onAction="#saveOptions"/>
+    </HBox>
 </VBox>

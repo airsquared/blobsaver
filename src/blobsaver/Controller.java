@@ -6,22 +6,27 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Properties;
 
 public class Controller {
+
 
     @FXML private ChoiceBox deviceTypeChoiceBox;
     @FXML private ChoiceBox deviceModelChoiceBox;
     @FXML private TextField ecidField;
     @FXML private TextField boardConfigField;
     @FXML private TextField apnonceField;
+    @FXML private TextField versionField;
     @FXML private CheckBox apnonceCheckBox;
+    @FXML private CheckBox versionCheckBox;
+    @FXML private Label versionLabel;
     private boolean boardConfig = false;
 
     @SuppressWarnings("unchecked")
@@ -41,15 +46,19 @@ public class Controller {
             switch (v) {
                 case "iPhone":
                     deviceModelChoiceBox.setItems(iPhones);
+                    versionLabel.setText("iOS Version");
                     break;
                 case "iPod(not supported yet)":
                     deviceModelChoiceBox.setItems(iPods);
+                    versionLabel.setText("iOS Version");
                     break;
                 case "iPad(not supported yet)":
                     deviceModelChoiceBox.setItems(iPads);
+                    versionLabel.setText("iOS Version");
                     break;
                 case "AppleTV(not supported yet)":
                     deviceModelChoiceBox.setItems(AppleTVs);
+                    versionLabel.setText("tvOS Version");
                     break;
             }
         });
@@ -60,13 +69,36 @@ public class Controller {
                 boardConfigField.setDisable(false);
             } else {
                 boardConfig = false;
+                boardConfigField.setText("");
                 boardConfigField.setDisable(true);
             }
         });
+        File file;
+        try {
+            file = new File(getClass().getResource("options.properties").toURI());
+            if (file.exists()) {
+                Properties prop = new Properties();
+                try (InputStream input = new FileInputStream(file)) {
+                    prop.load(input);
+                    ecidField.setText(prop.getProperty("ecid"));
+                    deviceTypeChoiceBox.setValue(prop.getProperty("deviceType"));
+                    deviceModelChoiceBox.setValue(prop.getProperty("deviceModel"));
+                    if (!prop.getProperty("boardConfig").equals("none")) {
+                        boardConfigField.setText(prop.getProperty("boardConfig"));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            System.out.println("No options file");
+        }
     }
 
     private void run(String device) {
-        ArrayList<String> args = new ArrayList<String>(Arrays.asList(getClass().getResource("tsschecker").getPath(), "-d", device, "-i", "11.4", "-s", "-e", ecidField.getText()));
+        ArrayList<String> args = new ArrayList<String>(Arrays.asList(getClass().getResource("tsschecker").getPath(), "-d", device, "-s", "-e", ecidField.getText()));
         if (boardConfig) {
             args.add("--boardconfig");
             args.add(boardConfigField.getText());
@@ -74,6 +106,12 @@ public class Controller {
         if (apnonceCheckBox.isSelected()) {
             args.add("--apnonce");
             args.add(apnonceField.getText());
+        }
+        if (versionCheckBox.isSelected()) {
+            args.add("-l");
+        } else {
+            args.add("-i");
+            args.add(versionField.getText());
         }
         Process proc = null;
         try {
@@ -103,6 +141,33 @@ public class Controller {
         } else {
             apnonceField.setDisable(true);
         }
+    }
+
+    public void versionCheckBoxHandler() {
+        if (versionCheckBox.isSelected()) {
+            versionField.setDisable(true);
+        } else {
+            versionField.setDisable(false);
+        }
+    }
+
+    public void saveOptions() {
+        Properties prop = new Properties();
+        File file = new File(getClass().getResource("").toString().substring(5), "options.properties");
+        try (OutputStream output = new FileOutputStream(file)) {
+            prop.setProperty("ecid", ecidField.getText());
+            prop.setProperty("deviceType", (String) deviceTypeChoiceBox.getValue());
+            prop.setProperty("deviceModel", (String) deviceModelChoiceBox.getValue());
+            if (boardConfig) {
+                prop.setProperty("boardConfig", boardConfigField.getText());
+            } else {
+                prop.setProperty("boardConfig", "none");
+            }
+            prop.store(output, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 
