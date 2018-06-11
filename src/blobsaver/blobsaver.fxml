@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="blobsaver.Controller">
+   <children>
+      <Label text="ECID:" />
+      <HBox prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <TextField fx:id="ecidField" />
+         </children>
+      </HBox>
+      <Label text="Device" />
+      <HBox prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0" />
+            <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0" />
+         </children>
+      </HBox>
+      <Label text="Internal Name/Board Configuration:" />
+      <TextField fx:id="boardConfigField" disable="false"/>
+      <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" text="Manually specify apnonce:" />
+      <TextField fx:id="apnonceField" disable="true"/>
+      <Button fx:id="goButton" mnemonicParsing="false" text="Go" onAction="#go"/>
+   </children>
+</VBox>
