@@ -22,8 +22,10 @@ public class Controller {
     @FXML private TextField boardConfigField;
     @FXML private TextField apnonceField;
     @FXML private TextField versionField;
+    @FXML private TextField identifierField;
     @FXML private CheckBox apnonceCheckBox;
     @FXML private CheckBox versionCheckBox;
+    @FXML private CheckBox identifierCheckBox;
     @FXML private Label versionLabel;
     @FXML private Button preset1Button;
     @FXML private Button preset2Button;
@@ -40,8 +42,8 @@ public class Controller {
                 "iPhone 6+ ", "iPhone 6", "iPhone 6s", "iPhone 6s+", "iPhone SE", "iPhone 7 (Global)(iPhone9,1)",
                 "iPhone 7+ (Global)(iPhone9,2)", "iPhone 7 (GSM)(iPhone9,3)", "iPhone 7+ (GSM)(iPhone9,4)",
                 "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
-                "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)");
-        ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6");
+                "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "");
+        ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6", "");
         ObservableList iPads = FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
                 "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
                 "iPad 3 (WiFi)", "iPad 3 (CDMA)", "iPad 3 (GSM)", "iPad 4 (WiFi)", "iPad 4 (GSM)", "iPad 4 (Global)",
@@ -51,8 +53,8 @@ public class Controller {
                 "iPad Pro 9.7 (Wifi)", "iPad Pro 9.7 (Cellular)", "iPad Pro 12.9 (WiFi)", "iPad Pro 12.9 (Cellular)",
                 "iPad 5 (Wifi)", "iPad 5 (Cellular)", "iPad Pro 2 12.9 (WiFi)(iPad7,1)", "iPad Pro 2 12.9 (Cellular)(iPad7,2)",
                 "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)", "iPad 6 (Cellular)(iPad7,6)");
-        ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
-        deviceTypeChoiceBox.setItems(FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV"));
+        ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K", "");
+        deviceTypeChoiceBox.setItems(FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV", ""));
 
         deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
             String v = (String) newValue;
@@ -78,6 +80,17 @@ public class Controller {
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
             String v = (String) newValue;
             if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE")) {
+                boardConfig = true;
+                boardConfigField.setDisable(false);
+            } else {
+                boardConfig = false;
+                boardConfigField.setText("");
+                boardConfigField.setDisable(true);
+            }
+        });
+        identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
+            String v = newValue;
+            if (v.equals("iPhone8,1") || v.equals("iPhone8,2") || v.equals("iPhone8,4")) {
                 boardConfig = true;
                 boardConfigField.setDisable(false);
             } else {
@@ -130,6 +143,7 @@ public class Controller {
         if (apnonceCheckBox.isSelected()) {
             apnonceField.setDisable(false);
         } else {
+            apnonceField.setText("");
             apnonceField.setDisable(true);
         }
     }
@@ -139,6 +153,21 @@ public class Controller {
             versionField.setDisable(true);
         } else {
             versionField.setDisable(false);
+        }
+    }
+
+    public void identifierCheckBoxHandler() {
+        if (identifierCheckBox.isSelected()) {
+            identifierField.setDisable(false);
+            deviceTypeChoiceBox.setValue("");
+            deviceModelChoiceBox.setValue("");
+            deviceTypeChoiceBox.setDisable(true);
+            deviceModelChoiceBox.setDisable(true);
+        } else {
+            identifierField.setText("");
+            identifierField.setDisable(true);
+            deviceTypeChoiceBox.setDisable(false);
+            deviceModelChoiceBox.setDisable(false);
         }
     }
 
@@ -439,6 +468,11 @@ public class Controller {
                 break;
             case "iPad 6 (Cellular)(iPad7,6)":
                 run("iPad7,6");
+                break;
+            case "":
+                if (!identifierField.getText().equals("")) {
+                    run(identifierField.getText());
+                }
                 break;
             default:
                 System.out.print(""); // TODO: Show an error
