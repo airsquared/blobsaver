@@ -3,11 +3,9 @@ package blobsaver;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -27,7 +25,11 @@ public class Controller {
     @FXML private CheckBox apnonceCheckBox;
     @FXML private CheckBox versionCheckBox;
     @FXML private Label versionLabel;
+    @FXML private Button preset1Button;
+    @FXML private Button preset2Button;
+    @FXML private Button preset3Button;
     private boolean boardConfig = false;
+    private boolean editingPresets = false;
 
     @SuppressWarnings("unchecked")
     @FXML
@@ -73,28 +75,6 @@ public class Controller {
                 boardConfigField.setDisable(true);
             }
         });
-        File file;
-        try {
-            file = new File(getClass().getResource("options.properties").toURI());
-            if (file.exists()) {
-                Properties prop = new Properties();
-                try (InputStream input = new FileInputStream(file)) {
-                    prop.load(input);
-                    ecidField.setText(prop.getProperty("ecid"));
-                    deviceTypeChoiceBox.setValue(prop.getProperty("deviceType"));
-                    deviceModelChoiceBox.setValue(prop.getProperty("deviceModel"));
-                    if (!prop.getProperty("boardConfig").equals("none")) {
-                        boardConfigField.setText(prop.getProperty("boardConfig"));
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            System.out.println("No options file");
-        }
     }
 
     private void run(String device) {
@@ -151,9 +131,46 @@ public class Controller {
         }
     }
 
-    public void saveOptions() {
+    private void loadPreset(int preset) {
+        File file;
+        try {
+            file = new File(getClass().getResource("preset" + Integer.toString(preset) + ".properties").toURI());
+            if (file.exists()) {
+                Properties prop = new Properties();
+                try (InputStream input = new FileInputStream(file)) {
+                    prop.load(input);
+                    ecidField.setText(prop.getProperty("ecid"));
+                    deviceTypeChoiceBox.setValue(prop.getProperty("deviceType"));
+                    deviceModelChoiceBox.setValue(prop.getProperty("deviceModel"));
+                    if (!prop.getProperty("boardConfig").equals("none")) {
+                        boardConfigField.setText(prop.getProperty("boardConfig"));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            System.out.println("No options file");
+        }
+    }
+
+    public void presetButtonHandler(ActionEvent evt) {
+        Button btn = (Button) evt.getTarget();
+        String text = btn.getText();
+        int preset = Integer.valueOf(text.substring(text.length() - 1));
+        if (editingPresets) {
+            saveOptions(preset);
+            saveOptionsHandler();
+        } else {
+            loadPreset(preset);
+        }
+    }
+
+    private void saveOptions(int preset) {
         Properties prop = new Properties();
-        File file = new File(getClass().getResource("").toString().substring(5), "options.properties");
+        File file = new File(getClass().getResource("").toString().substring(5), "preset" + Integer.toString(preset) + ".properties");
         try (OutputStream output = new FileOutputStream(file)) {
             prop.setProperty("ecid", ecidField.getText());
             prop.setProperty("deviceType", (String) deviceTypeChoiceBox.getValue());
@@ -167,7 +184,20 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    public void saveOptionsHandler() {
+        editingPresets = !editingPresets;
+        if (editingPresets) {
+            preset1Button.setText("Save in Preset 1");
+            preset2Button.setText("Save in Preset 2");
+            preset3Button.setText("Save in Preset 3");
+        } else {
+            preset1Button.setText("Load Preset 1");
+            preset2Button.setText("Load Preset 2");
+            preset3Button.setText("Load Preset 3");
+        }
+        System.out.println(editingPresets);
     }
 
 

@@ -4,7 +4,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-      minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8"
+      minWidth="-Infinity"
+      prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8"
       fx:controller="blobsaver.Controller">
     <Label text="ECID:"/>
     <HBox prefHeight="100.0" prefWidth="200.0">
@@ -26,6 +27,12 @@
     <TextField fx:id="apnonceField" disable="true"/>
     <HBox prefHeight="100.0" prefWidth="200.0">
         <Button mnemonicParsing="false" onAction="#go" text="Go"/>
-        <Button mnemonicParsing="false" text="Save options" onAction="#saveOptions"/>
+        <Button mnemonicParsing="false" onAction="#saveOptionsHandler" text="Save as preset"/>
+        <Button mnemonicParsing="false" text="Load Preset 1" onAction="#presetButtonHandler"
+                fx:id="preset1Button"/>
+        <Button mnemonicParsing="false" text="Load Preset 2" onAction="#presetButtonHandler"
+                fx:id="preset2Button"/>
+        <Button mnemonicParsing="false" text="Load Preset 3" onAction="#presetButtonHandler"
+                fx:id="preset3Button"/>
     </HBox>
 </VBox>
