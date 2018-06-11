@@ -6,6 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -18,33 +20,41 @@ public class Controller {
 
     @FXML private ChoiceBox deviceTypeChoiceBox;
     @FXML private ChoiceBox deviceModelChoiceBox;
+
     @FXML private TextField ecidField;
     @FXML private TextField boardConfigField;
     @FXML private TextField apnonceField;
     @FXML private TextField versionField;
     @FXML private TextField identifierField;
+
     @FXML private CheckBox apnonceCheckBox;
     @FXML private CheckBox versionCheckBox;
     @FXML private CheckBox identifierCheckBox;
+
     @FXML private Label versionLabel;
+
     @FXML private Button preset1Button;
     @FXML private Button preset2Button;
     @FXML private Button preset3Button;
+    @FXML private Button goButton;
+
     private boolean boardConfig = false;
     private boolean editingPresets = false;
+
+    private DropShadow errorBorder = new DropShadow();
 
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
-        ObservableList iPhones = FXCollections.observableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
+        final ObservableList iPhones = FXCollections.observableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
                 "iPhone 4 (GSM 2012)", "iPhone 4 (CDMA)", "iPhone 4[S]", "iPhone 5 (GSM)", "iPhone 5 (Global)",
                 "iPhone 5c (GSM)", "iPhone 5c (Global)", "iPhone 5s (GSM)", "iPhone 5s (Global)",
                 "iPhone 6+ ", "iPhone 6", "iPhone 6s", "iPhone 6s+", "iPhone SE", "iPhone 7 (Global)(iPhone9,1)",
                 "iPhone 7+ (Global)(iPhone9,2)", "iPhone 7 (GSM)(iPhone9,3)", "iPhone 7+ (GSM)(iPhone9,4)",
                 "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
                 "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "");
-        ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6", "");
-        ObservableList iPads = FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
+        final ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6", "");
+        final ObservableList iPads = FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
                 "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
                 "iPad 3 (WiFi)", "iPad 3 (CDMA)", "iPad 3 (GSM)", "iPad 4 (WiFi)", "iPad 4 (GSM)", "iPad 4 (Global)",
                 "iPad Air (Wifi)", "iPad Air (Cellular)", "iPad Air (China)", "iPad Mini 2 (WiFi)", "iPad Mini 2 (Cellular)",
@@ -52,8 +62,8 @@ public class Controller {
                 "iPad Mini 4 (Wifi)", "iPad Mini 4 (Cellular)", "iPad Air 2 (WiFi)", "iPad Air 2 (Cellular)",
                 "iPad Pro 9.7 (Wifi)", "iPad Pro 9.7 (Cellular)", "iPad Pro 12.9 (WiFi)", "iPad Pro 12.9 (Cellular)",
                 "iPad 5 (Wifi)", "iPad 5 (Cellular)", "iPad Pro 2 12.9 (WiFi)(iPad7,1)", "iPad Pro 2 12.9 (Cellular)(iPad7,2)",
-                "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)", "iPad 6 (Cellular)(iPad7,6)");
-        ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K", "");
+                "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)", "iPad 6 (Cellular)(iPad7,6)", "");
+        final ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K", "");
         deviceTypeChoiceBox.setItems(FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV", ""));
 
         deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
@@ -80,9 +90,18 @@ public class Controller {
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
             String v = (String) newValue;
             if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE")) {
+                int depth = 20;
+                DropShadow borderGlow = new DropShadow();
+                borderGlow.setOffsetY(0f);
+                borderGlow.setOffsetX(0f);
+                borderGlow.setColor(Color.DARKCYAN);
+                borderGlow.setWidth(depth);
+                borderGlow.setHeight(depth);
+                boardConfigField.setEffect(borderGlow);
                 boardConfig = true;
                 boardConfigField.setDisable(false);
             } else {
+                boardConfigField.setEffect(null);
                 boardConfig = false;
                 boardConfigField.setText("");
                 boardConfigField.setDisable(true);
@@ -91,14 +110,31 @@ public class Controller {
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
             String v = newValue;
             if (v.equals("iPhone8,1") || v.equals("iPhone8,2") || v.equals("iPhone8,4")) {
+                int depth = 20;
+                DropShadow borderGlow = new DropShadow();
+                borderGlow.setOffsetY(0f);
+                borderGlow.setOffsetX(0f);
+                borderGlow.setColor(Color.DARKCYAN);
+                borderGlow.setWidth(depth);
+                borderGlow.setHeight(depth);
+                boardConfigField.setEffect(borderGlow);
                 boardConfig = true;
                 boardConfigField.setDisable(false);
             } else {
+                boardConfigField.setEffect(null);
                 boardConfig = false;
                 boardConfigField.setText("");
                 boardConfigField.setDisable(true);
             }
         });
+        goButton.setDefaultButton(true);
+
+
+        errorBorder.setOffsetY(0f);
+        errorBorder.setOffsetX(0f);
+        errorBorder.setColor(Color.RED);
+        errorBorder.setWidth(20);
+        errorBorder.setHeight(20);
     }
 
     private void run(String device) {
@@ -142,7 +178,16 @@ public class Controller {
     public void apnonceCheckBoxHandler() {
         if (apnonceCheckBox.isSelected()) {
             apnonceField.setDisable(false);
+            int depth = 20;
+            DropShadow borderGlow = new DropShadow();
+            borderGlow.setOffsetY(0f);
+            borderGlow.setOffsetX(0f);
+            borderGlow.setColor(Color.DARKCYAN);
+            borderGlow.setWidth(depth);
+            borderGlow.setHeight(depth);
+            apnonceField.setEffect(borderGlow);
         } else {
+            apnonceField.setEffect(null);
             apnonceField.setText("");
             apnonceField.setDisable(true);
         }
@@ -151,7 +196,18 @@ public class Controller {
     public void versionCheckBoxHandler() {
         if (versionCheckBox.isSelected()) {
             versionField.setDisable(true);
+            versionField.setEffect(null);
+            versionField.setText("");
         } else {
+            int depth = 20;
+            DropShadow borderGlow = new DropShadow();
+            borderGlow.setOffsetY(0f);
+            borderGlow.setOffsetX(0f);
+            borderGlow.setColor(Color.DARKCYAN);
+            borderGlow.setWidth(depth);
+            borderGlow.setHeight(depth);
+            versionField.setEffect(borderGlow);
+
             versionField.setDisable(false);
         }
     }
@@ -159,11 +215,20 @@ public class Controller {
     public void identifierCheckBoxHandler() {
         if (identifierCheckBox.isSelected()) {
             identifierField.setDisable(false);
+            int depth = 20;
+            DropShadow borderGlow = new DropShadow();
+            borderGlow.setOffsetY(0f);
+            borderGlow.setOffsetX(0f);
+            borderGlow.setColor(Color.DARKCYAN);
+            borderGlow.setWidth(depth);
+            borderGlow.setHeight(depth);
+            identifierField.setEffect(borderGlow);
             deviceTypeChoiceBox.setValue("");
             deviceModelChoiceBox.setValue("");
             deviceTypeChoiceBox.setDisable(true);
             deviceModelChoiceBox.setDisable(true);
         } else {
+            identifierField.setEffect(null);
             identifierField.setText("");
             identifierField.setDisable(true);
             deviceTypeChoiceBox.setDisable(false);
@@ -229,10 +294,24 @@ public class Controller {
     public void saveOptionsHandler() {
         editingPresets = !editingPresets;
         if (editingPresets) {
-            preset1Button.setText("Save in Preset 1");
-            preset2Button.setText("Save in Preset 2");
-            preset3Button.setText("Save in Preset 3");
+            int depth = 40;
+            DropShadow borderGlow = new DropShadow();
+            borderGlow.setOffsetY(0f);
+            borderGlow.setOffsetX(0f);
+            borderGlow.setColor(Color.CYAN);
+            borderGlow.setWidth(depth);
+            borderGlow.setHeight(depth);
+
+            preset1Button.setEffect(borderGlow);
+            preset2Button.setEffect(borderGlow);
+            preset3Button.setEffect(borderGlow);
+            preset1Button.setText("Preset 1");
+            preset2Button.setText("Preset 2");
+            preset3Button.setText("Preset 3");
         } else {
+            preset1Button.setEffect(null);
+            preset2Button.setEffect(null);
+            preset3Button.setEffect(null);
             preset1Button.setText("Load Preset 1");
             preset2Button.setText("Load Preset 2");
             preset3Button.setText("Load Preset 3");
@@ -242,8 +321,29 @@ public class Controller {
 
 
     public void go() {
-        if (ecidField.getText().equals("") || deviceModelChoiceBox.getValue().equals("") || (boardConfig && boardConfigField.getText().equals("")) || (apnonceCheckBox.isSelected() && apnonceField.getText().equals(""))) {
-            return; // TODO: Print an error message
+        boolean doReturn = false;
+        if (ecidField.getText().equals("")) {
+            ecidField.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (!identifierCheckBox.isSelected() && ((deviceModelChoiceBox.getValue() == null) || (deviceModelChoiceBox.getValue() == ""))) {
+            deviceModelChoiceBox.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (identifierCheckBox.isSelected() && identifierField.getText().equals("")) {
+            identifierField.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (boardConfig && boardConfigField.getText().equals("")) {
+            boardConfigField.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (apnonceCheckBox.isSelected() && apnonceField.getText().equals("")) {
+            apnonceField.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (doReturn) {
+            return;
         }
         String deviceModel = (String) deviceModelChoiceBox.getValue();
         switch (deviceModel) {

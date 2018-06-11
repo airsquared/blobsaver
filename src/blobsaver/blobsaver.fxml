@@ -1,39 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
       minWidth="-Infinity"
       prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8"
       fx:controller="blobsaver.Controller">
-    <Label text="ECID:"/>
-    <HBox prefHeight="100.0" prefWidth="200.0">
-        <TextField fx:id="ecidField"/>
+    <Label text="ECID:">
+        <VBox.margin>
+            <Insets left="10.0" top="10.0"/>
+        </VBox.margin>
+    </Label>
+    <HBox>
+        <VBox.margin>
+            <Insets bottom="5.0" top="5.0"/>
+        </VBox.margin>
+        <TextField fx:id="ecidField">
+            <HBox.margin>
+                <Insets left="10.0"/>
+            </HBox.margin>
+        </TextField>
     </HBox>
-    <Label text="Device"/>
-    <HBox prefHeight="100.0" prefWidth="200.0">
-        <CheckBox mnemonicParsing="false" text="Manually Specify Identifier:" fx:id="identifierCheckBox"
-                  onAction="#identifierCheckBoxHandler"/>
-        <TextField disable="true" fx:id="identifierField"/>
+    <Label text="Identifier">
+        <VBox.margin>
+            <Insets left="10.0" top="5.0"/>
+        </VBox.margin>
+    </Label>
+    <HBox>
+        <VBox.margin>
+            <Insets bottom="5.0" top="5.0"/>
+        </VBox.margin>
+        <CheckBox fx:id="identifierCheckBox" mnemonicParsing="false" onAction="#identifierCheckBoxHandler"
+                  text="Manually Specify Identifier:">
+            <HBox.margin>
+                <Insets left="10.0"/>
+            </HBox.margin>
+        </CheckBox>
+        <TextField fx:id="identifierField" disable="true">
+            <HBox.margin>
+                <Insets left="10.0"/>
+            </HBox.margin>
+        </TextField>
     </HBox>
-    <HBox prefHeight="100.0" prefWidth="200.0">
-        <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0"/>
-        <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0"/>
+    <HBox>
+        <VBox.margin>
+            <Insets bottom="5.0" top="5.0"/>
+        </VBox.margin>
+        <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0">
+            <HBox.margin>
+                <Insets left="10.0"/>
+            </HBox.margin>
+        </ChoiceBox>
+        <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0">
+            <HBox.margin>
+                <Insets left="10.0"/>
+            </HBox.margin>
+        </ChoiceBox>
     </HBox>
-    <Label fx:id="versionLabel" text="Version"/>
+    <Label fx:id="versionLabel" text="Version">
+        <VBox.margin>
+            <Insets left="10.0" top="5.0"/>
+        </VBox.margin>
+    </Label>
     <CheckBox fx:id="versionCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler" selected="true"
-              text="Use Latest Version"/>
-    <TextField fx:id="versionField" disable="true"/>
-    <Label text="Internal Name/Board Configuration:"/>
-    <TextField fx:id="boardConfigField" disable="true"/>
+              text="Use Latest Version">
+        <VBox.margin>
+            <Insets left="10.0" top="5.0"/>
+        </VBox.margin>
+    </CheckBox>
+    <TextField fx:id="versionField" disable="true">
+        <VBox.margin>
+            <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
+        </VBox.margin>
+    </TextField>
+    <Label text="Internal Name/Board Configuration:">
+        <VBox.margin>
+            <Insets bottom="5.0" left="10.0" top="5.0"/>
+        </VBox.margin>
+    </Label>
+    <TextField fx:id="boardConfigField" disable="true">
+        <VBox.margin>
+            <Insets bottom="5.0" left="10.0" right="10.0"/>
+        </VBox.margin>
+    </TextField>
     <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
-              text="Manually specify apnonce:"/>
-    <TextField fx:id="apnonceField" disable="true"/>
+              text="Manually specify apnonce:">
+        <VBox.margin>
+            <Insets bottom="5.0" left="10.0" top="5.0"/>
+        </VBox.margin>
+    </CheckBox>
+    <TextField fx:id="apnonceField" disable="true">
+        <VBox.margin>
+            <Insets bottom="5.0" left="10.0" right="10.0"/>
+        </VBox.margin>
+    </TextField>
     <HBox prefHeight="100.0" prefWidth="200.0">
-        <Button mnemonicParsing="false" onAction="#go" text="Go"/>
-        <Button mnemonicParsing="false" onAction="#saveOptionsHandler" text="Save as preset"/>
-        <Button fx:id="preset1Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 1"/>
-        <Button fx:id="preset2Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 2"/>
-        <Button fx:id="preset3Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 3"/>
+        <VBox.margin>
+            <Insets top="10.0"/>
+        </VBox.margin>
+        <Button mnemonicParsing="false" onAction="#go" text="Go" fx:id="goButton">
+            <HBox.margin>
+                <Insets left="10.0" right="5.0"/>
+            </HBox.margin>
+        </Button>
+        <Button mnemonicParsing="false" onAction="#saveOptionsHandler" text="Save as preset">
+            <HBox.margin>
+                <Insets left="5.0" right="5.0"/>
+            </HBox.margin>
+        </Button>
+        <Button fx:id="preset1Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 1">
+            <HBox.margin>
+                <Insets right="5.0"/>
+            </HBox.margin>
+        </Button>
+        <Button fx:id="preset2Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 2">
+            <HBox.margin>
+                <Insets right="5.0"/>
+            </HBox.margin>
+        </Button>
+        <Button fx:id="preset3Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 3">
+            <HBox.margin>
+                <Insets right="5.0"/>
+            </HBox.margin>
+        </Button>
     </HBox>
 </VBox>
