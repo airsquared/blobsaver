@@ -15,7 +15,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
-        primaryStage.setTitle("SHSH Blob Saver 1.0 alpha");
+        primaryStage.setTitle("SHSH Blob Saver 1.0 beta");
         primaryStage.setScene(new Scene(root, 500, 420));
         primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
         primaryStage.show();

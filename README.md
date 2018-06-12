@@ -1,13 +1,13 @@
 # blobsaver
-A GUI for saving SHSH blobs using tsschecker
+A GUI for saving SHSH blobs using tsschecker. Supports both Mac and <s>Windows</s>(not yet).
 
 # Features
-- Optionally Specify apnonce
-- Specify Board Config/Internal Name if needed
-- Optionally specify identifier instead of using device picker
 - Store up to three devices with presets
+- Optionally specify device identifier instead of using device picker
+- Optionally specify apnonce
+- Specify Board Config/Internal Name if needed
 
 # TODO:
-- Better GUI
-- Add console/log-type thing to show progress
-- Show errors instead of printing to console
+- Show success/failure using alerts
+- Windows support
+- Choose where to save blobs
