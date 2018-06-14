@@ -104,7 +104,7 @@
                 <Insets left="10.0" right="5.0"/>
             </HBox.margin>
         </Button>
-        <Button mnemonicParsing="false" onAction="#saveOptionsHandler" text="Save as preset">
+        <Button mnemonicParsing="false" onAction="#savePresetHandler" text="Save as preset">
             <HBox.margin>
                 <Insets left="5.0" right="5.0"/>
             </HBox.margin>

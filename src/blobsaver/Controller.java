@@ -1,5 +1,6 @@
 package blobsaver;
 
+import com.sun.javafx.PlatformUtil;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,7 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Properties;
+import java.util.prefs.Preferences;
 
 public class Controller {
 
@@ -137,7 +138,6 @@ public class Controller {
         });
         goButton.setDefaultButton(true);
 
-
         errorBorder.setOffsetY(0f);
         errorBorder.setOffsetX(0f);
         errorBorder.setColor(Color.RED);
@@ -146,7 +146,48 @@ public class Controller {
     }
 
     private void run(String device) {
-        ArrayList<String> args = new ArrayList<>(Arrays.asList(getClass().getResource("tsschecker").getPath(), "-d", device, "-s", "-e", ecidField.getText()));
+        File file;
+        try {
+            InputStream input;
+            if (PlatformUtil.isWindows()) {
+                input = getClass().getResourceAsStream("tsschecker.exe");
+                file = File.createTempFile("tsschecker", ".tmp.exe");
+            } else {
+                input = getClass().getResourceAsStream("tsschecker");
+                file = File.createTempFile("tsschecker", ".tmp");
+            }
+            OutputStream out = new FileOutputStream(file);
+            int read;
+            byte[] bytes = new byte[1024];
+
+            while ((read = input.read(bytes)) != -1) {
+                out.write(bytes, 0, read);
+            }
+            out.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return;
+        }
+        file.deleteOnExit();
+
+        if (!file.setExecutable(true, false)) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error setting tsschecker as executable.\n\nPlease create a new issue on Github or PM me on Reddit.", githubIssue, redditPM, ButtonType.CANCEL);
+            alert.showAndWait();
+            try {
+                if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
+                } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
+                }
+            } catch (IOException | URISyntaxException ee) {
+                ee.printStackTrace();
+            }
+            return;
+        }
+
+        ArrayList<String> args;
+        args = new ArrayList<>(Arrays.asList(file.getPath(), "-d", device, "-s", "-e", ecidField.getText()));
+
         if (boardConfig) {
             args.add("--boardconfig");
             args.add(boardConfigField.getText());
@@ -163,6 +204,7 @@ public class Controller {
         }
         Process proc = null;
         try {
+            System.out.println(args.toString());
             proc = new ProcessBuilder(args).start();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error starting tsschecker.\n\nPlease create a new issue on Github or PM me on Reddit. The crash log has been copied to your clipboard", githubIssue, redditPM, ButtonType.CANCEL);
@@ -182,10 +224,14 @@ public class Controller {
             e.printStackTrace();
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
-            String line = "";
+            StringBuilder log = new StringBuilder();
+            String line;
             while ((line = reader.readLine()) != null) {
                 System.out.print(line + "\n");
+                log.append(line).append("\n");
             }
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, log.toString(), ButtonType.OK);
+            alert.showAndWait();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error getting the tsschecker log.\n\nPlease create a new issue on Github or PM me on Reddit. The crash log has been copied to your clipboard", githubIssue, redditPM, ButtonType.CANCEL);
             StringSelection stringSelection = new StringSelection(e.toString());
@@ -222,6 +268,12 @@ public class Controller {
                 ee.printStackTrace();
             }
         }
+
+        if (!file.delete()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error deleting the temporary file.", githubIssue, redditPM, ButtonType.CANCEL);
+            alert.showAndWait();
+        }
+
     }
 
     public void apnonceCheckBoxHandler() {
@@ -288,48 +340,22 @@ public class Controller {
 
     @SuppressWarnings("unchecked")
     private void loadPreset(int preset) {
-        File file;
-        try {
-            file = new File(getClass().getResource("preset" + Integer.toString(preset) + ".properties").toURI());
-            if (file.exists()) {
-                Properties prop = new Properties();
-                try (InputStream input = new FileInputStream(file)) {
-                    prop.load(input);
-                    ecidField.setText(prop.getProperty("ecid"));
-                    if (prop.getProperty("deviceModel").equals("none")) {
-                        identifierCheckBox.fire();
-                        identifierField.setText(prop.getProperty("deviceIdentifier"));
-                    } else {
-                        deviceTypeChoiceBox.setValue(prop.getProperty("deviceType"));
-                        deviceModelChoiceBox.setValue(prop.getProperty("deviceModel"));
-                    }
-                    if (!prop.getProperty("boardConfig").equals("none")) {
-                        boardConfigField.setText(prop.getProperty("boardConfig"));
-                    }
-                } catch (IOException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error loading the profile.\n\nPlease create a new issue on Github or PM me on Reddit. The crash log has been copied to your clipboard", githubIssue, redditPM, ButtonType.CANCEL);
-                    StringSelection stringSelection = new StringSelection(e.toString());
-                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
-                    alert.showAndWait();
-                    try {
-                        if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                            Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
-
-                        } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                            Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
-                        }
-                    } catch (IOException | URISyntaxException ee) {
-                        ee.printStackTrace();
-                    }
-                    e.printStackTrace();
-                }
-            }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Preset " + preset + " does not have anything", ButtonType.OK);
-            alert.showAndWait();
+        Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
+        ecidField.setText(prefs.get("ECID", ""));
+        if (prefs.get("Device Model", "").equals("none")) {
+            identifierCheckBox.setSelected(true);
+            identifierCheckBoxHandler();
+            identifierField.setText(prefs.get("Device Identifier", ""));
+        } else {
+            identifierCheckBox.setSelected(false);
+            identifierCheckBoxHandler();
+            deviceTypeChoiceBox.setValue(prefs.get("Device Type", ""));
+            deviceModelChoiceBox.setValue(prefs.get("Device Model", ""));
         }
+        if (!prefs.get("Board Config", "").equals("none")) {
+            boardConfigField.setText(prefs.get("Board Config", ""));
+        }
+
     }
 
     public void presetButtonHandler(ActionEvent evt) {
@@ -337,14 +363,14 @@ public class Controller {
         String text = btn.getText();
         int preset = Integer.valueOf(text.substring(text.length() - 1));
         if (editingPresets) {
-            saveOptions(preset);
-            saveOptionsHandler();
+            savePreset(preset);
+            savePresetHandler();
         } else {
             loadPreset(preset);
         }
     }
 
-    private void saveOptions(int preset) {
+    private void savePreset(int preset) {
         boolean doReturn = false;
         if (ecidField.getText().equals("")) {
             ecidField.setEffect(errorBorder);
@@ -365,45 +391,25 @@ public class Controller {
         if (doReturn) {
             return;
         }
-        Properties prop = new Properties();
-        File file = new File(getClass().getResource("").toString().substring(5), "preset" + Integer.toString(preset) + ".properties");
-        try (OutputStream output = new FileOutputStream(file)) {
-            prop.setProperty("ecid", ecidField.getText());
-            if (identifierCheckBox.isSelected()) {
-                prop.setProperty("deviceType", "none");
-                prop.setProperty("deviceModel", "none");
-                prop.setProperty("deviceIdentifier", identifierField.getText());
-            } else {
-                prop.setProperty("deviceType", (String) deviceTypeChoiceBox.getValue());
-                prop.setProperty("deviceModel", (String) deviceModelChoiceBox.getValue());
-            }
-            if (boardConfig) {
-                prop.setProperty("boardConfig", boardConfigField.getText());
-            } else {
-                prop.setProperty("boardConfig", "none");
-            }
-            prop.store(output, null);
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error while saving the data.\n\nPlease create a new issue on Github or PM me on Reddit. The crash log has been copied to your clipboard", githubIssue, redditPM, ButtonType.CANCEL);
-            StringSelection stringSelection = new StringSelection(e.toString());
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
-            alert.showAndWait();
-            try {
-                if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
-
-                } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
-                }
-            } catch (IOException | URISyntaxException ee) {
-                ee.printStackTrace();
-            }
-
-            e.printStackTrace();
+        Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
+        prefs.putBoolean("Exists", true);
+        prefs.put("ECID", ecidField.getText());
+        if (identifierCheckBox.isSelected()) {
+            prefs.put("Device Type", "none");
+            prefs.put("Device Model", "none");
+            prefs.put("Device Identifier", identifierField.getText());
+        } else {
+            prefs.put("Device Type", (String) deviceTypeChoiceBox.getValue());
+            prefs.put("Device Model", (String) deviceModelChoiceBox.getValue());
+        }
+        if (boardConfig) {
+            prefs.put("Board Config", boardConfigField.getText());
+        } else {
+            prefs.put("Board Config", "none");
         }
     }
 
-    public void saveOptionsHandler() {
+    public void savePresetHandler() {
         editingPresets = !editingPresets;
         if (editingPresets) {
             int depth = 40;
