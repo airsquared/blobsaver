@@ -9,6 +9,9 @@ If you have an antivirus, select "Always Allow" for anything related to tsscheck
 - Optionally specify apnonce
 - Specify Board Config/Internal Name if needed
 
+# Feedback
+Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
+
 # TODO:
 - Show success/failure using alerts
 - Menu bar
