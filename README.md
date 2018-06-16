@@ -5,6 +5,7 @@ If you have an antivirus, select "Always Allow" for anything related to tsscheck
 
 # Features
 - Store up to three devices with presets
+- Automatically checks for updates and prompts if available
 - Optionally specify device identifier instead of using device picker
 - Optionally specify apnonce
 - Specify Board Config/Internal Name if needed
@@ -15,5 +16,4 @@ Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/
 # TODO:
 - Show success/failure using alerts
 - Menu bar
-- Check for updates and prompt if available
 - Choose where to save blobs
