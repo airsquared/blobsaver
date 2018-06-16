@@ -1,9 +1,12 @@
 package blobsaver;
 
 import com.sun.javafx.PlatformUtil;
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -12,14 +15,20 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 import java.util.prefs.Preferences;
 
 public class Controller {
@@ -53,6 +62,9 @@ public class Controller {
     private ButtonType redditPM = new ButtonType("PM on Reddit");
     private ButtonType githubIssue = new ButtonType("Create Issue on Github");
 
+    private URI githubIssueURI;
+    private URI redditPMURI;
+
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
@@ -62,8 +74,8 @@ public class Controller {
                 "iPhone 6+ ", "iPhone 6", "iPhone 6s", "iPhone 6s+", "iPhone SE", "iPhone 7 (Global)(iPhone9,1)",
                 "iPhone 7+ (Global)(iPhone9,2)", "iPhone 7 (GSM)(iPhone9,3)", "iPhone 7+ (GSM)(iPhone9,4)",
                 "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
-                "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "");
-        final ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6", "");
+                "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)");
+        final ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6");
         final ObservableList iPads = FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
                 "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
                 "iPad 3 (WiFi)", "iPad 3 (CDMA)", "iPad 3 (GSM)", "iPad 4 (WiFi)", "iPad 4 (GSM)", "iPad 4 (Global)",
@@ -73,11 +85,14 @@ public class Controller {
                 "iPad Pro 9.7 (Wifi)", "iPad Pro 9.7 (Cellular)", "iPad Pro 12.9 (WiFi)", "iPad Pro 12.9 (Cellular)",
                 "iPad 5 (Wifi)", "iPad 5 (Cellular)", "iPad Pro 2 12.9 (WiFi)(iPad7,1)", "iPad Pro 2 12.9 (Cellular)(iPad7,2)",
                 "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)", "iPad 6 (Cellular)(iPad7,6)", "");
-        final ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K", "");
-        deviceTypeChoiceBox.setItems(FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV", ""));
-
+        final ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
+        deviceTypeChoiceBox.setItems(FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV"));
         deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
-            String v = (String) newValue;
+            if (newValue == null) {
+                versionLabel.setText("Version");
+                return;
+            }
+            final String v = (String) newValue;
             switch (v) {
                 case "iPhone":
                     deviceModelChoiceBox.setItems(iPhones);
@@ -97,8 +112,17 @@ public class Controller {
                     break;
             }
         });
+        deviceTypeChoiceBox.setValue("iPhone");
+
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
-            String v = (String) newValue;
+            if (newValue == null) {
+                boardConfigField.setEffect(null);
+                boardConfig = false;
+                boardConfigField.setText("");
+                boardConfigField.setDisable(true);
+                return;
+            }
+            final String v = (String) newValue;
             if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE")) {
                 int depth = 20;
                 DropShadow borderGlow = new DropShadow();
@@ -117,9 +141,10 @@ public class Controller {
                 boardConfigField.setDisable(true);
             }
         });
+
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4")) {
-                int depth = 20;
+                final int depth = 20;
                 DropShadow borderGlow = new DropShadow();
                 borderGlow.setOffsetY(0f);
                 borderGlow.setOffsetX(0f);
@@ -143,6 +168,78 @@ public class Controller {
         errorBorder.setColor(Color.RED);
         errorBorder.setWidth(20);
         errorBorder.setHeight(20);
+
+        try {
+            githubIssueURI = new URI("https://github.com/airsquared/blobsaver/issues/new");
+            redditPMURI = new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        checkForUpdates();
+    }
+
+    private void checkForUpdates() {
+        Service<Void> service = new Service<Void>() {
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        StringBuilder response = new StringBuilder();
+                        try {
+                            URLConnection urlConnection = new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest").openConnection();
+                            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                            String inputLine;
+                            while ((inputLine = in.readLine()) != null) {
+                                response.append(inputLine);
+                            }
+                            in.close();
+                        } catch (FileNotFoundException ignored) {
+                            return null;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        String version;
+                        try {
+                            version = new JSONObject(response.toString()).getString("tag_name");
+                        } catch (JSONException e) {
+                            version = Main.appVersion;
+                        }
+                        if (!version.equals(Main.appVersion)) {
+                            final CountDownLatch latch = new CountDownLatch(1);
+                            String finalVersion = version;
+                            Platform.runLater(() -> {
+                                try {
+                                    ButtonType downloadNow = new ButtonType("Download now");
+
+                                    Alert alert = new Alert(
+                                            Alert.AlertType.INFORMATION, "There is a new version available: "
+                                            + finalVersion + ". You have version " + Main.appVersion, downloadNow, ButtonType.CANCEL);
+                                    alert.setHeaderText("New Update Available");
+                                    Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
+                                    dlButton.setDefaultButton(true);
+                                    alert.initModality(Modality.NONE);
+                                    alert.showAndWait();
+                                    try {
+                                        if (alert.getResult().equals(downloadNow) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                                            Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/releases/latest"));
+                                        }
+                                    } catch (IOException | URISyntaxException ee) {
+                                        ee.printStackTrace();
+                                    }
+                                } finally {
+                                    latch.countDown();
+                                }
+                            });
+                            latch.await();
+                        }
+                        return null;
+                    }
+                };
+            }
+        };
+        service.start();
     }
 
     private void run(String device) {
@@ -175,11 +272,11 @@ public class Controller {
             alert.showAndWait();
             try {
                 if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
+                    Desktop.getDesktop().browse(githubIssueURI);
                 } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
+                    Desktop.getDesktop().browse(redditPMURI);
                 }
-            } catch (IOException | URISyntaxException ee) {
+            } catch (IOException ee) {
                 ee.printStackTrace();
             }
             return;
@@ -204,7 +301,6 @@ public class Controller {
         }
         Process proc = null;
         try {
-            System.out.println(args.toString());
             proc = new ProcessBuilder(args).start();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error starting tsschecker.\n\nPlease create a new issue on Github or PM me on Reddit. The crash log has been copied to your clipboard", githubIssue, redditPM, ButtonType.CANCEL);
@@ -213,12 +309,12 @@ public class Controller {
             alert.showAndWait();
             try {
                 if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
+                    Desktop.getDesktop().browse(githubIssueURI);
 
                 } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
+                    Desktop.getDesktop().browse(redditPMURI);
                 }
-            } catch (IOException | URISyntaxException ee) {
+            } catch (IOException ee) {
                 ee.printStackTrace();
             }
             e.printStackTrace();
@@ -227,7 +323,6 @@ public class Controller {
             StringBuilder log = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.print(line + "\n");
                 log.append(line).append("\n");
             }
             Alert alert = new Alert(Alert.AlertType.INFORMATION, log.toString(), ButtonType.OK);
@@ -239,12 +334,12 @@ public class Controller {
             alert.showAndWait();
             try {
                 if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
+                    Desktop.getDesktop().browse(githubIssueURI);
 
                 } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
+                    Desktop.getDesktop().browse(redditPMURI);
                 }
-            } catch (IOException | URISyntaxException ee) {
+            } catch (IOException ee) {
                 ee.printStackTrace();
             }
             e.printStackTrace();
@@ -259,12 +354,12 @@ public class Controller {
             alert.showAndWait();
             try {
                 if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
+                    Desktop.getDesktop().browse(githubIssueURI);
 
                 } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
+                    Desktop.getDesktop().browse(redditPMURI);
                 }
-            } catch (IOException | URISyntaxException ee) {
+            } catch (IOException ee) {
                 ee.printStackTrace();
             }
         }
@@ -325,10 +420,13 @@ public class Controller {
             borderGlow.setWidth(depth);
             borderGlow.setHeight(depth);
             identifierField.setEffect(borderGlow);
-            deviceTypeChoiceBox.setValue("");
-            deviceModelChoiceBox.setValue("");
+            deviceTypeChoiceBox.getSelectionModel().clearSelection();
+            deviceModelChoiceBox.getSelectionModel().clearSelection();
+            deviceTypeChoiceBox.setValue(null);
             deviceTypeChoiceBox.setDisable(true);
             deviceModelChoiceBox.setDisable(true);
+            deviceTypeChoiceBox.setEffect(null);
+            deviceModelChoiceBox.setEffect(null);
         } else {
             identifierField.setEffect(null);
             identifierField.setText("");
@@ -443,6 +541,10 @@ public class Controller {
             ecidField.setEffect(errorBorder);
             doReturn = true;
         }
+        if (!identifierCheckBox.isSelected() && ((deviceTypeChoiceBox.getValue() == null) || (deviceTypeChoiceBox.getValue() == ""))) {
+            deviceTypeChoiceBox.setEffect(errorBorder);
+            doReturn = true;
+        }
         if (!identifierCheckBox.isSelected() && ((deviceModelChoiceBox.getValue() == null) || (deviceModelChoiceBox.getValue() == ""))) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
@@ -463,6 +565,9 @@ public class Controller {
             return;
         }
         String deviceModel = (String) deviceModelChoiceBox.getValue();
+        if (deviceModel == null) {
+            deviceModel = "";
+        }
         switch (deviceModel) {
             case "iPhone 3G[S]":
                 run("iPhone2,1");
@@ -689,14 +794,7 @@ public class Controller {
             case "":
                 String identifierText = identifierField.getText();
                 try {
-                    // Throws StringIndexOutOfBoundsException even if identifier is correct if I don't do it like this:
-                    if (identifierText.substring(0, 4).equals("iPad")) {
-                        run(identifierField.getText());
-                    } else if (identifierText.substring(0, 4).equals("iPod")) {
-                        run(identifierField.getText());
-                    } else if (identifierText.substring(0, 6).equals("iPhone")) {
-                        run(identifierField.getText());
-                    } else if (identifierText.substring(0, 7).equals("AppleTV")) {
+                    if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
                         run(identifierField.getText());
                     } else {
                         Alert alert = new Alert(Alert.AlertType.ERROR, "\"" + identifierText +
@@ -718,12 +816,12 @@ public class Controller {
                 alert.showAndWait();
                 try {
                     if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                        Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new"));
+                        Desktop.getDesktop().browse(githubIssueURI);
 
                     } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                        Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
+                        Desktop.getDesktop().browse(redditPMURI);
                     }
-                } catch (IOException | URISyntaxException ee) {
+                } catch (IOException ee) {
                     ee.printStackTrace();
                 }
                 break;

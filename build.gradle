@@ -1,6 +1,11 @@
-version '1.0-SNAPSHOT'
 
-apply plugin: 'java'
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4' // plugin for fat jar
+    id 'java'
+}
+
+version '1.0beta'
 
 sourceCompatibility = 1.8
 
@@ -9,11 +14,16 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    // https://mvnrepository.com/artifact/org.json/json
+    compile group: 'org.json', name: 'json', version: '20180130'
 }
 
 jar {
     manifest {
         attributes 'Main-Class': 'blobsaver.Main'
     }
+}
+
+shadowJar {
+    classifier = null // remove '-all' suffix
 }

@@ -9,6 +9,8 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
+    static final String appVersion = "v1.0beta";
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -16,7 +18,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
-        primaryStage.setTitle("SHSH Blob Saver 1.0 beta");
+        primaryStage.setTitle("SHSH Blob Saver " + appVersion);
         if (PlatformUtil.isWindows()) {
             primaryStage.setScene(new Scene(root, 520, 450));
         } else {
