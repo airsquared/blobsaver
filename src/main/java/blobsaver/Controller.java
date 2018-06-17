@@ -214,9 +214,8 @@ public class Controller {
                                     ButtonType downloadNow = new ButtonType("Download now");
 
                                     Alert alert = new Alert(
-                                            Alert.AlertType.INFORMATION, "There is a new version available: "
-                                            + finalVersion + ". You have version " + Main.appVersion, downloadNow, ButtonType.CANCEL);
-                                    alert.setHeaderText("New Update Available");
+                                            Alert.AlertType.INFORMATION, "You have version " + Main.appVersion, downloadNow, ButtonType.CANCEL);
+                                    alert.setHeaderText("New Update Available: " + finalVersion);
                                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
                                     dlButton.setDefaultButton(true);
                                     alert.initModality(Modality.NONE);
@@ -319,13 +318,16 @@ public class Controller {
             }
             e.printStackTrace();
         }
+        String tsscheckerLog;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
-            StringBuilder log = new StringBuilder();
+            StringBuilder logBuilder = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                log.append(line).append("\n");
+                System.out.println(line + "\n");
+                logBuilder.append(line).append("\n");
             }
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, log.toString(), ButtonType.OK);
+            tsscheckerLog = logBuilder.toString();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, logBuilder.toString(), ButtonType.OK);
             alert.showAndWait();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error getting the tsschecker log.\n\nPlease create a new issue on Github or PM me on Reddit. The crash log has been copied to your clipboard", githubIssue, redditPM, ButtonType.CANCEL);
@@ -343,6 +345,107 @@ public class Controller {
                 ee.printStackTrace();
             }
             e.printStackTrace();
+            return;
+        }
+
+        boolean resultShown = false;
+        if (tsscheckerLog.contains("Saved shsh blobs!")) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs!", ButtonType.OK);
+            alert.showAndWait();
+            resultShown = true;
+        }
+        if (tsscheckerLog.contains("[Error] [TSSC] manually specified ecid=" + ecidField.getText() + ", but parsing failed")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "\"" + ecidField.getText() + "\"" + " is not a valid ECID. Try getting it from iTunes", ButtonType.OK);
+            alert.showAndWait();
+            resultShown = true;
+        }
+        if (tsscheckerLog.contains("[Error] [TSSC] device " + device + " could not be found in devicelist")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "tsschecker could not find device: \"" + device +
+                    "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu", githubIssue, redditPM, ButtonType.CANCEL);
+            alert.showAndWait();
+            resultShown = true;
+            try {
+                if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(githubIssueURI);
+
+                } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(redditPMURI);
+                }
+            } catch (IOException ee) {
+                ee.printStackTrace();
+            }
+        }
+        if (tsscheckerLog.contains("[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + versionField.getText())) {
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "Could not find device \"" + device + "\" on iOS/tvOS " + versionField.getText() +
+                            "\n\nThe version probably doesn't exist or isn't compatible with the device", ButtonType.OK);
+            alert.showAndWait();
+            resultShown = true;
+        }
+        if (tsscheckerLog.contains("[Error] [TSSC] manually specified apnonce=" + apnonceField.getText() + ", but parsing failed")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "\"" + apnonceField.getText() + "\" is not a valid apnonce", ButtonType.OK);
+            alert.showAndWait();
+            resultShown = true;
+        }
+        if (tsscheckerLog.contains("[WARNING] [TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually")
+                && tsscheckerLog.contains("[Error] [TSSR] Error: could not get id0 for installType=Update")
+                && tsscheckerLog.contains("[Error] [TSSR] faild to build tssrequest")
+                && tsscheckerLog.contains("Error] [TSSC] checking tss status failed!")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "Saving blobs failed. Check the board configuration.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                    githubIssue, redditPM, ButtonType.OK);
+            StringSelection stringSelection = new StringSelection(tsscheckerLog);
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
+            alert.showAndWait();
+            resultShown = true;
+            try {
+                if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(githubIssueURI);
+
+                } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(redditPMURI);
+                }
+            } catch (IOException ee) {
+                ee.printStackTrace();
+            }
+        }
+        if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com(in your broweser), please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                    githubIssue, redditPM, ButtonType.OK);
+            StringSelection stringSelection = new StringSelection(tsscheckerLog);
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
+            alert.showAndWait();
+            resultShown = true;
+            try {
+                if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(githubIssueURI);
+
+                } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(redditPMURI);
+                }
+            } catch (IOException ee) {
+                ee.printStackTrace();
+            }
+        }
+        if (tsscheckerLog.contains("[Error]") && !resultShown) {
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "Saving blobs failed. Check your internet connection.\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                    githubIssue, redditPM, ButtonType.OK);
+            StringSelection stringSelection = new StringSelection(tsscheckerLog);
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
+            alert.showAndWait();
+            try {
+                if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(githubIssueURI);
+
+                } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(redditPMURI);
+                }
+            } catch (IOException ee) {
+                ee.printStackTrace();
+            }
         }
 
         try {
@@ -363,6 +466,7 @@ public class Controller {
                 ee.printStackTrace();
             }
         }
+
 
         if (!file.delete()) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "There was an error deleting the temporary file.", githubIssue, redditPM, ButtonType.CANCEL);
@@ -798,13 +902,13 @@ public class Controller {
                         run(identifierField.getText());
                     } else {
                         Alert alert = new Alert(Alert.AlertType.ERROR, "\"" + identifierText +
-                                "\" is not a valid identifier", ButtonType.OK, ButtonType.CANCEL);
+                                "\" is not a valid identifier", ButtonType.OK);
                         alert.showAndWait();
                         return;
                     }
                 } catch (StringIndexOutOfBoundsException e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR, "\"" + identifierText +
-                            "\" is not a valid identifier", ButtonType.OK, ButtonType.CANCEL);
+                            "\" is not a valid identifier", ButtonType.OK);
                     alert.showAndWait();
                     return;
                 }
