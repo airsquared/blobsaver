@@ -1,11 +1,9 @@
-
-
 plugins {
     id 'com.github.johnrengelman.shadow' version '2.0.4' // plugin for fat jar
     id 'java'
 }
 
-version '1.0beta'
+version '1.0'
 
 sourceCompatibility = 1.8
 
