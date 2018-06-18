@@ -95,11 +95,21 @@
             <Insets bottom="5.0" left="10.0" right="10.0"/>
         </VBox.margin>
     </TextField>
+    <Label text="Path">
+        <VBox.margin>
+            <Insets bottom="5.0" left="10.0" top="5.0"/>
+        </VBox.margin>
+    </Label>
+    <TextField fx:id="pathField">
+        <VBox.margin>
+            <Insets bottom="5.0" left="10.0" right="10.0"/>
+        </VBox.margin>
+    </TextField>
     <HBox prefHeight="100.0" prefWidth="200.0">
         <VBox.margin>
             <Insets top="10.0"/>
         </VBox.margin>
-        <Button mnemonicParsing="false" onAction="#go" text="Go" fx:id="goButton">
+        <Button fx:id="goButton" mnemonicParsing="false" onAction="#go" text="Go">
             <HBox.margin>
                 <Insets left="10.0" right="5.0"/>
             </HBox.margin>
@@ -109,17 +119,20 @@
                 <Insets left="5.0" right="5.0"/>
             </HBox.margin>
         </Button>
-        <Button fx:id="preset1Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 1">
+        <Button fx:id="preset1Button" mnemonicParsing="false" onAction="#presetButtonHandler"
+                text="Load Preset 1">
             <HBox.margin>
                 <Insets right="5.0"/>
             </HBox.margin>
         </Button>
-        <Button fx:id="preset2Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 2">
+        <Button fx:id="preset2Button" mnemonicParsing="false" onAction="#presetButtonHandler"
+                text="Load Preset 2">
             <HBox.margin>
                 <Insets right="5.0"/>
             </HBox.margin>
         </Button>
-        <Button fx:id="preset3Button" mnemonicParsing="false" onAction="#presetButtonHandler" text="Load Preset 3">
+        <Button fx:id="preset3Button" mnemonicParsing="false" onAction="#presetButtonHandler"
+                text="Load Preset 3">
             <HBox.margin>
                 <Insets right="5.0"/>
             </HBox.margin>

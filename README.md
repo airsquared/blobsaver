@@ -5,17 +5,16 @@ If you have an antivirus, select "Always Allow" for anything related to tsscheck
 
 ## Features
 - Store up to three devices with presets
+- Choose where to save blobs
 - Automatically checks for updates and prompts if available
 - Optionally specify device identifier instead of using device picker
 - Optionally specify apnonce
-- Specify Board Config/Internal Name if needed
 
 ## Feedback
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
-- Menu bar
-- Choose where to save blobs
+- Daemon to do it automatically in the background (Possiblity?)
 
 ## Built With
 - JDK 8
@@ -23,4 +22,4 @@ Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/
 - [Gradle](https://gradle.org/) 
 
 ## License
-This project is licensed under the GNU GPL v3.0 - see the LICENSE.md file for details
+This project is licensed under the GNU GPL v3.0 - see the [LICENSE](https://github.com/airsquared/blobsaver/blob/master/LICENSE) file for details
