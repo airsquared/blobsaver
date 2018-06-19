@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
 
     static final String appVersion = "v1.0";
+    static Stage primaryStage;
 
     public static void main(String[] args) {
         launch(args);
@@ -27,5 +28,6 @@ public class Main extends Application {
         primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
         primaryStage.show();
         primaryStage.setResizable(false);
+        Main.primaryStage = primaryStage;
     }
 }

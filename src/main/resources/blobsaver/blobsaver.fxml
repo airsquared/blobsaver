@@ -100,11 +100,14 @@
             <Insets bottom="5.0" left="10.0" top="5.0"/>
         </VBox.margin>
     </Label>
-    <TextField fx:id="pathField">
+    <AnchorPane>
         <VBox.margin>
             <Insets bottom="5.0" left="10.0" right="10.0"/>
         </VBox.margin>
-    </TextField>
+        <TextField fx:id="pathField" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+        <Button mnemonicParsing="false" text="..." AnchorPane.rightAnchor="0.0" onAction="#filePickerHandler"/>
+    </AnchorPane>
     <HBox prefHeight="100.0" prefWidth="200.0">
         <VBox.margin>
             <Insets top="10.0"/>

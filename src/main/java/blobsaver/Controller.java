@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -494,6 +495,23 @@ public class Controller {
             identifierField.setDisable(true);
             deviceTypeChoiceBox.setDisable(false);
             deviceModelChoiceBox.setDisable(false);
+        }
+    }
+
+    public void filePickerHandler() {
+        DirectoryChooser dirChooser = new DirectoryChooser();
+        dirChooser.setTitle("Choose a folder to save Blobs in");
+        File startIn = new File(pathField.getText());
+        if (startIn.exists()) {
+            dirChooser.setInitialDirectory(startIn);
+        } else if (startIn.getParentFile().exists()) {
+            dirChooser.setInitialDirectory(startIn.getParentFile());
+        } else {
+            dirChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        }
+        File result = dirChooser.showDialog(Main.primaryStage);
+        if (result != null) {
+            pathField.setText(result.toString());
         }
     }
 
