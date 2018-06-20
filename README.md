@@ -18,7 +18,8 @@ Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/
 ## TODO:
 - Support for saving blobs for beta versions
 - More presets
-- Try packaging in to .app for macOS [maybe this](https://github.com/Jorl17/jar2app)
+- Renaming presets
+- Try packaging into .app for macOS [maybe this](https://github.com/Jorl17/jar2app)
 - Daemon to do it automatically in the background (Possibility?)
 - Use libimobiledevice to read ECID directly from device (Possibility?)
 

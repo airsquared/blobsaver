@@ -16,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,10 +45,13 @@ public class Controller {
     @FXML private TextField versionField;
     @FXML private TextField identifierField;
     @FXML private TextField pathField;
+    @FXML private TextField buildManifestField;
+    @FXML private TextField buildIDField;
 
     @FXML private CheckBox apnonceCheckBox;
     @FXML private CheckBox versionCheckBox;
     @FXML private CheckBox identifierCheckBox;
+    @FXML private CheckBox betaCheckBox;
 
     @FXML private Label versionLabel;
 
@@ -55,6 +59,7 @@ public class Controller {
     @FXML private Button preset2Button;
     @FXML private Button preset3Button;
     @FXML private Button goButton;
+    @FXML private Button plistPickerButton;
 
     private boolean boardConfig = false;
     private boolean editingPresets = false;
@@ -350,6 +355,14 @@ public class Controller {
         }
         if (versionCheckBox.isSelected()) {
             args.add("-l");
+        } else if (betaCheckBox.isSelected()) {
+            args.add("-i");
+            args.add(versionField.getText());
+            args.add("--beta");
+            args.add("--buildid");
+            args.add(buildIDField.getText());
+            args.add("-m");
+            args.add(buildManifestField.getText());
         } else {
             args.add("-i");
             args.add(versionField.getText());
@@ -415,6 +428,8 @@ public class Controller {
         } else if (tsscheckerLog.contains("iOS " + versionField.getText() + " for device " + device + " IS NOT being signed!")) {
             newUnreportableError("iOS/tvOS " + versionField.getText() + " is not being signed for device " + device);
             versionField.setEffect(errorBorder);
+        } else if (tsscheckerLog.contains("[Error] [TSSC] failed to load manifest")) {
+            newUnreportableError("\'" + buildManifestField.getText() + "\' is not a valid manifest");
         } else if (tsscheckerLog.contains("[Error]")) {
             newReportableError("Saving blobs failed.", tsscheckerLog);
         } else {
@@ -495,6 +510,45 @@ public class Controller {
             identifierField.setDisable(true);
             deviceTypeChoiceBox.setDisable(false);
             deviceModelChoiceBox.setDisable(false);
+        }
+    }
+
+    public void betaCheckBoxHandler() {
+        if (betaCheckBox.isSelected()) {
+            buildManifestField.setDisable(false);
+            int depth = 20;
+            DropShadow borderGlow = new DropShadow();
+            borderGlow.setOffsetY(0f);
+            borderGlow.setOffsetX(0f);
+            borderGlow.setColor(Color.DARKCYAN);
+            borderGlow.setWidth(depth);
+            borderGlow.setHeight(depth);
+            buildManifestField.setEffect(borderGlow);
+            plistPickerButton.setDisable(false);
+            buildIDField.setDisable(false);
+            buildIDField.setEffect(borderGlow);
+            if (versionCheckBox.isSelected()) {
+                versionCheckBox.fire();
+            }
+        } else {
+            buildManifestField.setEffect(null);
+            buildManifestField.setText("");
+            buildManifestField.setDisable(true);
+            plistPickerButton.setDisable(true);
+            buildIDField.setEffect(null);
+            buildIDField.setText("");
+            buildIDField.setDisable(true);
+        }
+    }
+
+    public void plistPickerHandler() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select the BuildManifest.plist");
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PLIST", "*.plist"));
+        File result = fileChooser.showOpenDialog(Main.primaryStage);
+        if (result != null) {
+            buildManifestField.setText(result.toString());
         }
     }
 
@@ -649,6 +703,18 @@ public class Controller {
         }
         if (pathField.getText().equals("")) {
             pathField.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (!versionCheckBox.isSelected() && versionField.getText().equals("")) {
+            versionField.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (betaCheckBox.isSelected() && buildIDField.getText().equals("")) {
+            buildIDField.setEffect(errorBorder);
+            doReturn = true;
+        }
+        if (betaCheckBox.isSelected() && buildManifestField.getText().equals("")) {
+            buildManifestField.setEffect(errorBorder);
             doReturn = true;
         }
         if (doReturn) {
