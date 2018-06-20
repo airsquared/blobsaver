@@ -16,7 +16,11 @@ If you have an antivirus, select "Always Allow" for anything related to tsscheck
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
-- Daemon to do it automatically in the background (Possiblity?)
+- Support for saving blobs for beta versions
+- More presets
+- Try packaging in to .app for macOS [maybe this](https://github.com/Jorl17/jar2app)
+- Daemon to do it automatically in the background (Possibility?)
+- Use libimobiledevice to read ECID directly from device (Possibility?)
 
 ## Built With
 - JDK 8
