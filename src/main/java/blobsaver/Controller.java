@@ -58,6 +58,15 @@ public class Controller {
     @FXML private Button preset1Button;
     @FXML private Button preset2Button;
     @FXML private Button preset3Button;
+    @FXML private Button preset4Button;
+    @FXML private Button preset5Button;
+    @FXML private Button preset6Button;
+    @FXML private Button preset7Button;
+    @FXML private Button preset8Button;
+    @FXML private Button preset9Button;
+    @FXML private Button preset10Button;
+    private ArrayList<Button> presetButtons;
+
     @FXML private Button goButton;
     @FXML private Button plistPickerButton;
 
@@ -71,6 +80,16 @@ public class Controller {
 
     private URI githubIssueURI;
     private URI redditPMURI;
+
+    static void setPresetButtonNames() {
+        Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
+        for (int i = 1; i < 11; i++) {
+            if (!appPrefs.get("Name Preset" + i, "").equals("")) {
+                Button btn = (Button) Main.primaryStage.getScene().lookup("#preset" + i);
+                btn.setText(appPrefs.get("Name Preset" + i, ""));
+            }
+        }
+    }
 
     @SuppressWarnings("unchecked")
     @FXML
@@ -184,6 +203,9 @@ public class Controller {
         errorBorder.setColor(Color.RED);
         errorBorder.setWidth(20);
         errorBorder.setHeight(20);
+
+        presetButtons = new ArrayList<>(Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button));
+        presetButtons.forEach((Button btn) -> btn.setOnAction(this::presetButtonHandler));
 
         try {
             githubIssueURI = new URI("https://github.com/airsquared/blobsaver/issues/new");
@@ -595,10 +617,9 @@ public class Controller {
 
     }
 
-    public void presetButtonHandler(ActionEvent evt) {
+    private void presetButtonHandler(ActionEvent evt) {
         Button btn = (Button) evt.getTarget();
-        String text = btn.getText();
-        int preset = Integer.valueOf(text.substring(text.length() - 1));
+        int preset = Integer.valueOf(btn.getId().substring("preset".length()));
         if (editingPresets) {
             savePreset(preset);
             savePresetHandler();
@@ -628,49 +649,41 @@ public class Controller {
         if (doReturn) {
             return;
         }
-        Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
-        prefs.putBoolean("Exists", true);
-        prefs.put("ECID", ecidField.getText());
-        prefs.put("Path", pathField.getText());
+        TextInputDialog textInputDialog = new TextInputDialog();
+        textInputDialog.setTitle("Name Preset " + preset);
+        textInputDialog.setHeaderText("Name Preset");
+        textInputDialog.setContentText("Please enter a name for the preset:");
+        textInputDialog.showAndWait();
+        if (!textInputDialog.getResult().equals("") || !(textInputDialog.getResult() == null)) {
+            Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
+            appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
+        }
+
+        Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
+        presetPrefs.putBoolean("Exists", true);
+        presetPrefs.put("ECID", ecidField.getText());
+        presetPrefs.put("Path", pathField.getText());
         if (identifierCheckBox.isSelected()) {
-            prefs.put("Device Type", "none");
-            prefs.put("Device Model", "none");
-            prefs.put("Device Identifier", identifierField.getText());
+            presetPrefs.put("Device Type", "none");
+            presetPrefs.put("Device Model", "none");
+            presetPrefs.put("Device Identifier", identifierField.getText());
         } else {
-            prefs.put("Device Type", (String) deviceTypeChoiceBox.getValue());
-            prefs.put("Device Model", (String) deviceModelChoiceBox.getValue());
+            presetPrefs.put("Device Type", (String) deviceTypeChoiceBox.getValue());
+            presetPrefs.put("Device Model", (String) deviceModelChoiceBox.getValue());
         }
         if (boardConfig) {
-            prefs.put("Board Config", boardConfigField.getText());
+            presetPrefs.put("Board Config", boardConfigField.getText());
         } else {
-            prefs.put("Board Config", "none");
+            presetPrefs.put("Board Config", "none");
         }
     }
 
     public void savePresetHandler() {
         editingPresets = !editingPresets;
         if (editingPresets) {
-            int depth = 40;
-            DropShadow borderGlow = new DropShadow();
-            borderGlow.setOffsetY(0f);
-            borderGlow.setOffsetX(0f);
-            borderGlow.setColor(Color.CYAN);
-            borderGlow.setWidth(depth);
-            borderGlow.setHeight(depth);
-
-            preset1Button.setEffect(borderGlow);
-            preset2Button.setEffect(borderGlow);
-            preset3Button.setEffect(borderGlow);
-            preset1Button.setText("Preset 1");
-            preset2Button.setText("Preset 2");
-            preset3Button.setText("Preset 3");
+            presetButtons.forEach((Button btn) -> btn.setText("Save in Preset " + btn.getId().substring("preset".length())));
         } else {
-            preset1Button.setEffect(null);
-            preset2Button.setEffect(null);
-            preset3Button.setEffect(null);
-            preset1Button.setText("Load Preset 1");
-            preset2Button.setText("Load Preset 2");
-            preset3Button.setText("Load Preset 3");
+            presetButtons.forEach((Button btn) -> btn.setText("Load Preset " + btn.getId().substring("preset".length())));
         }
     }
 

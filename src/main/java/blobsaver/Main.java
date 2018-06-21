@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-    static final String appVersion = "v1.0.1";
+    static final String appVersion = "v1.1alpha";
     static Stage primaryStage;
 
     public static void main(String[] args) {
@@ -18,16 +18,17 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        Main.primaryStage = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
         primaryStage.setTitle("SHSH Blob Saver " + appVersion);
         if (PlatformUtil.isWindows()) {
             primaryStage.setScene(new Scene(root, 520, 570));
         } else {
-            primaryStage.setScene(new Scene(root, 500, 540));
+            primaryStage.setScene(new Scene(root, 500, 550));
         }
         primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
         primaryStage.show();
         primaryStage.setResizable(false);
-        Main.primaryStage = primaryStage;
+        Controller.setPresetButtonNames();
     }
 }

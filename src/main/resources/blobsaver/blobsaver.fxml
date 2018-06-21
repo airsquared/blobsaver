@@ -81,7 +81,7 @@
             <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
         </VBox.margin>
         <TextField fx:id="versionField" disable="true" promptText="Version"/>
-        <TextField promptText="Build ID" disable="true" fx:id="buildIDField">
+        <TextField fx:id="buildIDField" disable="true" promptText="Build ID">
             <HBox.margin>
                 <Insets left="10.0"/>
             </HBox.margin>
@@ -99,8 +99,8 @@
         <TextField fx:id="buildManifestField" disable="true" promptText="Path to Build Manifest .plist"
                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                    AnchorPane.topAnchor="0.0"/>
-        <Button layoutX="147.0" mnemonicParsing="false" text="..." AnchorPane.rightAnchor="0.0"
-                onAction="#plistPickerHandler" fx:id="plistPickerButton" disable="true"/>
+        <Button fx:id="plistPickerButton" disable="true" layoutX="147.0" mnemonicParsing="false"
+                onAction="#plistPickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
     </AnchorPane>
     <Label text="Internal Name/Board Configuration:">
         <VBox.margin>
@@ -145,28 +145,61 @@
                 <Insets left="10.0" right="5.0"/>
             </HBox.margin>
         </Button>
-        <Button mnemonicParsing="false" onAction="#savePresetHandler" text="Save as preset">
+        <Button mnemonicParsing="false" onAction="#savePresetHandler" text="Save">
             <HBox.margin>
                 <Insets left="5.0" right="5.0"/>
             </HBox.margin>
         </Button>
-        <Button fx:id="preset1Button" mnemonicParsing="false" onAction="#presetButtonHandler"
-                text="Load Preset 1">
-            <HBox.margin>
-                <Insets right="5.0"/>
-            </HBox.margin>
-        </Button>
-        <Button fx:id="preset2Button" mnemonicParsing="false" onAction="#presetButtonHandler"
-                text="Load Preset 2">
-            <HBox.margin>
-                <Insets right="5.0"/>
-            </HBox.margin>
-        </Button>
-        <Button fx:id="preset3Button" mnemonicParsing="false" onAction="#presetButtonHandler"
-                text="Load Preset 3">
-            <HBox.margin>
-                <Insets right="5.0"/>
-            </HBox.margin>
-        </Button>
+        <ScrollPane fitToHeight="true" prefHeight="50.0" prefWidth="385.0"
+                    style="-fx-background-color: transparent;">
+            <HBox fillHeight="false" maxHeight="10.0">
+                <Button fx:id="preset1Button" mnemonicParsing="false" text="Load Preset 1" id="preset1"/>
+                <Button fx:id="preset2Button" mnemonicParsing="false" text="Load Preset 2" id="preset2">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset3Button" mnemonicParsing="false" text="Load Preset 3" id="preset3">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset4Button" mnemonicParsing="false" text="Load Preset 4" id="preset4">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset5Button" mnemonicParsing="false" text="Load Preset 5" id="preset5">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset6Button" mnemonicParsing="false" text="Load Preset 6" id="preset6">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset7Button" mnemonicParsing="false" text="Load Preset 7" id="preset7">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset8Button" mnemonicParsing="false" text="Load Preset 8" id="preset8">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset9Button" mnemonicParsing="false" text="Load Preset 9" id="preset9">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button fx:id="preset10Button" mnemonicParsing="false" text="Load Preset 10" id="preset10">
+                    <HBox.margin>
+                        <Insets left="5.0"/>
+                    </HBox.margin>
+                </Button>
+            </HBox>
+        </ScrollPane>
     </HBox>
 </VBox>
