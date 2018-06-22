@@ -22,9 +22,9 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
         primaryStage.setTitle("SHSH Blob Saver " + appVersion);
         if (PlatformUtil.isWindows()) {
-            primaryStage.setScene(new Scene(root, 520, 570));
+            primaryStage.setScene(new Scene(root, 520, 610));
         } else {
-            primaryStage.setScene(new Scene(root, 500, 550));
+            primaryStage.setScene(new Scene(root, 500, 580));
         }
         primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
         primaryStage.show();

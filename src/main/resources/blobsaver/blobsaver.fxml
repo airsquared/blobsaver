@@ -7,6 +7,18 @@
       minWidth="-Infinity"
       prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8"
       fx:controller="blobsaver.Controller">
+    <MenuBar>
+        <Menu mnemonicParsing="false" text="Options">
+            <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for valid Blobs"/>
+            <MenuItem mnemonicParsing="false" onAction="#checkForUpdates" text="Check for Updates"/>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Help">
+            <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
+                      text="Send Feedback(Github Issue)"/>
+            <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback(Reddit PM)"/>
+            <MenuItem mnemonicParsing="false" onAction="#aboutMenuHandler" text="About"/>
+        </Menu>
+    </MenuBar>
     <Label text="ECID:">
         <VBox.margin>
             <Insets left="10.0" top="10.0"/>
@@ -138,63 +150,66 @@
     </AnchorPane>
     <HBox prefHeight="100.0" prefWidth="200.0">
         <VBox.margin>
-            <Insets top="10.0"/>
+            <Insets left="10.0" top="10.0"/>
         </VBox.margin>
         <Button fx:id="goButton" mnemonicParsing="false" onAction="#go" text="Go">
             <HBox.margin>
-                <Insets left="10.0" right="5.0"/>
+                <Insets right="5.0"/>
             </HBox.margin>
         </Button>
-        <Button mnemonicParsing="false" onAction="#savePresetHandler" text="Save">
+        <ToggleButton fx:id="savePresetButton" mnemonicParsing="false" onAction="#savePresetHandler"
+                      text="Save">
             <HBox.margin>
                 <Insets left="5.0" right="5.0"/>
             </HBox.margin>
-        </Button>
-        <ScrollPane fitToHeight="true" prefHeight="50.0" prefWidth="385.0"
-                    style="-fx-background-color: transparent;">
+        </ToggleButton>
+        <ScrollPane fitToHeight="true" maxWidth="385.0" prefHeight="50.0" prefWidth="385.0"
+                    style="-fx-background-color: transparent;" fx:id="scrollPane">
             <HBox fillHeight="false" maxHeight="10.0">
-                <Button fx:id="preset1Button" mnemonicParsing="false" text="Load Preset 1" id="preset1"/>
-                <Button fx:id="preset2Button" mnemonicParsing="false" text="Load Preset 2" id="preset2">
+                <Button id="preset1" fx:id="preset1Button" mnemonicParsing="false"
+                        text="Load Preset 1"/>
+                <Button id="preset2" fx:id="preset2Button" mnemonicParsing="false" text="Load Preset 2">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset3Button" mnemonicParsing="false" text="Load Preset 3" id="preset3">
+                <Button id="preset3" fx:id="preset3Button" mnemonicParsing="false" text="Load Preset 3">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset4Button" mnemonicParsing="false" text="Load Preset 4" id="preset4">
+                <Button id="preset4" fx:id="preset4Button" mnemonicParsing="false" text="Load Preset 4">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset5Button" mnemonicParsing="false" text="Load Preset 5" id="preset5">
+                <Button id="preset5" fx:id="preset5Button" mnemonicParsing="false" text="Load Preset 5">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset6Button" mnemonicParsing="false" text="Load Preset 6" id="preset6">
+                <Button id="preset6" fx:id="preset6Button" mnemonicParsing="false" text="Load Preset 6">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset7Button" mnemonicParsing="false" text="Load Preset 7" id="preset7">
+                <Button id="preset7" fx:id="preset7Button" mnemonicParsing="false" text="Load Preset 7">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset8Button" mnemonicParsing="false" text="Load Preset 8" id="preset8">
+                <Button id="preset8" fx:id="preset8Button" mnemonicParsing="false" text="Load Preset 8">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset9Button" mnemonicParsing="false" text="Load Preset 9" id="preset9">
+                <Button id="preset9" fx:id="preset9Button" mnemonicParsing="false" text="Load Preset 9">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>
                 </Button>
-                <Button fx:id="preset10Button" mnemonicParsing="false" text="Load Preset 10" id="preset10">
+                <Button id="preset10" fx:id="preset10Button" mnemonicParsing="false"
+                        text="Load Preset 10">
                     <HBox.margin>
                         <Insets left="5.0"/>
                     </HBox.margin>

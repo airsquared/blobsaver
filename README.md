@@ -17,7 +17,6 @@ If you have an antivirus, select "Always Allow" for anything related to tsscheck
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
-- Verify blobs
 - Question mark buttons to tell you what each thing does
 - Package into .app/.exe [maybe this](https://github.com/Jorl17/jar2app)
 - Automatically save blobs for all signed versions

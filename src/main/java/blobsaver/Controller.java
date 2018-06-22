@@ -12,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
@@ -55,6 +56,7 @@ public class Controller {
 
     @FXML private Label versionLabel;
 
+    @FXML private ToggleButton savePresetButton;
     @FXML private Button preset1Button;
     @FXML private Button preset2Button;
     @FXML private Button preset3Button;
@@ -66,6 +68,8 @@ public class Controller {
     @FXML private Button preset9Button;
     @FXML private Button preset10Button;
     private ArrayList<Button> presetButtons;
+
+    @FXML private ScrollPane scrollPane;
 
     @FXML private Button goButton;
     @FXML private Button plistPickerButton;
@@ -86,7 +90,7 @@ public class Controller {
         for (int i = 1; i < 11; i++) {
             if (!appPrefs.get("Name Preset" + i, "").equals("")) {
                 Button btn = (Button) Main.primaryStage.getScene().lookup("#preset" + i);
-                btn.setText(appPrefs.get("Name Preset" + i, ""));
+                btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
         }
     }
@@ -236,7 +240,7 @@ public class Controller {
         checkForUpdates();
     }
 
-    private void checkForUpdates() {
+    public void checkForUpdates() {
         Service<Void> service = new Service<Void>() {
             @Override
             protected Task<Void> createTask() {
@@ -257,32 +261,40 @@ public class Controller {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        String version;
+                        String newVersion;
+                        String changelog;
                         try {
-                            version = new JSONObject(response.toString()).getString("tag_name");
+                            newVersion = new JSONObject(response.toString()).getString("tag_name");
+                            changelog = new JSONObject(response.toString()).getString("body");
+                            changelog = changelog.substring(changelog.indexOf("Changelog"));
                         } catch (JSONException e) {
-                            version = Main.appVersion;
+                            newVersion = Main.appVersion;
+                            changelog = "";
                         }
-                        if (!version.equals(Main.appVersion)) {
+                        Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
+                        if (!newVersion.equals(Main.appVersion) && !appPrefs.get("Ignore Version", "").equals(newVersion)) {
                             final CountDownLatch latch = new CountDownLatch(1);
-                            String finalVersion = version;
+                            final String finalNewVersion = newVersion;
+                            final String finalChangelog = changelog;
                             Platform.runLater(() -> {
                                 try {
                                     ButtonType downloadNow = new ButtonType("Download now");
-
-                                    Alert alert = new Alert(
-                                            Alert.AlertType.INFORMATION, "You have version " + Main.appVersion, downloadNow, ButtonType.CANCEL);
-                                    alert.setHeaderText("New Update Available: " + finalVersion);
+                                    ButtonType ignore = new ButtonType("Ignore this update");
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version " + Main.appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
+                                    alert.setHeaderText("New Update Available: " + finalNewVersion);
+                                    alert.setTitle("New Update Available");
+                                    alert.initModality(Modality.NONE);
                                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
                                     dlButton.setDefaultButton(true);
-                                    alert.initModality(Modality.NONE);
                                     alert.showAndWait();
-                                    try {
-                                        if (alert.getResult().equals(downloadNow) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                                    if (alert.getResult().equals(downloadNow) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                                        try {
                                             Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/releases/latest"));
+                                        } catch (IOException | URISyntaxException ee) {
+                                            ee.printStackTrace();
                                         }
-                                    } catch (IOException | URISyntaxException ee) {
-                                        ee.printStackTrace();
+                                    } else if (alert.getResult().equals(ignore)) {
+                                        appPrefs.put("Ignore Version", finalNewVersion);
                                     }
                                 } finally {
                                     latch.countDown();
@@ -298,15 +310,31 @@ public class Controller {
         service.start();
     }
 
-    private void reportError(Alert alert) {
-        try {
-            if (alert.getResult().equals(githubIssue) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+    public void newGithubIssue() {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            try {
                 Desktop.getDesktop().browse(githubIssueURI);
-            } else if (alert.getResult().equals(redditPM) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(redditPMURI);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException ee) {
-            ee.printStackTrace();
+        }
+    }
+
+    public void sendRedditPM() {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            try {
+                Desktop.getDesktop().browse(redditPMURI);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void reportError(Alert alert) {
+        if (alert.getResult().equals(githubIssue)) {
+            newGithubIssue();
+        } else if (alert.getResult().equals(redditPM)) {
+            sendRedditPM();
         }
     }
 
@@ -622,7 +650,7 @@ public class Controller {
         int preset = Integer.valueOf(btn.getId().substring("preset".length()));
         if (editingPresets) {
             savePreset(preset);
-            savePresetHandler();
+            savePresetButton.fire();
         } else {
             loadPreset(preset);
         }
@@ -681,12 +709,46 @@ public class Controller {
     public void savePresetHandler() {
         editingPresets = !editingPresets;
         if (editingPresets) {
-            presetButtons.forEach((Button btn) -> btn.setText("Save in Preset " + btn.getId().substring("preset".length())));
+            goButton.setVisible(false);
+            goButton.setManaged(false);
+            savePresetButton.setText("Cancel");
+            scrollPane.setMaxWidth(410.0);
+            scrollPane.setPrefWidth(410.0);
+            presetButtons.forEach((Button btn) -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
         } else {
-            presetButtons.forEach((Button btn) -> btn.setText("Load Preset " + btn.getId().substring("preset".length())));
+            savePresetButton.setText("Save");
+            scrollPane.setMaxWidth(385.0);
+            scrollPane.setPrefWidth(385.0);
+            goButton.setManaged(true);
+            goButton.setVisible(true);
+            presetButtons.forEach((Button btn) -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
         }
     }
 
+    public void checkBlobs() {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            try {
+                Desktop.getDesktop().browse(new URI("https://tsssaver.1conan.com/check.php"));
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void aboutMenuHandler() {
+        ButtonType githubRepo = new ButtonType("Github Repo");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here", githubRepo, ButtonType.OK);
+        alert.setTitle("About");
+        alert.setHeaderText("Blobsaver " + Main.appVersion);
+        alert.showAndWait();
+        if (alert.getResult().equals(githubRepo) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            try {
+                Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver"));
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     public void go() {
         boolean doReturn = false;
