@@ -1,6 +1,5 @@
 package blobsaver;
 
-import com.sun.javafx.PlatformUtil;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -9,7 +8,7 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-    static final String appVersion = "v1.1alpha";
+    static final String appVersion = "v1.1";
     static Stage primaryStage;
 
     public static void main(String[] args) {
@@ -21,11 +20,7 @@ public class Main extends Application {
         Main.primaryStage = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
         primaryStage.setTitle("SHSH Blob Saver " + appVersion);
-        if (PlatformUtil.isWindows()) {
-            primaryStage.setScene(new Scene(root, 520, 610));
-        } else {
-            primaryStage.setScene(new Scene(root, 500, 580));
-        }
+        primaryStage.setScene(new Scene(root, 685, 580));
         primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
         primaryStage.show();
         primaryStage.setResizable(false);

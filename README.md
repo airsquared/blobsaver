@@ -3,7 +3,7 @@ A GUI for saving SHSH blobs using encounter's fork of tsschecker. Supports both 
 
 If you have an antivirus, select "Always Allow" for anything related to tsschecker or Java. An antivirus may cause blobsaver to crash. If that happens please send feedback.
 
-![image](https://i.imgur.com/i74ba2a.png)
+![image](https://i.imgur.com/QzhemWh.png)
 
 ## Features
 - Store up to ten devices with presets
@@ -17,7 +17,8 @@ If you have an antivirus, select "Always Allow" for anything related to tsscheck
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
-- Question mark buttons to tell you what each thing does
+- Use macOS menu bar
+- Explain how to get everything
 - Package into .app/.exe [maybe this](https://github.com/Jorl17/jar2app)
 - Automatically save blobs for all signed versions
 - Daemon to do it automatically in the background

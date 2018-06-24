@@ -3,218 +3,239 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<VBox xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-      minWidth="-Infinity"
-      prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8"
+<HBox xmlns:fx="http://javafx.com/fxml/1" prefHeight="580.0" xmlns="http://javafx.com/javafx/8"
       fx:controller="blobsaver.Controller">
-    <MenuBar>
-        <Menu mnemonicParsing="false" text="Options">
-            <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for valid Blobs"/>
-            <MenuItem mnemonicParsing="false" onAction="#checkForUpdates" text="Check for Updates"/>
-        </Menu>
-        <Menu mnemonicParsing="false" text="Help">
-            <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
-                      text="Send Feedback(Github Issue)"/>
-            <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback(Reddit PM)"/>
-            <MenuItem mnemonicParsing="false" onAction="#aboutMenuHandler" text="About"/>
-        </Menu>
-    </MenuBar>
-    <Label text="ECID:">
-        <VBox.margin>
-            <Insets left="10.0" top="10.0"/>
-        </VBox.margin>
-    </Label>
-    <HBox>
-        <VBox.margin>
-            <Insets bottom="5.0" top="5.0"/>
-        </VBox.margin>
-        <TextField fx:id="ecidField" promptText="ECID">
-            <HBox.margin>
-                <Insets left="10.0"/>
-            </HBox.margin>
+    <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="530.0" minWidth="450.0" prefHeight="580.0"
+          prefWidth="500.0">
+        <MenuBar>
+            <Menu mnemonicParsing="false" text="Options">
+                <MenuItem mnemonicParsing="false" onAction="#checkBlobs"
+                          text="Check for valid blobs..."/>
+                <MenuItem mnemonicParsing="false" onAction="#checkForUpdates"
+                          text="Check for Updates..."/>
+            </Menu>
+            <Menu mnemonicParsing="false" text="Help">
+                <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
+                          text="Send Feedback(Github Issue)"/>
+                <MenuItem mnemonicParsing="false" onAction="#sendRedditPM"
+                          text="Send Feedback(Reddit PM)"/>
+                <MenuItem mnemonicParsing="false" onAction="#aboutMenuHandler" text="About"/>
+            </Menu>
+        </MenuBar>
+        <Label text="ECID:">
+            <VBox.margin>
+                <Insets left="10.0" top="10.0"/>
+            </VBox.margin>
+        </Label>
+        <HBox>
+            <VBox.margin>
+                <Insets bottom="5.0" top="5.0"/>
+            </VBox.margin>
+            <TextField fx:id="ecidField" promptText="ECID">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </TextField>
+        </HBox>
+        <Label text="Identifier">
+            <VBox.margin>
+                <Insets left="10.0" top="5.0"/>
+            </VBox.margin>
+        </Label>
+        <HBox>
+            <VBox.margin>
+                <Insets bottom="5.0" top="5.0"/>
+            </VBox.margin>
+            <CheckBox fx:id="identifierCheckBox" mnemonicParsing="false"
+                      onAction="#identifierCheckBoxHandler" text="Manually Specify Identifier:">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </CheckBox>
+            <TextField fx:id="identifierField" disable="true" promptText="Identifier">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </TextField>
+        </HBox>
+        <HBox>
+            <VBox.margin>
+                <Insets bottom="5.0" top="5.0"/>
+            </VBox.margin>
+            <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </ChoiceBox>
+            <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </ChoiceBox>
+        </HBox>
+        <Label fx:id="versionLabel" text="Version">
+            <VBox.margin>
+                <Insets left="10.0" top="5.0"/>
+            </VBox.margin>
+        </Label>
+        <HBox>
+            <VBox.margin>
+                <Insets left="10.0" top="5.0"/>
+            </VBox.margin>
+            <CheckBox fx:id="versionCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler"
+                      selected="true" text="Use Latest Version"/>
+            <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler"
+                      text="Beta version">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </CheckBox>
+        </HBox>
+        <HBox>
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
+            </VBox.margin>
+            <TextField fx:id="versionField" disable="true" promptText="Version"/>
+            <TextField fx:id="buildIDField" disable="true" promptText="Build ID">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </TextField>
+        </HBox>
+        <Label text="Build Manifest Path">
+            <VBox.margin>
+                <Insets left="10.0" top="5.0"/>
+            </VBox.margin>
+        </Label>
+        <AnchorPane>
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
+            </VBox.margin>
+            <TextField fx:id="buildManifestField" disable="true" promptText="Path to Build Manifest .plist"
+                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+            <Button fx:id="plistPickerButton" disable="true" layoutX="147.0" mnemonicParsing="false"
+                    onAction="#plistPickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
+        </AnchorPane>
+        <Label text="Internal Name/Board Configuration:">
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" top="5.0"/>
+            </VBox.margin>
+        </Label>
+        <TextField fx:id="boardConfigField" disable="true" promptText="Board Configuration">
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" right="10.0"/>
+            </VBox.margin>
         </TextField>
-    </HBox>
-    <Label text="Identifier">
-        <VBox.margin>
-            <Insets left="10.0" top="5.0"/>
-        </VBox.margin>
-    </Label>
-    <HBox>
-        <VBox.margin>
-            <Insets bottom="5.0" top="5.0"/>
-        </VBox.margin>
-        <CheckBox fx:id="identifierCheckBox" mnemonicParsing="false" onAction="#identifierCheckBoxHandler"
-                  text="Manually Specify Identifier:">
-            <HBox.margin>
-                <Insets left="10.0"/>
-            </HBox.margin>
+        <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
+                  text="Manually specify apnonce:">
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" top="5.0"/>
+            </VBox.margin>
         </CheckBox>
-        <TextField fx:id="identifierField" disable="true" promptText="Identifier">
-            <HBox.margin>
-                <Insets left="10.0"/>
-            </HBox.margin>
+        <TextField fx:id="apnonceField" disable="true" promptText="Apnonce">
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" right="10.0"/>
+            </VBox.margin>
         </TextField>
-    </HBox>
-    <HBox>
-        <VBox.margin>
-            <Insets bottom="5.0" top="5.0"/>
-        </VBox.margin>
-        <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0">
-            <HBox.margin>
-                <Insets left="10.0"/>
-            </HBox.margin>
-        </ChoiceBox>
-        <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0">
-            <HBox.margin>
-                <Insets left="10.0"/>
-            </HBox.margin>
-        </ChoiceBox>
-    </HBox>
-    <Label fx:id="versionLabel" text="Version">
-        <VBox.margin>
-            <Insets left="10.0" top="5.0"/>
-        </VBox.margin>
-    </Label>
-    <HBox>
-        <VBox.margin>
-            <Insets left="10.0" top="5.0"/>
-        </VBox.margin>
-        <CheckBox fx:id="versionCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler"
-                  selected="true" text="Use Latest Version"/>
-        <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler"
-                  text="Beta version">
-            <HBox.margin>
-                <Insets left="10.0"/>
-            </HBox.margin>
-        </CheckBox>
-    </HBox>
-    <HBox>
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
-        </VBox.margin>
-        <TextField fx:id="versionField" disable="true" promptText="Version"/>
-        <TextField fx:id="buildIDField" disable="true" promptText="Build ID">
-            <HBox.margin>
-                <Insets left="10.0"/>
-            </HBox.margin>
-        </TextField>
-    </HBox>
-    <Label text="Build Manifest Path">
-        <VBox.margin>
-            <Insets left="10.0" top="5.0"/>
-        </VBox.margin>
-    </Label>
-    <AnchorPane>
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
-        </VBox.margin>
-        <TextField fx:id="buildManifestField" disable="true" promptText="Path to Build Manifest .plist"
-                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                   AnchorPane.topAnchor="0.0"/>
-        <Button fx:id="plistPickerButton" disable="true" layoutX="147.0" mnemonicParsing="false"
-                onAction="#plistPickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
-    </AnchorPane>
-    <Label text="Internal Name/Board Configuration:">
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" top="5.0"/>
-        </VBox.margin>
-    </Label>
-    <TextField fx:id="boardConfigField" disable="true" promptText="Board Configuration">
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" right="10.0"/>
-        </VBox.margin>
-    </TextField>
-    <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
-              text="Manually specify apnonce:">
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" top="5.0"/>
-        </VBox.margin>
-    </CheckBox>
-    <TextField fx:id="apnonceField" disable="true" promptText="Apnonce">
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" right="10.0"/>
-        </VBox.margin>
-    </TextField>
-    <Label text="Location">
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" top="5.0"/>
-        </VBox.margin>
-    </Label>
-    <AnchorPane>
-        <VBox.margin>
-            <Insets bottom="5.0" left="10.0" right="10.0"/>
-        </VBox.margin>
-        <TextField fx:id="pathField" promptText="Path" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-        <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
-    </AnchorPane>
-    <HBox prefHeight="100.0" prefWidth="200.0">
-        <VBox.margin>
-            <Insets left="10.0" top="10.0"/>
-        </VBox.margin>
-        <Button fx:id="goButton" mnemonicParsing="false" onAction="#go" text="Go">
-            <HBox.margin>
-                <Insets right="5.0"/>
-            </HBox.margin>
+        <Label text="Location">
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" top="5.0"/>
+            </VBox.margin>
+        </Label>
+        <AnchorPane>
+            <VBox.margin>
+                <Insets bottom="5.0" left="10.0" right="10.0"/>
+            </VBox.margin>
+            <TextField fx:id="pathField" promptText="Path" AnchorPane.bottomAnchor="0.0"
+                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+            <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..."
+                    AnchorPane.rightAnchor="0.0"/>
+        </AnchorPane>
+        <HBox prefHeight="100.0" prefWidth="200.0">
+            <VBox.margin>
+                <Insets left="10.0" top="10.0"/>
+            </VBox.margin>
+            <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#go"
+                    prefWidth="500.0" text="Go">
+                <HBox.margin>
+                    <Insets right="5.0"/>
+                </HBox.margin>
+            </Button>
+        </HBox>
+    </VBox>
+    <VBox fx:id="presetVBox" prefHeight="580.0" prefWidth="180.0" style="-fx-background-color: white;">
+        <HBox.margin>
+            <Insets/>
+        </HBox.margin>
+        <padding>
+            <Insets left="10.0" right="10.0"/>
+        </padding>
+        <Button id="preset1" fx:id="preset1Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 1">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
         </Button>
-        <ToggleButton fx:id="savePresetButton" mnemonicParsing="false" onAction="#savePresetHandler"
-                      text="Save">
-            <HBox.margin>
-                <Insets left="5.0" right="5.0"/>
-            </HBox.margin>
-        </ToggleButton>
-        <ScrollPane fitToHeight="true" maxWidth="385.0" prefHeight="50.0" prefWidth="385.0"
-                    style="-fx-background-color: transparent;" fx:id="scrollPane">
-            <HBox fillHeight="false" maxHeight="10.0">
-                <Button id="preset1" fx:id="preset1Button" mnemonicParsing="false"
-                        text="Load Preset 1"/>
-                <Button id="preset2" fx:id="preset2Button" mnemonicParsing="false" text="Load Preset 2">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset3" fx:id="preset3Button" mnemonicParsing="false" text="Load Preset 3">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset4" fx:id="preset4Button" mnemonicParsing="false" text="Load Preset 4">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset5" fx:id="preset5Button" mnemonicParsing="false" text="Load Preset 5">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset6" fx:id="preset6Button" mnemonicParsing="false" text="Load Preset 6">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset7" fx:id="preset7Button" mnemonicParsing="false" text="Load Preset 7">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset8" fx:id="preset8Button" mnemonicParsing="false" text="Load Preset 8">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset9" fx:id="preset9Button" mnemonicParsing="false" text="Load Preset 9">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button id="preset10" fx:id="preset10Button" mnemonicParsing="false"
-                        text="Load Preset 10">
-                    <HBox.margin>
-                        <Insets left="5.0"/>
-                    </HBox.margin>
-                </Button>
-            </HBox>
-        </ScrollPane>
-    </HBox>
-</VBox>
+        <Button id="preset2" fx:id="preset2Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 2">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset3" fx:id="preset3Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 3">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset4" fx:id="preset4Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 4">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset5" fx:id="preset5Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 5">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset6" fx:id="preset6Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 6">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset7" fx:id="preset7Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 7">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset8" fx:id="preset8Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 8">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset9" fx:id="preset9Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 9">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button id="preset10" fx:id="preset10Button" maxWidth="Infinity" mnemonicParsing="false"
+                prefWidth="Infinity" text="Load Preset 10">
+            <VBox.margin>
+                <Insets top="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button fx:id="savePresetButton" maxWidth="Infinity" mnemonicParsing="false"
+                onAction="#savePresetHandler" prefWidth="500.0" text="Save">
+            <VBox.margin>
+                <Insets top="161.0"/>
+            </VBox.margin>
+        </Button>
+    </VBox>
+</HBox>

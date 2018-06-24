@@ -12,9 +12,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -56,7 +56,7 @@ public class Controller {
 
     @FXML private Label versionLabel;
 
-    @FXML private ToggleButton savePresetButton;
+    @FXML private Button savePresetButton;
     @FXML private Button preset1Button;
     @FXML private Button preset2Button;
     @FXML private Button preset3Button;
@@ -69,7 +69,7 @@ public class Controller {
     @FXML private Button preset10Button;
     private ArrayList<Button> presetButtons;
 
-    @FXML private ScrollPane scrollPane;
+    @FXML private VBox presetVBox;
 
     @FXML private Button goButton;
     @FXML private Button plistPickerButton;
@@ -237,10 +237,14 @@ public class Controller {
         }
         pathField.setText(path);
 
-        checkForUpdates();
+        checkForUpdates(false);
     }
 
     public void checkForUpdates() {
+        checkForUpdates(true);
+    }
+
+    private void checkForUpdates(boolean forceCheck) {
         Service<Void> service = new Service<Void>() {
             @Override
             protected Task<Void> createTask() {
@@ -272,7 +276,7 @@ public class Controller {
                             changelog = "";
                         }
                         Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
-                        if (!newVersion.equals(Main.appVersion) && !appPrefs.get("Ignore Version", "").equals(newVersion)) {
+                        if (!newVersion.equals(Main.appVersion) && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
                             final CountDownLatch latch = new CountDownLatch(1);
                             final String finalNewVersion = newVersion;
                             final String finalChangelog = changelog;
@@ -392,6 +396,7 @@ public class Controller {
         }
 
         File locationToSaveBlobs = new File(pathField.getText());
+        //noinspection ResultOfMethodCallIgnored
         locationToSaveBlobs.mkdirs();
         ArrayList<String> args;
         args = new ArrayList<>(Arrays.asList(file.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
@@ -425,6 +430,7 @@ public class Controller {
             e.printStackTrace();
         }
         String tsscheckerLog;
+        //noinspection ConstantConditions
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
             StringBuilder logBuilder = new StringBuilder();
             String line;
@@ -462,7 +468,7 @@ public class Controller {
                 && tsscheckerLog.contains("[Error] [TSSR] faild to build tssrequest")
                 && tsscheckerLog.contains("Error] [TSSC] checking tss status failed!")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Saving blobs failed. Check the board configuration.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                    "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                     githubIssue, redditPM, ButtonType.OK);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
@@ -490,7 +496,6 @@ public class Controller {
         } catch (InterruptedException e) {
             newReportableError("The tsschecker process was interrupted.", e.toString());
         }
-
 
         if (!file.delete()) {
             newUnreportableError("\"There was an error deleting the temporary file.\"");
@@ -682,9 +687,16 @@ public class Controller {
         textInputDialog.setHeaderText("Name Preset");
         textInputDialog.setContentText("Please enter a name for the preset:");
         textInputDialog.showAndWait();
-        if (!textInputDialog.getResult().equals("") || !(textInputDialog.getResult() == null)) {
-            Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
-            appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
+        if (textInputDialog.getResult() != null) {
+            if (!textInputDialog.getResult().equals("")) {
+                Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
+                appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
+                ((Button) Main.primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
+            } else {
+                return;
+            }
+        } else {
+            return;
         }
 
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
@@ -709,18 +721,25 @@ public class Controller {
     public void savePresetHandler() {
         editingPresets = !editingPresets;
         if (editingPresets) {
-            goButton.setVisible(false);
-            goButton.setManaged(false);
             savePresetButton.setText("Cancel");
-            scrollPane.setMaxWidth(410.0);
-            scrollPane.setPrefWidth(410.0);
+            int depth = 20;
+            DropShadow borderGlow = new DropShadow();
+            borderGlow.setOffsetY(0f);
+            borderGlow.setOffsetX(0f);
+            borderGlow.setColor(Color.DARKCYAN);
+            borderGlow.setWidth(depth);
+            borderGlow.setHeight(depth);
+            presetVBox.setEffect(borderGlow);
             presetButtons.forEach((Button btn) -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
+            goButton.setDefaultButton(false);
+            goButton.setDisable(true);
+            savePresetButton.setDefaultButton(true);
         } else {
+            savePresetButton.setDefaultButton(false);
+            goButton.setDefaultButton(true);
+            goButton.setDisable(false);
+            presetVBox.setEffect(null);
             savePresetButton.setText("Save");
-            scrollPane.setMaxWidth(385.0);
-            scrollPane.setPrefWidth(385.0);
-            goButton.setManaged(true);
-            goButton.setVisible(true);
             presetButtons.forEach((Button btn) -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
         }
     }
