@@ -3,12 +3,12 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" prefHeight="580.0" xmlns="http://javafx.com/javafx/8"
+<HBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8"
       fx:controller="blobsaver.Controller">
-    <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="530.0" prefHeight="580.0"
+    <VBox maxHeight="Infinity" maxWidth="-Infinity" minHeight="580.0"
           prefWidth="500.0">
         <MenuBar>
-            <Menu mnemonicParsing="false" text="test">
+            <Menu mnemonicParsing="false" text="Options">
                 <MenuItem mnemonicParsing="false" onAction="#checkBlobs"
                           text="Check for valid blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdates"
@@ -152,19 +152,16 @@
             <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..."
                     AnchorPane.rightAnchor="0.0"/>
         </AnchorPane>
-        <HBox alignment="BOTTOM_CENTER" VBox.vgrow="ALWAYS">
+        <Region VBox.vgrow="ALWAYS"/>
+        <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#go"
+                prefWidth="Infinity" text="Go">
             <VBox.margin>
-                <Insets left="10.0" right="10.0"/>
+                <Insets left="10.0" bottom="10.0" right="10.0"/>
             </VBox.margin>
-            <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#go"
-                    prefWidth="500.0" text="Go">
-                <HBox.margin>
-                    <Insets bottom="10.0"/>
-                </HBox.margin>
-            </Button>
-        </HBox>
+        </Button>
     </VBox>
-    <VBox fx:id="presetVBox" prefHeight="580.0" prefWidth="180.0" style="-fx-background-color: white;">
+    <VBox fx:id="presetVBox" prefHeight="580.0" prefWidth="180.0" style="-fx-background-color: white;"
+          HBox.hgrow="ALWAYS">
         <padding>
             <Insets left="10.0" right="10.0"/>
         </padding>
@@ -228,13 +225,12 @@
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <VBox alignment="BOTTOM_CENTER" VBox.vgrow="ALWAYS">
-            <Button fx:id="savePresetButton" maxWidth="Infinity" mnemonicParsing="false"
-                    onAction="#savePresetHandler" prefWidth="500.0" text="Save">
-                <VBox.margin>
-                    <Insets bottom="10.0"/>
-                </VBox.margin>
-            </Button>
-        </VBox>
+        <Region VBox.vgrow="ALWAYS"/>
+        <Button fx:id="savePresetButton" maxWidth="Infinity" mnemonicParsing="false"
+                onAction="#savePresetHandler" prefWidth="Infinity" text="Save">
+            <VBox.margin>
+                <Insets bottom="10.0"/>
+            </VBox.margin>
+        </Button>
     </VBox>
 </HBox>

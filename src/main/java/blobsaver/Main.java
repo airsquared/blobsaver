@@ -20,7 +20,7 @@ public class Main extends Application {
         Main.primaryStage = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
         primaryStage.setTitle("SHSH Blob Saver " + appVersion);
-        primaryStage.setScene(new Scene(root, 685, 580));
+        primaryStage.setScene(new Scene(root));
         primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
         primaryStage.show();
         primaryStage.setResizable(false);
