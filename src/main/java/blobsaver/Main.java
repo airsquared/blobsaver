@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-    static final String appVersion = "v1.1";
+    static final String appVersion = "v1.1.1";
     static Stage primaryStage;
 
     public static void main(String[] args) {
