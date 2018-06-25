@@ -3,7 +3,8 @@ A GUI for saving SHSH blobs using encounter's fork of tsschecker. Supports both 
 
 If you have an antivirus, select "Always Allow" for anything related to tsschecker or Java. An antivirus may cause blobsaver to crash. If that happens please send feedback.
 
-![image](https://i.imgur.com/QzhemWh.png)
+![Mac Screenshot](https://i.imgur.com/QzhemWh.png)
+![Windows Screenshot](https://i.imgur.com/EzJSIVY.png)
 
 ## Features
 - Store up to ten devices with presets
