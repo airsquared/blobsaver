@@ -1036,7 +1036,7 @@ public class Controller {
                 run("iPad7,4");
                 break;
             case "iPad 6 (WiFi)(iPad 7,5)":
-                run("iPad7,6");
+                run("iPad7,5");
                 break;
             case "iPad 6 (Cellular)(iPad7,6)":
                 run("iPad7,6");
