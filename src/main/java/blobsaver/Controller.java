@@ -17,7 +17,6 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.prefs.Preferences;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class Controller {
 
@@ -46,7 +47,7 @@ public class Controller {
     @FXML private TextField versionField;
     @FXML private TextField identifierField;
     @FXML private TextField pathField;
-    @FXML private TextField buildManifestField;
+    @FXML private TextField ipswField;
     @FXML private TextField buildIDField;
 
     @FXML private CheckBox apnonceCheckBox;
@@ -72,7 +73,6 @@ public class Controller {
     @FXML private VBox presetVBox;
 
     @FXML private Button goButton;
-    @FXML private Button plistPickerButton;
 
     private boolean boardConfig = false;
     private boolean editingPresets = false;
@@ -84,6 +84,9 @@ public class Controller {
 
     private URI githubIssueURI;
     private URI redditPMURI;
+
+    private File buildManifestPlist;
+    private File tsschecker;
 
     static void setPresetButtonNames() {
         Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
@@ -154,7 +157,7 @@ public class Controller {
                 return;
             }
             final String v = (String) newValue;
-            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE")) {
+            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 6 (WiFi)(iPad 7,5)") || v.equals("iPad 6 (Cellular)(iPad7,6)")) {
                 int depth = 20;
                 DropShadow borderGlow = new DropShadow();
                 borderGlow.setOffsetY(0f);
@@ -174,7 +177,7 @@ public class Controller {
         });
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
             identifierField.setEffect(null);
-            if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4")) {
+            if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4") || newValue.equals("iPad7,5") || newValue.equals("iPad7,6")) {
                 final int depth = 20;
                 DropShadow borderGlow = new DropShadow();
                 borderGlow.setOffsetY(0f);
@@ -212,7 +215,7 @@ public class Controller {
         presetButtons.forEach((Button btn) -> btn.setOnAction(this::presetButtonHandler));
 
         try {
-            githubIssueURI = new URI("https://github.com/airsquared/blobsaver/issues/new");
+            githubIssueURI = new URI("https://github.com/airsquared/blobsaver/issues/new/choose");
             redditPMURI = new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
         } catch (URISyntaxException ignored) {
         }
@@ -366,17 +369,19 @@ public class Controller {
     }
 
     private void run(String device) {
-        File file;
         try {
             InputStream input;
             if (PlatformUtil.isWindows()) {
-                input = getClass().getResourceAsStream("tsschecker.exe");
-                file = File.createTempFile("tsschecker", ".tmp.exe");
+                input = getClass().getResourceAsStream("tsschecker_windows.exe");
+                tsschecker = File.createTempFile("tsschecker_windows", ".tmp.exe");
+            } else if (PlatformUtil.isMac()) {
+                input = getClass().getResourceAsStream("tsschecker_macos");
+                tsschecker = File.createTempFile("tsschecker_macos", ".tmp");
             } else {
-                input = getClass().getResourceAsStream("tsschecker");
-                file = File.createTempFile("tsschecker", ".tmp");
+                input = getClass().getResourceAsStream("tsschecker_linux");
+                tsschecker = File.createTempFile("tsschecker_linux", ".tmp");
             }
-            OutputStream out = new FileOutputStream(file);
+            OutputStream out = new FileOutputStream(tsschecker);
             int read;
             byte[] bytes = new byte[1024];
 
@@ -388,10 +393,11 @@ public class Controller {
             ex.printStackTrace();
             return;
         }
-        file.deleteOnExit();
+        tsschecker.deleteOnExit();
 
-        if (!file.setExecutable(true, false)) {
+        if (!tsschecker.setExecutable(true, false)) {
             newReportableError("There was an error setting tsschecker as executable.");
+            deleteTempFiles();
             return;
         }
 
@@ -399,7 +405,7 @@ public class Controller {
         //noinspection ResultOfMethodCallIgnored
         locationToSaveBlobs.mkdirs();
         ArrayList<String> args;
-        args = new ArrayList<>(Arrays.asList(file.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
+        args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
         if (boardConfig) {
             args.add("--boardconfig");
             args.add(boardConfigField.getText());
@@ -411,26 +417,65 @@ public class Controller {
         if (versionCheckBox.isSelected()) {
             args.add("-l");
         } else if (betaCheckBox.isSelected()) {
+            try {
+                buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
+                OutputStream out = new FileOutputStream(buildManifestPlist);
+                if (!ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
+                    newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
+                    deleteTempFiles();
+                    return;
+                }
+                ZipInputStream zin;
+                try {
+                    URL url = new URL(ipswField.getText());
+                    zin = new ZipInputStream(url.openStream());
+                } catch (IOException e) {
+                    newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
+                    deleteTempFiles();
+                    return;
+                }
+                ZipEntry ze;
+                while ((ze = zin.getNextEntry()) != null) {
+                    if (ze.getName().equals("BuildManifest.plist")) {
+                        byte[] buffer = new byte[500_000];
+                        int len;
+                        while ((len = zin.read(buffer)) != -1) {
+                            out.write(buffer, 0, len);
+                        }
+                        out.close();
+                        break;
+                    }
+                }
+                zin.close();
+                buildManifestPlist.deleteOnExit();
+            } catch (IOException e) {
+                newReportableError("Unable to get BuildManifest from .ipsw.", e.getMessage());
+                e.printStackTrace();
+                deleteTempFiles();
+                return;
+            }
             args.add("-i");
             args.add(versionField.getText());
             args.add("--beta");
             args.add("--buildid");
             args.add(buildIDField.getText());
             args.add("-m");
-            args.add(buildManifestField.getText());
+            args.add(buildManifestPlist.toString());
         } else {
             args.add("-i");
             args.add(versionField.getText());
         }
-        Process proc = null;
+        Process proc;
         try {
+            System.out.println("Running: " + args.toString());
             proc = new ProcessBuilder(args).start();
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();
+            deleteTempFiles();
+            return;
         }
         String tsscheckerLog;
-        //noinspection ConstantConditions
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
             StringBuilder logBuilder = new StringBuilder();
             String line;
@@ -442,18 +487,20 @@ public class Controller {
         } catch (IOException e) {
             newReportableError("There was an error getting the tsschecker result", e.toString());
             e.printStackTrace();
+            deleteTempFiles();
             return;
         }
 
         if (tsscheckerLog.contains("Saved shsh blobs")) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + pathField.getText(), ButtonType.OK);
+            alert.setHeaderText("Success!");
             alert.showAndWait();
         } else if (tsscheckerLog.contains("[Error] [TSSC] manually specified ecid=" + ecidField.getText() + ", but parsing failed")) {
             newUnreportableError("\"" + ecidField.getText() + "\"" + " is not a valid ECID. Try getting it from iTunes");
             ecidField.setEffect(errorBorder);
         } else if (tsscheckerLog.contains("[Error] [TSSC] device " + device + " could not be found in devicelist")) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "tsschecker could not find device: \"" + device +
-                    "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu", githubIssue, redditPM, ButtonType.CANCEL);
+                    "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu.", githubIssue, redditPM, ButtonType.CANCEL);
             alert.showAndWait();
             reportError(alert);
         } else if (tsscheckerLog.contains("[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + versionField.getText())) {
@@ -485,7 +532,11 @@ public class Controller {
             newUnreportableError("iOS/tvOS " + versionField.getText() + " is not being signed for device " + device);
             versionField.setEffect(errorBorder);
         } else if (tsscheckerLog.contains("[Error] [TSSC] failed to load manifest")) {
-            newUnreportableError("\'" + buildManifestField.getText() + "\' is not a valid manifest");
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "Failed to load manifest.\n\n \"" + ipswField.getText() + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
+                    githubIssue, redditPM, ButtonType.OK);
+            alert.showAndWait();
+            reportError(alert, tsscheckerLog);
         } else if (tsscheckerLog.contains("[Error]")) {
             newReportableError("Saving blobs failed.", tsscheckerLog);
         } else {
@@ -497,10 +548,21 @@ public class Controller {
             newReportableError("The tsschecker process was interrupted.", e.toString());
         }
 
-        if (!file.delete()) {
-            newUnreportableError("\"There was an error deleting the temporary file.\"");
-        }
+        deleteTempFiles();
 
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private void deleteTempFiles() {
+        try {
+            if (tsschecker.exists()) {
+                tsschecker.delete();
+            }
+            if (buildManifestPlist.exists()) {
+                buildManifestPlist.delete();
+            }
+        } catch (NullPointerException ignored) {
+        }
     }
 
     public void apnonceCheckBoxHandler() {
@@ -570,7 +632,7 @@ public class Controller {
 
     public void betaCheckBoxHandler() {
         if (betaCheckBox.isSelected()) {
-            buildManifestField.setDisable(false);
+            ipswField.setDisable(false);
             int depth = 20;
             DropShadow borderGlow = new DropShadow();
             borderGlow.setOffsetY(0f);
@@ -578,32 +640,21 @@ public class Controller {
             borderGlow.setColor(Color.DARKCYAN);
             borderGlow.setWidth(depth);
             borderGlow.setHeight(depth);
-            buildManifestField.setEffect(borderGlow);
-            plistPickerButton.setDisable(false);
+            ipswField.setEffect(borderGlow);
             buildIDField.setDisable(false);
             buildIDField.setEffect(borderGlow);
             if (versionCheckBox.isSelected()) {
                 versionCheckBox.fire();
             }
+            versionCheckBox.setDisable(true);
         } else {
-            buildManifestField.setEffect(null);
-            buildManifestField.setText("");
-            buildManifestField.setDisable(true);
-            plistPickerButton.setDisable(true);
+            ipswField.setEffect(null);
+            ipswField.setText("");
+            ipswField.setDisable(true);
             buildIDField.setEffect(null);
             buildIDField.setText("");
             buildIDField.setDisable(true);
-        }
-    }
-
-    public void plistPickerHandler() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select the BuildManifest.plist");
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PLIST", "*.plist"));
-        File result = fileChooser.showOpenDialog(Main.primaryStage);
-        if (result != null) {
-            buildManifestField.setText(result.toString());
+            versionCheckBox.setDisable(false);
         }
     }
 
@@ -647,7 +698,6 @@ public class Controller {
         if (!prefs.get("Board Config", "").equals("none")) {
             boardConfigField.setText(prefs.get("Board Config", ""));
         }
-
     }
 
     private void presetButtonHandler(ActionEvent evt) {
@@ -807,8 +857,8 @@ public class Controller {
             buildIDField.setEffect(errorBorder);
             doReturn = true;
         }
-        if (betaCheckBox.isSelected() && buildManifestField.getText().equals("")) {
-            buildManifestField.setEffect(errorBorder);
+        if (betaCheckBox.isSelected() && ipswField.getText().equals("")) {
+            ipswField.setEffect(errorBorder);
             doReturn = true;
         }
         if (doReturn) {

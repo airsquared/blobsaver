@@ -3,10 +3,8 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8"
-      fx:controller="blobsaver.Controller">
-    <VBox maxHeight="Infinity" maxWidth="-Infinity" minHeight="580.0"
-          prefWidth="500.0">
+<HBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="blobsaver.Controller">
+    <VBox maxHeight="Infinity" maxWidth="-Infinity" minHeight="580.0" prefWidth="500.0">
         <MenuBar>
             <Menu mnemonicParsing="false" text="Options">
                 <MenuItem mnemonicParsing="false" onAction="#checkBlobs"
@@ -36,6 +34,18 @@
                     <Insets left="10.0"/>
                 </HBox.margin>
             </TextField>
+            <Label text="?">
+                <HBox.margin>
+                    <Insets/>
+                </HBox.margin>
+                <tooltip>
+                    <Tooltip
+                            text="Get this from iTunes by connecting your device and going to the device page.&#10;Then click on the serial number twice."/>
+                </tooltip>
+                <padding>
+                    <Insets bottom="5.0" left="5.0" right="5.0"/>
+                </padding>
+            </Label>
         </HBox>
         <Label text="Identifier">
             <VBox.margin>
@@ -101,32 +111,60 @@
                     <Insets left="10.0"/>
                 </HBox.margin>
             </TextField>
+            <Label text="?">
+                <padding>
+                    <Insets bottom="5.0" left="5.0"/>
+                </padding>
+                <tooltip>
+                    <Tooltip
+                            text="Get the build ID for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here"/>
+                </tooltip>
+            </Label>
         </HBox>
-        <Label text="Build Manifest Path">
+        <Label text="Link to .ipsw file">
             <VBox.margin>
                 <Insets left="10.0" top="5.0"/>
             </VBox.margin>
         </Label>
-        <AnchorPane>
+        <HBox>
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
             </VBox.margin>
-            <TextField fx:id="buildManifestField" disable="true" promptText="Path to Build Manifest .plist"
-                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-            <Button fx:id="plistPickerButton" disable="true" layoutX="147.0" mnemonicParsing="false"
-                    onAction="#plistPickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
-        </AnchorPane>
+            <TextField fx:id="ipswField" disable="true" prefWidth="500.0" promptText="URL to .ipsw file"/>
+            <Label text="?">
+                <padding>
+                    <Insets bottom="5.0" left="5.0"/>
+                </padding>
+                <tooltip>
+                    <Tooltip
+                            text="Get the download URL for the .ipsw from theiphonewiki.com/wiki/Beta_Firmware and paste it here"/>
+                </tooltip>
+            </Label>
+        </HBox>
         <Label text="Internal Name/Board Configuration:">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" top="5.0"/>
             </VBox.margin>
         </Label>
-        <TextField fx:id="boardConfigField" disable="true" promptText="Board Configuration">
+        <HBox>
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" right="10.0"/>
             </VBox.margin>
-        </TextField>
+            <TextField fx:id="boardConfigField" disable="true" prefWidth="500.0"
+                       promptText="Board Configuration"/>
+            <Label text="?">
+                <HBox.margin>
+                    <Insets/>
+                </HBox.margin>
+                <padding>
+                    <Insets bottom="5.0" left="5.0"/>
+                </padding>
+                <tooltip>
+                    <Tooltip
+                            text="Get this from the CPU Identifier app from the App Store.&#10;It can also be called the device model and is usually something like &quot;n69ap&quot;"/>
+                </tooltip>
+            </Label>
+        </HBox>
         <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
                   text="Manually specify apnonce:">
             <VBox.margin>
@@ -153,10 +191,10 @@
                     AnchorPane.rightAnchor="0.0"/>
         </AnchorPane>
         <Region VBox.vgrow="ALWAYS"/>
-        <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#go"
-                prefWidth="Infinity" text="Go">
+        <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#go" prefWidth="Infinity"
+                text="Go">
             <VBox.margin>
-                <Insets left="10.0" bottom="10.0" right="10.0"/>
+                <Insets bottom="10.0" left="10.0" right="10.0"/>
             </VBox.margin>
         </Button>
     </VBox>
