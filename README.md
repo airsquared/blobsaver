@@ -1,10 +1,12 @@
 # blobsaver
 A GUI for saving SHSH blobs using encounter's fork of tsschecker. Supports both Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
 
+[Download here](https://github.com/airsquared/blobsaver/releases)
+
 If you have an antivirus, select "Always Allow" for anything related to tsschecker or Java. An antivirus may cause blobsaver to crash. If that happens please send feedback.
 
-![Mac Screenshot](https://i.imgur.com/QzhemWh.png)
-![Windows Screenshot](https://i.imgur.com/EzJSIVY.png)
+![Mac Screenshot](https://i.imgur.com/bBW6rrm.png)
+![Windows Screenshot](https://i.imgur.com/CUnyfpx.png)
 
 ## Features
 - Store up to ten devices with presets
