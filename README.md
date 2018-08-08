@@ -1,14 +1,15 @@
 # blobsaver
-A GUI for saving SHSH blobs using encounter's fork of tsschecker. Supports both Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
+A GUI for saving SHSH blobs using encounter's fork of tsschecker(uses tihmstar's original for linux). Supports both Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
 
-[Download here](https://github.com/airsquared/blobsaver/releases)
+[Download here](https://github.com/airsquared/blobsaver/releases/latest)
 
-If you have an antivirus, select "Always Allow" for anything related to tsschecker or Java. An antivirus may cause blobsaver to crash. If that happens please send feedback.
+If you have an antivirus or firewall, you may need to disable some other settings or disable the firewall completely for automatically saving blobs in the background to work. If you use Norton, go to Settings -> Firewall -> Advanced Program Control and set the option "Low Risk Applications" to "Allow".
 
-![Mac Screenshot](https://i.imgur.com/bBW6rrm.png)
-![Windows Screenshot](https://i.imgur.com/CUnyfpx.png)
+![Mac Screenshot](https://i.imgur.com/czq78Yf.png)
+![Windows Screenshot](https://i.imgur.com/zlPh4JY.png)
 
 ## Features
+- **Automatically saves blobs in the background**
 - Store up to ten devices with presets
 - Choose where to save blobs with file picker
 - Save blobs for beta versions
@@ -24,9 +25,7 @@ Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/
 ## TODO:
 - Use macOS menu bar
 - Package into .app/.exe [maybe this](https://github.com/Jorl17/jar2app)
-- Automatically save blobs for all signed versions
-- Daemon to do it automatically in the background
-- Use libimobiledevice to read ECID directly from device (Possibility?)
+- New UI (material design?)
 
 ## Built With
 - JDK 8
@@ -34,4 +33,4 @@ Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/
 - [Gradle](https://gradle.org/) 
 
 ## License
-This project is licensed under the GNU GPL v3.0 - see the [LICENSE](https://github.com/airsquared/blobsaver/blob/master/LICENSE) file for details
+This project is licensed under GNU GPL v3.0-only - see the [LICENSE](https://github.com/airsquared/blobsaver/blob/master/LICENSE) file for details

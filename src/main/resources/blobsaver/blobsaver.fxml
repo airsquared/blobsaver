@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2018  airsquared
+  ~
+  ~ This file is part of blobsaver.
+  ~
+  ~ blobsaver is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, version 3 of the License.
+  ~
+  ~ blobsaver is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
+  -->
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
@@ -9,7 +26,7 @@
             <Menu mnemonicParsing="false" text="Options">
                 <MenuItem mnemonicParsing="false" onAction="#checkBlobs"
                           text="Check for valid blobs..."/>
-                <MenuItem mnemonicParsing="false" onAction="#checkForUpdates"
+                <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"
                           text="Check for Updates..."/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
@@ -34,7 +51,7 @@
                     <Insets left="10.0"/>
                 </HBox.margin>
             </TextField>
-            <Label text="?">
+            <Label text="?" onMouseClicked="#helpLabelHandler" id="ecidHelp">
                 <HBox.margin>
                     <Insets/>
                 </HBox.margin>
@@ -111,7 +128,7 @@
                     <Insets left="10.0"/>
                 </HBox.margin>
             </TextField>
-            <Label text="?">
+            <Label text="?" onMouseClicked="#helpLabelHandler" id="buildIDHelp">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>
@@ -131,7 +148,7 @@
                 <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
             </VBox.margin>
             <TextField fx:id="ipswField" disable="true" prefWidth="500.0" promptText="URL to .ipsw file"/>
-            <Label text="?">
+            <Label text="?" onMouseClicked="#helpLabelHandler" id="ipswURLHelp">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>
@@ -152,7 +169,7 @@
             </VBox.margin>
             <TextField fx:id="boardConfigField" disable="true" prefWidth="500.0"
                        promptText="Board Configuration"/>
-            <Label text="?">
+            <Label text="?" onMouseClicked="#helpLabelHandler" id="boardConfigHelp">
                 <HBox.margin>
                     <Insets/>
                 </HBox.margin>
@@ -161,7 +178,7 @@
                 </padding>
                 <tooltip>
                     <Tooltip
-                            text="Get this from the CPU Identifier app from the App Store.&#10;It can also be called the device model and is usually something like &quot;n69ap&quot;"/>
+                            text="Get this from the BMSSM app from the App Store.&#10;It will be called the model and is usually something like &quot;n69ap&quot;"/>
                 </tooltip>
             </Label>
         </HBox>
@@ -264,8 +281,26 @@
             </VBox.margin>
         </Button>
         <Region VBox.vgrow="ALWAYS"/>
+        <Button fx:id="chooseTimeToRunButton" maxWidth="Infinity" mnemonicParsing="false"
+                onAction="#chooseTimeToRunHandler" prefWidth="Infinity" text="Change frequency" visible="false">
+            <VBox.margin>
+                <Insets bottom="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button fx:id="startBackgroundButton" maxWidth="Infinity" mnemonicParsing="false"
+                onAction="#startBackgroundHandler" prefWidth="Infinity" text="Start background" visible="false">
+            <VBox.margin>
+                <Insets bottom="10.0"/>
+            </VBox.margin>
+        </Button>
         <Button fx:id="savePresetButton" maxWidth="Infinity" mnemonicParsing="false"
                 onAction="#savePresetHandler" prefWidth="Infinity" text="Save">
+            <VBox.margin>
+                <Insets bottom="10.0"/>
+            </VBox.margin>
+        </Button>
+        <Button fx:id="backgroundSettingsButton" maxWidth="Infinity" mnemonicParsing="false"
+                onAction="#backgroundSettingsHandler" prefWidth="Infinity" text="Background settings">
             <VBox.margin>
                 <Insets bottom="10.0"/>
             </VBox.margin>

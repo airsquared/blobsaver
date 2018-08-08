@@ -1,39 +1,64 @@
+/*
+ * Copyright (c) 2018  airsquared
+ *
+ * This file is part of blobsaver.
+ *
+ * blobsaver is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * blobsaver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package blobsaver;
 
 import com.sun.javafx.PlatformUtil;
+import com.sun.javafx.scene.control.skin.LabeledText;
+import eu.hansolo.enzo.notification.Notification;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Modality;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.JSONArray;
 
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.io.*;
+import java.awt.Desktop;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static blobsaver.Main.appPrefs;
+import static blobsaver.Shared.githubIssue;
+import static blobsaver.Shared.newReportableError;
+import static blobsaver.Shared.newUnreportableError;
+import static blobsaver.Shared.redditPM;
+import static blobsaver.Shared.reportError;
+import static blobsaver.Shared.resizeAlertButtons;
 
 public class Controller {
 
@@ -57,6 +82,9 @@ public class Controller {
 
     @FXML private Label versionLabel;
 
+    @FXML private Button startBackgroundButton;
+    @FXML private Button chooseTimeToRunButton;
+    @FXML private Button backgroundSettingsButton;
     @FXML private Button savePresetButton;
     @FXML private Button preset1Button;
     @FXML private Button preset2Button;
@@ -74,33 +102,41 @@ public class Controller {
 
     @FXML private Button goButton;
 
-    private boolean boardConfig = false;
+    private boolean getBoardConfig = false;
     private boolean editingPresets = false;
+    private boolean choosingRunInBackground = false;
 
     private DropShadow errorBorder = new DropShadow();
+    private DropShadow borderGlow = new DropShadow();
 
-    private ButtonType redditPM = new ButtonType("PM on Reddit");
-    private ButtonType githubIssue = new ButtonType("Create Issue on Github");
-
-    private URI githubIssueURI;
-    private URI redditPMURI;
-
-    private File buildManifestPlist;
-    private File tsschecker;
-
-    static void setPresetButtonNames() {
-        Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
-        for (int i = 1; i < 11; i++) {
+    static void afterStageShowing() {
+        for (int i = 1; i < 11; i++) { // sets the names for the presets
             if (!appPrefs.get("Name Preset" + i, "").equals("")) {
                 Button btn = (Button) Main.primaryStage.getScene().lookup("#preset" + i);
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
         }
+        Shared.checkForUpdates(false);
+    }
+
+    public void newGithubIssue() {
+        Shared.newGithubIssue();
+    }
+
+    public void sendRedditPM() {
+        Shared.sendRedditPM();
     }
 
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
+        // create border glow effect
+        borderGlow.setOffsetY(0f);
+        borderGlow.setOffsetX(0f);
+        borderGlow.setColor(Color.DARKCYAN);
+        borderGlow.setWidth(20);
+        borderGlow.setHeight(20);
+
         final ObservableList iPhones = FXCollections.observableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
                 "iPhone 4 (GSM 2012)", "iPhone 4 (CDMA)", "iPhone 4[S]", "iPhone 5 (GSM)", "iPhone 5 (Global)",
                 "iPhone 5c (GSM)", "iPhone 5c (Global)", "iPhone 5s (GSM)", "iPhone 5s (Global)",
@@ -151,26 +187,19 @@ public class Controller {
             deviceModelChoiceBox.setEffect(null);
             if (newValue == null) {
                 boardConfigField.setEffect(null);
-                boardConfig = false;
+                getBoardConfig = false;
                 boardConfigField.setText("");
                 boardConfigField.setDisable(true);
                 return;
             }
             final String v = (String) newValue;
             if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 6 (WiFi)(iPad 7,5)") || v.equals("iPad 6 (Cellular)(iPad7,6)")) {
-                int depth = 20;
-                DropShadow borderGlow = new DropShadow();
-                borderGlow.setOffsetY(0f);
-                borderGlow.setOffsetX(0f);
-                borderGlow.setColor(Color.DARKCYAN);
-                borderGlow.setWidth(depth);
-                borderGlow.setHeight(depth);
                 boardConfigField.setEffect(borderGlow);
-                boardConfig = true;
+                getBoardConfig = true;
                 boardConfigField.setDisable(false);
             } else {
                 boardConfigField.setEffect(null);
-                boardConfig = false;
+                getBoardConfig = false;
                 boardConfigField.setText("");
                 boardConfigField.setDisable(true);
             }
@@ -178,19 +207,12 @@ public class Controller {
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
             identifierField.setEffect(null);
             if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4") || newValue.equals("iPad7,5") || newValue.equals("iPad7,6")) {
-                final int depth = 20;
-                DropShadow borderGlow = new DropShadow();
-                borderGlow.setOffsetY(0f);
-                borderGlow.setOffsetX(0f);
-                borderGlow.setColor(Color.DARKCYAN);
-                borderGlow.setWidth(depth);
-                borderGlow.setHeight(depth);
                 boardConfigField.setEffect(borderGlow);
-                boardConfig = true;
+                getBoardConfig = true;
                 boardConfigField.setDisable(false);
             } else {
                 boardConfigField.setEffect(null);
-                boardConfig = false;
+                getBoardConfig = false;
                 boardConfigField.setText("");
                 boardConfigField.setDisable(true);
             }
@@ -214,12 +236,6 @@ public class Controller {
         presetButtons = new ArrayList<>(Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button));
         presetButtons.forEach((Button btn) -> btn.setOnAction(this::presetButtonHandler));
 
-        try {
-            githubIssueURI = new URI("https://github.com/airsquared/blobsaver/issues/new/choose");
-            redditPMURI = new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
-        } catch (URISyntaxException ignored) {
-        }
-
         final String url = getClass().getResource("Controller.class").toString();
         String path = url.substring(0, url.length() - "blobsaver/Controller.class".length());
         if (path.startsWith("jar:")) {
@@ -240,164 +256,29 @@ public class Controller {
         }
         pathField.setText(path);
 
-        checkForUpdates(false);
     }
 
-    public void checkForUpdates() {
-        checkForUpdates(true);
-    }
-
-    private void checkForUpdates(boolean forceCheck) {
-        Service<Void> service = new Service<Void>() {
-            @Override
-            protected Task<Void> createTask() {
-                return new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        StringBuilder response = new StringBuilder();
-                        try {
-                            URLConnection urlConnection = new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest").openConnection();
-                            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                            String inputLine;
-                            while ((inputLine = in.readLine()) != null) {
-                                response.append(inputLine);
-                            }
-                            in.close();
-                        } catch (FileNotFoundException ignored) {
-                            return null;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        String newVersion;
-                        String changelog;
-                        try {
-                            newVersion = new JSONObject(response.toString()).getString("tag_name");
-                            changelog = new JSONObject(response.toString()).getString("body");
-                            changelog = changelog.substring(changelog.indexOf("Changelog"));
-                        } catch (JSONException e) {
-                            newVersion = Main.appVersion;
-                            changelog = "";
-                        }
-                        Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
-                        if (!newVersion.equals(Main.appVersion) && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
-                            final CountDownLatch latch = new CountDownLatch(1);
-                            final String finalNewVersion = newVersion;
-                            final String finalChangelog = changelog;
-                            Platform.runLater(() -> {
-                                try {
-                                    ButtonType downloadNow = new ButtonType("Download now");
-                                    ButtonType ignore = new ButtonType("Ignore this update");
-                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version " + Main.appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
-                                    alert.setHeaderText("New Update Available: " + finalNewVersion);
-                                    alert.setTitle("New Update Available");
-                                    alert.initModality(Modality.NONE);
-                                    Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
-                                    dlButton.setDefaultButton(true);
-                                    alert.showAndWait();
-                                    if (alert.getResult().equals(downloadNow) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                                        try {
-                                            Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/releases/latest"));
-                                        } catch (IOException | URISyntaxException ee) {
-                                            ee.printStackTrace();
-                                        }
-                                    } else if (alert.getResult().equals(ignore)) {
-                                        appPrefs.put("Ignore Version", finalNewVersion);
-                                    }
-                                } finally {
-                                    latch.countDown();
-                                }
-                            });
-                            latch.await();
-                        }
-                        return null;
-                    }
-                };
-            }
-        };
-        service.start();
-    }
-
-    public void newGithubIssue() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(githubIssueURI);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void sendRedditPM() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(redditPMURI);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void reportError(Alert alert) {
-        if (alert.getResult().equals(githubIssue)) {
-            newGithubIssue();
-        } else if (alert.getResult().equals(redditPM)) {
-            sendRedditPM();
-        }
-    }
-
-    private void reportError(Alert alert, String toCopy) {
-        StringSelection stringSelection = new StringSelection(toCopy);
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
-        reportError(alert);
-    }
-
-    private void newReportableError(String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit.", githubIssue, redditPM, ButtonType.CANCEL);
-        alert.showAndWait();
-        reportError(alert);
-    }
-
-    private void newReportableError(String msg, String toCopy) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.", githubIssue, redditPM, ButtonType.CANCEL);
-        alert.showAndWait();
-        reportError(alert, toCopy);
-    }
-
-    private void newUnreportableError(String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
-        alert.showAndWait();
+    public void checkForUpdatesHandler() {
+        Shared.checkForUpdates(true);
     }
 
     private void run(String device) {
+        if (device == null || device.equals("")) {
+            return;
+        }
+        File tsschecker;
+        File buildManifestPlist = null;
         try {
-            InputStream input;
-            if (PlatformUtil.isWindows()) {
-                input = getClass().getResourceAsStream("tsschecker_windows.exe");
-                tsschecker = File.createTempFile("tsschecker_windows", ".tmp.exe");
-            } else if (PlatformUtil.isMac()) {
-                input = getClass().getResourceAsStream("tsschecker_macos");
-                tsschecker = File.createTempFile("tsschecker_macos", ".tmp");
-            } else {
-                input = getClass().getResourceAsStream("tsschecker_linux");
-                tsschecker = File.createTempFile("tsschecker_linux", ".tmp");
-            }
-            OutputStream out = new FileOutputStream(tsschecker);
-            int read;
-            byte[] bytes = new byte[1024];
-
-            while ((read = input.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            tsschecker = Shared.getTsschecker();
+        } catch (IOException e) {
+            newReportableError("There was an error creating tsschecker.", e.getMessage());
             return;
         }
         tsschecker.deleteOnExit();
 
         if (!tsschecker.setExecutable(true, false)) {
             newReportableError("There was an error setting tsschecker as executable.");
-            deleteTempFiles();
+            deleteTempFiles(tsschecker, null);
             return;
         }
 
@@ -406,7 +287,7 @@ public class Controller {
         locationToSaveBlobs.mkdirs();
         ArrayList<String> args;
         args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
-        if (boardConfig) {
+        if (getBoardConfig) {
             args.add("--boardconfig");
             args.add(boardConfigField.getText());
         }
@@ -418,20 +299,20 @@ public class Controller {
             args.add("-l");
         } else if (betaCheckBox.isSelected()) {
             try {
-                buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
-                OutputStream out = new FileOutputStream(buildManifestPlist);
                 if (!ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
                     newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles();
+                    deleteTempFiles(tsschecker, null);
                     return;
                 }
+                buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
+                OutputStream out = new FileOutputStream(buildManifestPlist);
                 ZipInputStream zin;
                 try {
                     URL url = new URL(ipswField.getText());
                     zin = new ZipInputStream(url.openStream());
                 } catch (IOException e) {
                     newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles();
+                    deleteTempFiles(tsschecker, buildManifestPlist);
                     return;
                 }
                 ZipEntry ze;
@@ -451,7 +332,7 @@ public class Controller {
             } catch (IOException e) {
                 newReportableError("Unable to get BuildManifest from .ipsw.", e.getMessage());
                 e.printStackTrace();
-                deleteTempFiles();
+                deleteTempFiles(tsschecker, buildManifestPlist);
                 return;
             }
             args.add("-i");
@@ -472,7 +353,7 @@ public class Controller {
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();
-            deleteTempFiles();
+            deleteTempFiles(tsschecker, buildManifestPlist);
             return;
         }
         String tsscheckerLog;
@@ -487,7 +368,7 @@ public class Controller {
         } catch (IOException e) {
             newReportableError("There was an error getting the tsschecker result", e.toString());
             e.printStackTrace();
-            deleteTempFiles();
+            deleteTempFiles(tsschecker, buildManifestPlist);
             return;
         }
 
@@ -496,11 +377,12 @@ public class Controller {
             alert.setHeaderText("Success!");
             alert.showAndWait();
         } else if (tsscheckerLog.contains("[Error] [TSSC] manually specified ecid=" + ecidField.getText() + ", but parsing failed")) {
-            newUnreportableError("\"" + ecidField.getText() + "\"" + " is not a valid ECID. Try getting it from iTunes");
+            newUnreportableError("\"" + ecidField.getText() + "\"" + " is not a valid ECID. Try getting it from iTunes.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             ecidField.setEffect(errorBorder);
         } else if (tsscheckerLog.contains("[Error] [TSSC] device " + device + " could not be found in devicelist")) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "tsschecker could not find device: \"" + device +
-                    "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu.", githubIssue, redditPM, ButtonType.CANCEL);
+                    "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", githubIssue, redditPM, ButtonType.CANCEL);
+            resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert);
         } else if (tsscheckerLog.contains("[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + versionField.getText())) {
@@ -515,18 +397,20 @@ public class Controller {
                 && tsscheckerLog.contains("[Error] [TSSR] faild to build tssrequest")
                 && tsscheckerLog.contains("Error] [TSSC] checking tss status failed!")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                    "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
                     githubIssue, redditPM, ButtonType.OK);
+            resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
         } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                    "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
                     githubIssue, redditPM, ButtonType.OK);
+            resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
         } else if (tsscheckerLog.contains("[Error] [Error] can't save shsh at " + pathField.getText())) {
-            newUnreportableError("\'" + pathField.getText() + "\' is not a valid path");
+            newUnreportableError("\'" + pathField.getText() + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             pathField.setEffect(errorBorder);
         } else if (tsscheckerLog.contains("iOS " + versionField.getText() + " for device " + device + " IS NOT being signed!")) {
             newUnreportableError("iOS/tvOS " + versionField.getText() + " is not being signed for device " + device);
@@ -535,12 +419,13 @@ public class Controller {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Failed to load manifest.\n\n \"" + ipswField.getText() + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
                     githubIssue, redditPM, ButtonType.OK);
+            resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
         } else if (tsscheckerLog.contains("[Error]")) {
-            newReportableError("Saving blobs failed.", tsscheckerLog);
+            newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         } else {
-            newReportableError("Unknown result.", tsscheckerLog);
+            newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         }
         try {
             proc.waitFor();
@@ -548,17 +433,16 @@ public class Controller {
             newReportableError("The tsschecker process was interrupted.", e.toString());
         }
 
-        deleteTempFiles();
-
+        deleteTempFiles(tsschecker, buildManifestPlist);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void deleteTempFiles() {
+    private static void deleteTempFiles(File tsschecker, File buildManifestPlist) {
         try {
             if (tsschecker.exists()) {
                 tsschecker.delete();
             }
-            if (buildManifestPlist.exists()) {
+            if (buildManifestPlist != null && buildManifestPlist.exists()) {
                 buildManifestPlist.delete();
             }
         } catch (NullPointerException ignored) {
@@ -568,13 +452,6 @@ public class Controller {
     public void apnonceCheckBoxHandler() {
         if (apnonceCheckBox.isSelected()) {
             apnonceField.setDisable(false);
-            int depth = 20;
-            DropShadow borderGlow = new DropShadow();
-            borderGlow.setOffsetY(0f);
-            borderGlow.setOffsetX(0f);
-            borderGlow.setColor(Color.DARKCYAN);
-            borderGlow.setWidth(depth);
-            borderGlow.setHeight(depth);
             apnonceField.setEffect(borderGlow);
         } else {
             apnonceField.setEffect(null);
@@ -589,13 +466,6 @@ public class Controller {
             versionField.setEffect(null);
             versionField.setText("");
         } else {
-            int depth = 20;
-            DropShadow borderGlow = new DropShadow();
-            borderGlow.setOffsetY(0f);
-            borderGlow.setOffsetX(0f);
-            borderGlow.setColor(Color.DARKCYAN);
-            borderGlow.setWidth(depth);
-            borderGlow.setHeight(depth);
             versionField.setEffect(borderGlow);
 
             versionField.setDisable(false);
@@ -606,13 +476,6 @@ public class Controller {
     public void identifierCheckBoxHandler() {
         if (identifierCheckBox.isSelected()) {
             identifierField.setDisable(false);
-            int depth = 20;
-            DropShadow borderGlow = new DropShadow();
-            borderGlow.setOffsetY(0f);
-            borderGlow.setOffsetX(0f);
-            borderGlow.setColor(Color.DARKCYAN);
-            borderGlow.setWidth(depth);
-            borderGlow.setHeight(depth);
             identifierField.setEffect(borderGlow);
             deviceTypeChoiceBox.getSelectionModel().clearSelection();
             deviceModelChoiceBox.getSelectionModel().clearSelection();
@@ -633,13 +496,6 @@ public class Controller {
     public void betaCheckBoxHandler() {
         if (betaCheckBox.isSelected()) {
             ipswField.setDisable(false);
-            int depth = 20;
-            DropShadow borderGlow = new DropShadow();
-            borderGlow.setOffsetY(0f);
-            borderGlow.setOffsetX(0f);
-            borderGlow.setColor(Color.DARKCYAN);
-            borderGlow.setWidth(depth);
-            borderGlow.setHeight(depth);
             ipswField.setEffect(borderGlow);
             buildIDField.setDisable(false);
             buildIDField.setEffect(borderGlow);
@@ -706,6 +562,30 @@ public class Controller {
         if (editingPresets) {
             savePreset(preset);
             savePresetButton.fire();
+        } else if (choosingRunInBackground) {
+            Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
+            if (!presetPrefs.getBoolean("Exists", false)) {
+                newUnreportableError("Preset doesn't have anything");
+                return;
+            }
+            ArrayList<String> presetsToSaveFor = new ArrayList<>();
+            JSONArray presetsToSaveForJson = new JSONArray(appPrefs.get("Presets to save in background", "[]"));
+            for (int i = 0; i < presetsToSaveForJson.length(); i++) {
+                presetsToSaveFor.add(presetsToSaveForJson.getString(i));
+            }
+            if (btn.getText().startsWith("Cancel ")) {
+                presetsToSaveFor.remove(Integer.toString(preset));
+                log("removed " + preset + " from list");
+                backgroundSettingsButton.fire();
+            } else {
+                presetsToSaveFor.add(Integer.toString(preset));
+                log("added preset" + preset + " to list");
+                Notification.Notifier.INSTANCE.notifyInfo("Testing preset to make sure it works", "If it doesn't, please\nremove and fix the error.");
+                backgroundSettingsButton.fire();
+                btn.fire();
+                goButton.fire();
+            }
+            appPrefs.put("Presets to save in background", new JSONArray(presetsToSaveFor).toString());
         } else {
             loadPreset(preset);
         }
@@ -725,26 +605,23 @@ public class Controller {
             identifierField.setEffect(errorBorder);
             doReturn = true;
         }
-        if (boardConfig && boardConfigField.getText().equals("")) {
+        if (getBoardConfig && boardConfigField.getText().equals("")) {
             boardConfigField.setEffect(errorBorder);
             doReturn = true;
         }
         if (doReturn) {
             return;
         }
-        TextInputDialog textInputDialog = new TextInputDialog();
+        TextInputDialog textInputDialog = new TextInputDialog("Preset " + preset);
         textInputDialog.setTitle("Name Preset " + preset);
         textInputDialog.setHeaderText("Name Preset");
         textInputDialog.setContentText("Please enter a name for the preset:");
         textInputDialog.showAndWait();
-        if (textInputDialog.getResult() != null) {
-            if (!textInputDialog.getResult().equals("")) {
-                Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
-                appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
-                ((Button) Main.primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
-            } else {
-                return;
-            }
+
+        String result = textInputDialog.getResult();
+        if (result != null && !result.equals("")) {
+            appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
+            ((Button) Main.primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
         } else {
             return;
         }
@@ -761,7 +638,7 @@ public class Controller {
             presetPrefs.put("Device Type", (String) deviceTypeChoiceBox.getValue());
             presetPrefs.put("Device Model", (String) deviceModelChoiceBox.getValue());
         }
-        if (boardConfig) {
+        if (getBoardConfig) {
             presetPrefs.put("Board Config", boardConfigField.getText());
         } else {
             presetPrefs.put("Board Config", "none");
@@ -772,22 +649,17 @@ public class Controller {
         editingPresets = !editingPresets;
         if (editingPresets) {
             savePresetButton.setText("Cancel");
-            int depth = 20;
-            DropShadow borderGlow = new DropShadow();
-            borderGlow.setOffsetY(0f);
-            borderGlow.setOffsetX(0f);
-            borderGlow.setColor(Color.DARKCYAN);
-            borderGlow.setWidth(depth);
-            borderGlow.setHeight(depth);
             presetVBox.setEffect(borderGlow);
             presetButtons.forEach((Button btn) -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
             goButton.setDefaultButton(false);
             goButton.setDisable(true);
+            backgroundSettingsButton.setDisable(true);
             savePresetButton.setDefaultButton(true);
         } else {
             savePresetButton.setDefaultButton(false);
             goButton.setDefaultButton(true);
             goButton.setDisable(false);
+            backgroundSettingsButton.setDisable(false);
             presetVBox.setEffect(null);
             savePresetButton.setText("Save");
             presetButtons.forEach((Button btn) -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
@@ -804,19 +676,248 @@ public class Controller {
         }
     }
 
+    public void helpLabelHandler(MouseEvent evt) {
+        String labelID;
+        // if user clicks on question mark instead of padding, evt.getTarget() returns LabeledText instead of Label
+        if (evt.getTarget() instanceof LabeledText) {
+            labelID = ((LabeledText) evt.getTarget()).getParent().getId();
+        } else {
+            labelID = ((Label) evt.getTarget()).getId();
+        }
+        String helpItem = labelID.substring(0, labelID.indexOf("Help"));
+        Alert alert;
+        ButtonType openLink = new ButtonType("Open link");
+        switch (helpItem) {
+            case "ecid":
+                alert = new Alert(Alert.AlertType.INFORMATION, "Connect your device to your computer and go to iTunes and open the device \"page.\" Then click on the serial number twice and copy and paste it here.", ButtonType.OK);
+                alert.setTitle("Help: ECID");
+                alert.setHeaderText("Help");
+                alert.showAndWait();
+                break;
+            case "buildID":
+                alert = new Alert(Alert.AlertType.INFORMATION, "Get the build ID for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here.", openLink, ButtonType.OK);
+                alert.setTitle("Help: Build ID");
+                alert.setHeaderText("Help");
+                alert.showAndWait();
+                if (openLink.equals(alert.getResult())) {
+                    try {
+                        Desktop.getDesktop().browse(new URI("https://www.theiphonewiki.com/wiki/Beta_Firmware"));
+                    } catch (IOException | URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case "ipswURL":
+                alert = new Alert(Alert.AlertType.INFORMATION, "Get the IPSW download URL for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here.", openLink, ButtonType.OK);
+                alert.setTitle("Help: IPSW URL");
+                alert.setHeaderText("Help");
+                alert.showAndWait();
+                if (openLink.equals(alert.getResult())) {
+                    try {
+                        Desktop.getDesktop().browse(new URI("https://www.theiphonewiki.com/wiki/Beta_Firmware"));
+                    } catch (IOException | URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
+                alert.showAndWait();
+                break;
+            case "boardConfig":
+                openLink = new ButtonType("BMSSM app");
+                alert = new Alert(Alert.AlertType.INFORMATION, "Get the board configuration from the BMSSM app from the appstore. Go to the system tab and it'll be called the model. It can be something like \"n69ap\"", openLink, ButtonType.OK);
+                alert.setTitle("Help: Board Configuration");
+                alert.setHeaderText("Help");
+                alert.showAndWait();
+                if (openLink.equals(alert.getResult())) {
+                    try {
+                        Desktop.getDesktop().browse(new URI("https://itunes.apple.com/us/app/battery-memory-system-status-monitor/id497937231"));
+                    } catch (IOException | URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void aboutMenuHandler() {
         ButtonType githubRepo = new ButtonType("Github Repo");
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here", githubRepo, ButtonType.OK);
+        ButtonType viewLicense = new ButtonType("View License");
+        ButtonType librariesUsed = new ButtonType("Libraries Used");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here", librariesUsed, viewLicense, githubRepo, ButtonType.OK);
         alert.setTitle("About");
-        alert.setHeaderText("Blobsaver " + Main.appVersion);
+        alert.setHeaderText("blobsaver " + Main.appVersion);
+        alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n" +
+                "This program is licensed under GNU GPL v3.0-only");
+        resizeAlertButtons(alert);
         alert.showAndWait();
-        if (alert.getResult().equals(githubRepo) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+        if (githubRepo.equals(alert.getResult())) {
             try {
                 Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver"));
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
             }
+        } else if (viewLicense.equals(alert.getResult())) {
+            try {
+                InputStream input;
+                if (PlatformUtil.isWindows()) {
+                    input = Main.class.getResourceAsStream("gpl-3.0_windows.txt");
+                } else {
+                    input = Main.class.getResourceAsStream("gpl-3.0.txt");
+                }
+                File licenseFile = File.createTempFile("gpl-3.0_", ".txt");
+                OutputStream out = new FileOutputStream(licenseFile);
+                int read;
+                byte[] bytes = new byte[1024];
+
+                while ((read = input.read(bytes)) != -1) {
+                    out.write(bytes, 0, read);
+                }
+                out.close();
+                licenseFile.deleteOnExit();
+                licenseFile.setReadOnly();
+                java.awt.Desktop.getDesktop().edit(licenseFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (librariesUsed.equals(alert.getResult())) {
+            try {
+                InputStream input;
+                if (PlatformUtil.isWindows()) {
+                    input = getClass().getResourceAsStream("libraries_used_windows.txt");
+                } else {
+                    input = getClass().getResourceAsStream("libraries_used.txt");
+                }
+                File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
+                OutputStream out = new FileOutputStream(libsUsedFile);
+                int read;
+                byte[] bytes = new byte[1024];
+
+                while ((read = input.read(bytes)) != -1) {
+                    out.write(bytes, 0, read);
+                }
+                out.close();
+                libsUsedFile.deleteOnExit();
+                libsUsedFile.setReadOnly();
+                java.awt.Desktop.getDesktop().edit(libsUsedFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public void backgroundSettingsHandler() {
+        choosingRunInBackground = !choosingRunInBackground;
+        if (choosingRunInBackground) {
+            backgroundSettingsButton.setText("Cancel");
+            presetVBox.setEffect(borderGlow);
+            presetButtons.forEach((btn) -> {
+                ArrayList<String> presetsToSaveFor = new ArrayList<>();
+                JSONArray presetsToSaveForJson = new JSONArray(appPrefs.get("Presets to save in background", "[]"));
+                for (int i = 0; i < presetsToSaveForJson.length(); i++) {
+                    presetsToSaveFor.add(presetsToSaveForJson.getString(i));
+                }
+                if (presetsToSaveFor.contains(btn.getId().substring("preset".length()))) {
+                    btn.setText("Cancel " + btn.getText().substring("Load ".length()));
+                } else {
+                    btn.setText("Use " + btn.getText().substring("Load ".length()));
+                }
+            });
+            if (Background.inBackground) {
+                startBackgroundButton.setText("Stop Background");
+            }
+            goButton.setDefaultButton(false);
+            goButton.setDisable(true);
+            savePresetButton.setDisable(true);
+            backgroundSettingsButton.setDefaultButton(true);
+            chooseTimeToRunButton.setVisible(true);
+            startBackgroundButton.setVisible(true);
+        } else {
+            backgroundSettingsButton.setDefaultButton(false);
+            goButton.setDefaultButton(true);
+            goButton.setDisable(false);
+            presetVBox.setEffect(null);
+            savePresetButton.setDisable(false);
+            backgroundSettingsButton.setText("Background settings");
+            presetButtons.forEach((btn) -> {
+                if (btn.getText().startsWith("Cancel ")) {
+                    btn.setText("Load " + btn.getText().substring("Cancel ".length()));
+                } else {
+                    btn.setText("Load " + btn.getText().substring("Use ".length()));
+                }
+            });
+            chooseTimeToRunButton.setVisible(false);
+            startBackgroundButton.setVisible(false);
+        }
+    }
+
+    public void chooseTimeToRunHandler() {
+        TextInputDialog textInputDialog = new TextInputDialog(Integer.toString(appPrefs.getInt("Time to run", 7)));
+        textInputDialog.setTitle("Every when should I check new blobs?");
+        textInputDialog.setHeaderText("Frequency to check");
+        textInputDialog.setContentText("In days:");
+        // make it so user can only enter integers
+        textInputDialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                textInputDialog.getEditor().setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
+        textInputDialog.showAndWait();
+        String result = textInputDialog.getResult();
+        if (result != null && !result.equals("")) {
+            appPrefs.putInt("Time to run", Integer.valueOf(result));
+        }
+        if (Background.inBackground) {
+            ButtonType stopBackgroundButtonType = new ButtonType("Stop Background");
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    "You will need to restart the background for changes to take effect.", stopBackgroundButtonType);
+            alert.showAndWait();
+            startBackgroundButton.fire();
+        }
+    }
+
+    public void startBackgroundHandler() {
+        if (Background.inBackground) {
+            if (PlatformUtil.isMac()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                        "You will need to restart the application for changes to take effect.", ButtonType.OK);
+                alert.showAndWait();
+                appPrefs.putBoolean("Show background startup message", true);
+                appPrefs.putBoolean("Start background immediately", false);
+                Platform.exit();
+                Background.stopBackground(false);
+                System.exit(0);
+            } else {
+                Background.stopBackground(true);
+                appPrefs.putBoolean("Show background startup message", true);
+                appPrefs.putBoolean("Start background immediately", false);
+                startBackgroundButton.setText("Start background");
+            }
+        } else if (appPrefs.getBoolean("Show background startup message", true) && PlatformUtil.isMac()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
+                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
+            alert.showAndWait();
+            appPrefs.putBoolean("Show background startup message", false);
+            appPrefs.putBoolean("Start background immediately", true);
+            Platform.exit();
+            System.exit(0);
+        } else if (appPrefs.getBoolean("Show background startup message", true)) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
+                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
+            alert.showAndWait();
+            appPrefs.putBoolean("Show background startup message", false);
+            appPrefs.putBoolean("Start background immediately", true);
+            Background.startBackground();
+        } else {
+            Background.startBackground();
+            startBackgroundButton.setText("Cancel Background");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private void log(String msg) {
+//        System.out.println(msg);
     }
 
     public void go() {
@@ -837,7 +938,7 @@ public class Controller {
             identifierField.setEffect(errorBorder);
             doReturn = true;
         }
-        if (boardConfig && boardConfigField.getText().equals("")) {
+        if (getBoardConfig && boardConfigField.getText().equals("")) {
             boardConfigField.setEffect(errorBorder);
             doReturn = true;
         }
@@ -865,249 +966,19 @@ public class Controller {
             return;
         }
         String deviceModel = (String) deviceModelChoiceBox.getValue();
-        if (deviceModel == null) {
-            deviceModel = "";
-        }
-        switch (deviceModel) {
-            case "iPhone 3G[S]":
-                run("iPhone2,1");
-                break;
-            case "iPhone 4 (GSM)":
-                run("iPhone3,1");
-                break;
-            case "iPhone 4 (GSM 2012)":
-                run("iPhone3,2");
-                break;
-            case "iPhone 4 (CDMA)":
-                run("iPhone3,3");
-                break;
-            case "iPhone 4[S]":
-                run("iPhone4,1");
-                break;
-            case "iPhone 5 (GSM)":
-                run("iPhone5,1");
-                break;
-            case "iPhone 5 (Global)":
-                run("iPhone5,2");
-                break;
-            case "iPhone 5c (GSM)":
-                run("iPhone5,3");
-                break;
-            case "iPhone 5c (Global)":
-                run("iPhone5,4");
-                break;
-            case "iPhone 5s (GSM)":
-                run("iPhone6,1");
-                break;
-            case "iPhone 5s (Global)":
-                run("iPhone6,2");
-                break;
-            case "iPhone 6+":
-                run("iPhone7,1");
-                break;
-            case "iPhone 6":
-                run("iPhone7,2");
-                break;
-            case "iPhone 6s":
-                run("iPhone8,1");
-                break;
-            case "iPhone 6s+":
-                run("iPhone8,2");
-                break;
-            case "iPhone SE":
-                run("iPhone8,4");
-                break;
-            case "iPhone 7 (Global)(iPhone9,1)":
-                run("iPhone9,1");
-                break;
-            case "iPhone 7+ (Global)(iPhone9,2)":
-                run("iPhone9,2");
-                break;
-            case "iPhone 7 (GSM)(iPhone9,3)":
-                run("iPhone9,3");
-                break;
-            case "iPhone 7+ (GSM)(iPhone9,4)":
-                run("iPhone9,4");
-                break;
-            case "iPhone 8 (iPhone10,1)":
-                run("iPhone10,1");
-                break;
-            case "iPhone 8+ (iPhone10,2)":
-                run("iPhone10,2");
-                break;
-            case "iPhone X (iPhone10,3)":
-                run("iPhone10,3");
-                break;
-            case "iPhone 8 (iPhone10,4)":
-                run("iPhone10,4");
-                break;
-            case "iPhone 8+ (iPhone10,5)":
-                run("iPhone10,5");
-                break;
-            case "iPhone X (iPhone10,6)":
-                run("iPhone10,6");
-                break;
-            case "iPod Touch 3":
-                run("iPod3,1");
-                break;
-            case "iPod Touch 4":
-                run("iPod4,1");
-                break;
-            case "iPod Touch 5":
-                run("iPod5,1");
-                break;
-            case "iPod Touch 6":
-                run("iPod7,1");
-                break;
-            case "Apple TV 2G":
-                run("AppleTV2,1");
-                break;
-            case "Apple TV 3":
-                run("AppleTV3,1");
-                break;
-            case "Apple TV 3 (2013)":
-                run("AppleTV3,2");
-                break;
-            case "Apple TV 4 (2015)":
-                run("AppleTV5,3");
-                break;
-            case "Apple TV 4K":
-                run("AppleTV6,2");
-                break;
-            case "iPad 1":
-                run("iPad1,1");
-                break;
-            case "iPad 2 (WiFi)":
-                run("iPad2,1");
-                break;
-            case "iPad 2 (GSM)":
-                run("iPad2,2");
-                break;
-            case "iPad 2 (CDMA)":
-                run("iPad2,3");
-                break;
-            case "iPad 2 (Mid 2012)":
-                run("iPad2,4");
-                break;
-            case "iPad Mini (Wifi)":
-                run("iPad2,5");
-                break;
-            case "iPad Mini (GSM)":
-                run("iPad2,6");
-                break;
-            case "iPad Mini (Global)":
-                run("iPad2,7");
-                break;
-            case "iPad 3 (WiFi)":
-                run("iPad3,1");
-                break;
-            case "iPad 3 (CDMA)":
-                run("iPad3,2");
-                break;
-            case "iPad 3 (GSM)":
-                run("iPad3,3");
-                break;
-            case "iPad 4 (WiFi)":
-                run("iPad3,4");
-                break;
-            case "iPad 4 (GSM)":
-                run("iPad3,5");
-                break;
-            case "iPad 4 (Global)":
-                run("iPad3,6");
-                break;
-            case "iPad Air (Wifi)":
-                run("iPad4,1");
-                break;
-            case "iPad Air (Cellular)":
-                run("iPad4,2");
-                break;
-            case "iPad Air (China)":
-                run("iPad4,3");
-                break;
-            case "iPad Mini 2 (WiFi)":
-                run("iPad4,4");
-                break;
-            case "iPad Mini 2 (Cellular)":
-                run("iPad4,5");
-                break;
-            case "iPad Mini 2 (China)":
-                run("iPad4,6");
-                break;
-            case "iPad Mini 3 (WiFi)":
-                run("iPad4,7");
-                break;
-            case "iPad Mini 3 (Cellular)":
-                run("iPad4,8");
-                break;
-            case "iPad Mini 3 (China)":
-                run("iPad4,9");
-                break;
-            case "iPad Mini 4 (Wifi)":
-                run("iPad5,1");
-                break;
-            case "iPad Mini 4 (Cellular)":
-                run("iPad5,2");
-                break;
-            case "iPad Air 2 (WiFi)":
-                run("iPad5,3");
-                break;
-            case "iPad Air 2 (Cellular)":
-                run("iPad5,4");
-                break;
-            case "iPad Pro 9.7 (Wifi)":
-                run("iPad6,3");
-                break;
-            case "iPad Pro 9.7 (Cellular)":
-                run("iPad6,4");
-                break;
-            case "iPad Pro 12.9 (WiFi)":
-                run("iPad6,7");
-                break;
-            case "iPad Pro 12.9 (Cellular)":
-                run("iPad6,8");
-                break;
-            case "iPad 5 (Wifi)":
-                run("iPad6,11");
-                break;
-            case "iPad 5 (Cellular)":
-                run("iPad6,12");
-                break;
-            case "iPad Pro 2 12.9 (WiFi)(iPad7,1)":
-                run("iPad7,1");
-                break;
-            case "iPad Pro 2 12.9 (Cellular)(iPad7,2)":
-                run("iPad7,2");
-                break;
-            case "iPad Pro 10.5 (WiFi)(iPad7,3)":
-                run("iPad7,3");
-                break;
-            case "iPad 10.5 (Cellular)(iPad7,4)":
-                run("iPad7,4");
-                break;
-            case "iPad 6 (WiFi)(iPad 7,5)":
-                run("iPad7,5");
-                break;
-            case "iPad 6 (Cellular)(iPad7,6)":
-                run("iPad7,6");
-                break;
-            case "":
-                String identifierText = identifierField.getText();
-                try {
-                    if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
-                        run(identifierField.getText());
-                    } else {
-                        newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
-                        return;
-                    }
-                } catch (StringIndexOutOfBoundsException e) {
+        if (deviceModel == null || deviceModel.equals("")) {
+            String identifierText = identifierField.getText();
+            try {
+                if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
+                    run(identifierField.getText());
+                } else {
                     newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
-                    return;
                 }
-                break;
-            default:
-                newReportableError("Could not find: \"" + deviceModel + "\"");
-                break;
+            } catch (StringIndexOutOfBoundsException e) {
+                newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
+            }
+        } else {
+            run(Shared.textToIdentifier(deviceModel));
         }
     }
 }
