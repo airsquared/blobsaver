@@ -135,13 +135,33 @@ class Background {
         }
         log("in tray");
 
+        TimeUnit timeUnit;
+        int timeAmount = appPrefs.getInt("Time to run", 1);
+        switch (appPrefs.get("Time unit for background", "Days")) {
+            case "Minutes":
+                timeUnit = TimeUnit.MINUTES;
+                break;
+            case "Hours":
+                timeUnit = TimeUnit.HOURS;
+                break;
+            case "Days":
+                timeUnit = TimeUnit.DAYS;
+                break;
+            case "Weeks":
+                timeUnit = TimeUnit.DAYS;
+                timeAmount = timeAmount * 7;
+                break;
+            default:
+                timeUnit = TimeUnit.DAYS;
+                break;
+        }
         executor.scheduleAtFixedRate(() -> {
             if (!presetsToSave.isEmpty()) {
                 log("there are some presets to save");
                 presetsToSave.forEach(Background::saveBackgroundBlobs);
             }
             log("done w execution of executor");
-        }, 0, appPrefs.getInt("Time to run", 7), TimeUnit.DAYS);
+        }, 0, timeAmount, timeUnit);
         executor.scheduleAtFixedRate(() -> checkForUpdates(false), 4, 4, TimeUnit.DAYS);
     }
 

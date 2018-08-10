@@ -30,6 +30,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
@@ -48,6 +49,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -254,6 +256,7 @@ public class Controller {
         } else {
             path = path + "/Blobs";
         }
+        path = path.replaceAll("%20", " ");
         pathField.setText(path);
 
     }
@@ -851,26 +854,36 @@ public class Controller {
     }
 
     public void chooseTimeToRunHandler() {
-        TextInputDialog textInputDialog = new TextInputDialog(Integer.toString(appPrefs.getInt("Time to run", 7)));
-        textInputDialog.setTitle("Every when should I check new blobs?");
-        textInputDialog.setHeaderText("Frequency to check");
-        textInputDialog.setContentText("In days:");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Frequency to check for new blobs");
+        alert.setHeaderText("Frequency to check");
+        TextField textField = new TextField(Integer.toString(appPrefs.getInt("Time to run", 1)));
         // make it so user can only enter integers
-        textInputDialog.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*")) {
-                textInputDialog.getEditor().setText(newValue.replaceAll("[^\\d]", ""));
+                textField.setText(newValue.replaceAll("[^\\d]", ""));
             }
         });
-        textInputDialog.showAndWait();
-        String result = textInputDialog.getResult();
-        if (result != null && !result.equals("")) {
-            appPrefs.putInt("Time to run", Integer.valueOf(result));
+        ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList("Minutes", "Hours", "Days", "Weeks"));
+        choiceBox.setValue(appPrefs.get("Time unit for background", "Days"));
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(textField, choiceBox);
+        alert.getDialogPane().setContent(hBox);
+        alert.showAndWait();
+        if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !"".equals(textField.getText()) && (choiceBox.getValue() != null)) {
+            log("info given");
+            appPrefs.putInt("Time to run", Integer.valueOf(textField.getText()));
+            appPrefs.put("Time unit for background", choiceBox.getValue());
+        } else {
+            log("alert menu canceled");
+            backgroundSettingsButton.fire();
+            return;
         }
         if (Background.inBackground) {
             ButtonType stopBackgroundButtonType = new ButtonType("Stop Background");
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+            Alert restartBackgroundAlert = new Alert(Alert.AlertType.INFORMATION,
                     "You will need to restart the background for changes to take effect.", stopBackgroundButtonType);
-            alert.showAndWait();
+            restartBackgroundAlert.showAndWait();
             startBackgroundButton.fire();
         }
     }
@@ -915,9 +928,30 @@ public class Controller {
         }
     }
 
+    public void resetApp() {
+        try {
+            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to reset this application to defaults?", ButtonType.NO, ButtonType.YES);
+            confirmationAlert.showAndWait();
+            if ((confirmationAlert.getResult() == null) || ButtonType.CANCEL.equals(confirmationAlert.getResult()) || ButtonType.NO.equals(confirmationAlert.getResult())) {
+                return;
+            }
+            Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver");
+            prefs.flush();
+            prefs.clear();
+            prefs.removeNode();
+            prefs.flush();
+            Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application will now exit.", ButtonType.OK);
+            applicationCloseAlert.showAndWait();
+            Platform.exit();
+            System.exit(0);
+        } catch (BackingStoreException e) {
+            newReportableError("There was an error resetting the application.", e.getMessage());
+        }
+    }
+
     @SuppressWarnings("unused")
     private void log(String msg) {
-//        System.out.println(msg);
+        System.out.println(msg);
     }
 
     public void go() {

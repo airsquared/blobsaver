@@ -28,6 +28,7 @@
                           text="Check for valid blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"
                           text="Check for Updates..."/>
+                <MenuItem mnemonicParsing="false" onAction="#resetApp" text="Clear all data"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
