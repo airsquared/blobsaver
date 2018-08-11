@@ -28,7 +28,7 @@
                           text="Check for valid blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"
                           text="Check for Updates..."/>
-                <MenuItem mnemonicParsing="false" onAction="#resetApp" text="Clear all data"/>
+                <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Clear all data"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
@@ -209,7 +209,8 @@
                     AnchorPane.rightAnchor="0.0"/>
         </AnchorPane>
         <Region VBox.vgrow="ALWAYS"/>
-        <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#go" prefWidth="Infinity"
+        <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#goButtonHandler"
+                prefWidth="Infinity"
                 text="Go">
             <VBox.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0"/>
@@ -282,6 +283,12 @@
             </VBox.margin>
         </Button>
         <Region VBox.vgrow="ALWAYS"/>
+        <Button fx:id="forceCheckForBlobs" maxWidth="Infinity" mnemonicParsing="false"
+                onAction="#forceCheckForBlobsHandler" prefWidth="Infinity" text="Force check" visible="false">
+            <VBox.margin>
+                <Insets bottom="10.0"/>
+            </VBox.margin>
+        </Button>
         <Button fx:id="chooseTimeToRunButton" maxWidth="Infinity" mnemonicParsing="false"
                 onAction="#chooseTimeToRunHandler" prefWidth="Infinity" text="Change frequency" visible="false">
             <VBox.margin>

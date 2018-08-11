@@ -83,7 +83,7 @@ public class Main {
             Controller.afterStageShowing();
             Platform.setImplicitExit(false);
             if (appPrefs.getBoolean("Start background immediately", false)) {
-                Background.startBackground();
+                Background.startBackground(false);
             }
             primaryStage.setOnCloseRequest(event -> {
                 event.consume();

@@ -20,7 +20,6 @@ package blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
-import eu.hansolo.enzo.notification.Notification;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -86,6 +85,7 @@ public class Controller {
 
     @FXML private Button startBackgroundButton;
     @FXML private Button chooseTimeToRunButton;
+    @FXML private Button forceCheckForBlobs;
     @FXML private Button backgroundSettingsButton;
     @FXML private Button savePresetButton;
     @FXML private Button preset1Button;
@@ -578,12 +578,18 @@ public class Controller {
             }
             if (btn.getText().startsWith("Cancel ")) {
                 presetsToSaveFor.remove(Integer.toString(preset));
+                if (presetsToSaveFor.isEmpty()) {
+                    appPrefs.putBoolean("Background setup", false);
+                }
                 log("removed " + preset + " from list");
                 backgroundSettingsButton.fire();
             } else {
                 presetsToSaveFor.add(Integer.toString(preset));
+                appPrefs.putBoolean("Background setup", true);
                 log("added preset" + preset + " to list");
-                Notification.Notifier.INSTANCE.notifyInfo("Testing preset to make sure it works", "If it doesn't, please\nremove and fix the error.");
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "If it doesn't work, please remove it, fix the error, and add it back");
+                alert.setTitle("Testing preset " + preset);
+                alert.setHeaderText("Testing preset");
                 backgroundSettingsButton.fire();
                 btn.fire();
                 goButton.fire();
@@ -651,18 +657,20 @@ public class Controller {
     public void savePresetHandler() {
         editingPresets = !editingPresets;
         if (editingPresets) {
-            savePresetButton.setText("Cancel");
+            savePresetButton.setText("Back");
             presetVBox.setEffect(borderGlow);
             presetButtons.forEach((Button btn) -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
             goButton.setDefaultButton(false);
             goButton.setDisable(true);
-            backgroundSettingsButton.setDisable(true);
+            backgroundSettingsButton.setVisible(false);
+            backgroundSettingsButton.setManaged(false);
             savePresetButton.setDefaultButton(true);
         } else {
             savePresetButton.setDefaultButton(false);
             goButton.setDefaultButton(true);
             goButton.setDisable(false);
-            backgroundSettingsButton.setDisable(false);
+            backgroundSettingsButton.setVisible(true);
+            backgroundSettingsButton.setManaged(true);
             presetVBox.setEffect(null);
             savePresetButton.setText("Save");
             presetButtons.forEach((Button btn) -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
@@ -811,7 +819,7 @@ public class Controller {
     public void backgroundSettingsHandler() {
         choosingRunInBackground = !choosingRunInBackground;
         if (choosingRunInBackground) {
-            backgroundSettingsButton.setText("Cancel");
+            backgroundSettingsButton.setText("Back");
             presetVBox.setEffect(borderGlow);
             presetButtons.forEach((btn) -> {
                 ArrayList<String> presetsToSaveFor = new ArrayList<>();
@@ -831,15 +839,24 @@ public class Controller {
             goButton.setDefaultButton(false);
             goButton.setDisable(true);
             savePresetButton.setDisable(true);
+            savePresetButton.setVisible(false);
+            savePresetButton.setManaged(false);
             backgroundSettingsButton.setDefaultButton(true);
             chooseTimeToRunButton.setVisible(true);
+            forceCheckForBlobs.setVisible(true);
             startBackgroundButton.setVisible(true);
+            if (appPrefs.getBoolean("Background setup", false)) {
+                startBackgroundButton.setDisable(true);
+                forceCheckForBlobs.setDisable(true);
+            }
         } else {
             backgroundSettingsButton.setDefaultButton(false);
             goButton.setDefaultButton(true);
             goButton.setDisable(false);
             presetVBox.setEffect(null);
             savePresetButton.setDisable(false);
+            savePresetButton.setVisible(true);
+            savePresetButton.setManaged(true);
             backgroundSettingsButton.setText("Background settings");
             presetButtons.forEach((btn) -> {
                 if (btn.getText().startsWith("Cancel ")) {
@@ -849,6 +866,9 @@ public class Controller {
                 }
             });
             chooseTimeToRunButton.setVisible(false);
+            forceCheckForBlobs.setDisable(false);
+            forceCheckForBlobs.setVisible(false);
+            startBackgroundButton.setDisable(false);
             startBackgroundButton.setVisible(false);
         }
     }
@@ -921,14 +941,18 @@ public class Controller {
             alert.showAndWait();
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
-            Background.startBackground();
+            Background.startBackground(false);
         } else {
-            Background.startBackground();
+            Background.startBackground(false);
             startBackgroundButton.setText("Cancel Background");
         }
     }
 
-    public void resetApp() {
+    public void forceCheckForBlobsHandler() {
+        Background.startBackground(true);
+    }
+
+    public void resetAppHandler() {
         try {
             Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to reset this application to defaults?", ButtonType.NO, ButtonType.YES);
             confirmationAlert.showAndWait();
@@ -954,7 +978,7 @@ public class Controller {
         System.out.println(msg);
     }
 
-    public void go() {
+    public void goButtonHandler() {
         boolean doReturn = false;
         if (ecidField.getText().equals("")) {
             ecidField.setEffect(errorBorder);

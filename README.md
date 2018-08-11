@@ -9,7 +9,7 @@ If you have an antivirus or firewall, you may need to disable some other setting
 ![Windows Screenshot](https://i.imgur.com/zlPh4JY.png)
 
 ## Features
-- **Automatically saves blobs in the background**
+- **Automatically save blobs in the background**
 - Store up to ten devices with presets
 - Choose where to save blobs with file picker
 - Save blobs for beta versions
@@ -23,10 +23,12 @@ If you have an antivirus or firewall, you may need to disable some other setting
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
-- Change interval to hours, days, weeks
+- Allow only one instance
+- Debug log/window
 - Use macOS menu bar
+- Auto-upload to Dropbox/Google Drive
 - Package into .app/.exe [maybe this](https://github.com/Jorl17/jar2app)
-- New UI (material design?)
+- Better notifications
 
 ## Built With
 - JDK 8
