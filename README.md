@@ -5,8 +5,8 @@ A GUI for saving SHSH blobs using encounter's fork of tsschecker(uses tihmstar's
 
 If you have an antivirus or firewall, you may need to disable some other settings or disable the firewall completely for automatically saving blobs in the background to work. If you use Norton, go to Settings -> Firewall -> Advanced Program Control and set the option "Low Risk Applications" to "Allow".
 
-![Mac Screenshot](https://i.imgur.com/czq78Yf.png)
-![Windows Screenshot](https://i.imgur.com/zlPh4JY.png)
+![Mac Screenshot](https://i.imgur.com/DLPbzNd.png)
+![Windows Screenshot](https://i.imgur.com/oxqUZsI.png)
 
 ## Features
 - **Automatically save blobs in the background**

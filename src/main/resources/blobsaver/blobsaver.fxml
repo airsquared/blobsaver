@@ -35,6 +35,8 @@
                 <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Clear all data"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
+                <MenuItem mnemonicParsing="false" onAction="#showWiki"
+                          text="blobsaver Wiki"/>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
                           text="Send Feedback(Github Issue)"/>
                 <MenuItem mnemonicParsing="false" onAction="#sendRedditPM"

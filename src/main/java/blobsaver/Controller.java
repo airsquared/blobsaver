@@ -994,6 +994,14 @@ public class Controller {
         }
     }
 
+    public void showWiki() {
+        try {
+            Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/wiki"));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void throwException() {
         throw new EnumConstantNotPresentException(Notification.Notifier.class, "");
     }

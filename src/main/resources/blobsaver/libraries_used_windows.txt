@@ -41,7 +41,6 @@ Copyright (c) 2015 by Gerrit Grunwald
 
 Licensed under the Apache License, Version 2.0.
 (https://www.apache.org/licenses/LICENSE-2.0)
-To read the license offline, unzip the jar and open enzo_lib-license.txt
 
 ============================================================================
 
