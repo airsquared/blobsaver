@@ -20,6 +20,7 @@ package blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
+import eu.hansolo.enzo.notification.Notification;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -374,7 +375,11 @@ public class Controller {
             deleteTempFiles(tsschecker, buildManifestPlist);
             return;
         }
-
+        try {
+            proc.waitFor();
+        } catch (InterruptedException e) {
+            newReportableError("The tsschecker process was interrupted.", e.toString());
+        }
         if (tsscheckerLog.contains("Saved shsh blobs")) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + pathField.getText(), ButtonType.OK);
             alert.setHeaderText("Success!");
@@ -429,11 +434,6 @@ public class Controller {
             newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         } else {
             newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
-        }
-        try {
-            proc.waitFor();
-        } catch (InterruptedException e) {
-            newReportableError("The tsschecker process was interrupted.", e.toString());
         }
 
         deleteTempFiles(tsschecker, buildManifestPlist);
@@ -621,7 +621,7 @@ public class Controller {
         if (doReturn) {
             return;
         }
-        TextInputDialog textInputDialog = new TextInputDialog("Preset " + preset);
+        TextInputDialog textInputDialog = new TextInputDialog(appPrefs.get("Name Preset" + preset, "Preset " + preset));
         textInputDialog.setTitle("Name Preset " + preset);
         textInputDialog.setHeaderText("Name Preset");
         textInputDialog.setContentText("Please enter a name for the preset:");
@@ -949,7 +949,12 @@ public class Controller {
     }
 
     public void forceCheckForBlobsHandler() {
-        Background.startBackground(true);
+        if (Background.inBackground) {
+            Background.stopBackground(false);
+            Background.startBackground(false);
+        } else {
+            Background.startBackground(true);
+        }
     }
 
     public void resetAppHandler() {
@@ -973,7 +978,18 @@ public class Controller {
         }
     }
 
-    @SuppressWarnings("unused")
+    public void debugLogHandler() {
+        if (DebugWindow.isShowing()) {
+            DebugWindow.hide();
+        } else {
+            DebugWindow.show();
+        }
+    }
+
+    public void throwException() {
+        throw new EnumConstantNotPresentException(Notification.Notifier.class, "");
+    }
+
     private void log(String msg) {
         System.out.println(msg);
     }

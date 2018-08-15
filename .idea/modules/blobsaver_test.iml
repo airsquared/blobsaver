@@ -20,6 +20,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="Gradle: org.json:json:20180130" level="project" />
+    <orderEntry type="library" name="Gradle: it.sauronsoftware:junique:1.0.4" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="blobsaver_main" />
 </module>

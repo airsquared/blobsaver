@@ -20,6 +20,8 @@ package blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.application.PlatformImpl;
+import it.sauronsoftware.junique.AlreadyLockedException;
+import it.sauronsoftware.junique.JUnique;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -35,9 +37,16 @@ public class Main {
 
     static final String appVersion = "v2.1-beta";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
+    private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;
 
     public static void main(String[] args) {
+        try {
+            JUnique.acquireLock(appID);
+        } catch (AlreadyLockedException e) {
+            javax.swing.JOptionPane.showMessageDialog(null, "blobsaver already running, exiting");
+            System.exit(-1);
+        }
         try {
             Class.forName("javafx.application.Application");
             if (PlatformUtil.isMac() || PlatformUtil.isWindows() || PlatformUtil.isLinux()) {

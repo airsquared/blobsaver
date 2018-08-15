@@ -24,6 +24,10 @@
     <VBox maxHeight="Infinity" maxWidth="-Infinity" minHeight="580.0" prefWidth="500.0">
         <MenuBar>
             <Menu mnemonicParsing="false" text="Options">
+                <MenuItem mnemonicParsing="false" onAction="#debugLogHandler"
+                          text="Debug log"/>
+                <MenuItem mnemonicParsing="false" onAction="#throwException"
+                          text="Throw exception"/>
                 <MenuItem mnemonicParsing="false" onAction="#checkBlobs"
                           text="Check for valid blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"

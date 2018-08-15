@@ -9,12 +9,15 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    maven {
+        url "http://repo.spring.io/plugins-release/"
+    }
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/org.json/json
     compile group: 'org.json', name: 'json', version: '20180130'
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile group: 'it.sauronsoftware', name: 'junique', version: '1.0.4'
 }
 
 compileJava {
