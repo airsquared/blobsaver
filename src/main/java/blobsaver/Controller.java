@@ -225,6 +225,8 @@ public class Controller {
         boardConfigField.textProperty().addListener((observable, oldValue, newValue) -> boardConfigField.setEffect(null));
         apnonceField.textProperty().addListener((observable, oldValue, newValue) -> apnonceField.setEffect(null));
         pathField.textProperty().addListener((observable, oldValue, newValue) -> pathField.setEffect(null));
+        buildIDField.textProperty().addListener((observable, oldValue, newValue) -> buildIDField.setEffect(null));
+        ipswField.textProperty().addListener((observable, oldValue, newValue) -> ipswField.setEffect(null));
 
         deviceTypeChoiceBox.setValue("iPhone");
 
@@ -420,9 +422,13 @@ public class Controller {
         } else if (tsscheckerLog.contains("[Error] [Error] can't save shsh at " + pathField.getText())) {
             newUnreportableError("\'" + pathField.getText() + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             pathField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("iOS " + versionField.getText() + " for device " + device + " IS NOT being signed!")) {
+        } else if (tsscheckerLog.contains("iOS " + versionField.getText() + " for device " + device + " IS NOT being signed!") || tsscheckerLog.contains("Build " + buildIDField.getText() + " for device iPhone9,2 IS NOT being signed!")) {
             newUnreportableError("iOS/tvOS " + versionField.getText() + " is not being signed for device " + device);
             versionField.setEffect(errorBorder);
+            if (betaCheckBox.isSelected()) {
+                buildIDField.setEffect(errorBorder);
+                ipswField.setEffect(errorBorder);
+            }
         } else if (tsscheckerLog.contains("[Error] [TSSC] failed to load manifest")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Failed to load manifest.\n\n \"" + ipswField.getText() + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
@@ -430,6 +436,8 @@ public class Controller {
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
+        } else if (tsscheckerLog.contains("[Error] [TSSC] selected device can't be used with that buildmanifest")) {
+            newUnreportableError("Device and build manifest don't match.");
         } else if (tsscheckerLog.contains("[Error]")) {
             newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         } else {
