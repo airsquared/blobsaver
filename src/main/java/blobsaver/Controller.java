@@ -20,7 +20,6 @@ package blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
-import eu.hansolo.enzo.notification.Notification;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -853,9 +852,10 @@ public class Controller {
             chooseTimeToRunButton.setVisible(true);
             forceCheckForBlobs.setVisible(true);
             startBackgroundButton.setVisible(true);
-            if (appPrefs.getBoolean("Background setup", false)) {
+            if (!appPrefs.getBoolean("Background setup", false)) {
                 startBackgroundButton.setDisable(true);
                 forceCheckForBlobs.setDisable(true);
+                chooseTimeToRunButton.setDisable(true);
             }
         } else {
             backgroundSettingsButton.setDefaultButton(false);
@@ -873,6 +873,7 @@ public class Controller {
                     btn.setText("Load " + btn.getText().substring("Use ".length()));
                 }
             });
+            chooseTimeToRunButton.setDisable(false);
             chooseTimeToRunButton.setVisible(false);
             forceCheckForBlobs.setDisable(false);
             forceCheckForBlobs.setVisible(false);
@@ -994,16 +995,35 @@ public class Controller {
         }
     }
 
-    public void showWiki() {
+    public void showWiki(ActionEvent event) {
         try {
             Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/wiki"));
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
-    }
-
-    public void throwException() {
-        throw new EnumConstantNotPresentException(Notification.Notifier.class, "");
+        String url;
+        switch (((MenuItem) event.getTarget()).getText()) {
+            case "What are blobs?":
+                url = "https://github.com/airsquared/blobsaver/wiki/What-are-blobs-and-why-do-you-need-them%3F";
+                break;
+            case "Getting the required information":
+                url = "https://github.com/airsquared/blobsaver/wiki/Getting-the-required-information";
+                break;
+            case "Setting it up to run in the background":
+                url = "https://github.com/airsquared/blobsaver/wiki/Setting-up-the-background";
+                break;
+            case "Running on system startup":
+                url = "https://github.com/airsquared/blobsaver/wiki/Running-on-system-startup";
+                break;
+            default:
+                url = "https://github.com/airsquared/blobsaver/wiki";
+                break;
+        }
+        try {
+            Desktop.getDesktop().browse(new URI(url));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
     private void log(String msg) {

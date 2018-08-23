@@ -26,8 +26,6 @@
             <Menu mnemonicParsing="false" text="Options">
                 <MenuItem mnemonicParsing="false" onAction="#debugLogHandler"
                           text="Debug log"/>
-                <MenuItem mnemonicParsing="false" onAction="#throwException"
-                          text="Throw exception"/>
                 <MenuItem mnemonicParsing="false" onAction="#checkBlobs"
                           text="Check for valid blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"
@@ -35,8 +33,18 @@
                 <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Clear all data"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
-                <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                          text="blobsaver Wiki"/>
+                <Menu mnemonicParsing="false" text="Wiki">
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
+                              text="Wiki Home"/>
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
+                              text="What are blobs?"/>
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
+                              text="Getting the required information"/>
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
+                              text="Setting it up to run in the background"/>
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
+                              text="Running on system startup"/>
+                </Menu>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
                           text="Send Feedback(Github Issue)"/>
                 <MenuItem mnemonicParsing="false" onAction="#sendRedditPM"
