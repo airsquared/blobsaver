@@ -22,7 +22,7 @@
 <?import javafx.scene.layout.*?>
 <HBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="blobsaver.Controller">
     <VBox maxHeight="Infinity" maxWidth="-Infinity" minHeight="580.0" prefWidth="500.0">
-        <MenuBar>
+        <MenuBar fx:id="menuBar">
             <Menu mnemonicParsing="false" text="Options">
                 <MenuItem mnemonicParsing="false" onAction="#debugLogHandler"
                           text="Debug log"/>
@@ -33,7 +33,7 @@
                 <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Clear all data"/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
-                <Menu mnemonicParsing="false" text="Wiki">
+                <Menu mnemonicParsing="false" text="blobsaver Help/Wiki">
                     <MenuItem mnemonicParsing="false" onAction="#showWiki"
                               text="Wiki Home"/>
                     <MenuItem mnemonicParsing="false" onAction="#showWiki"

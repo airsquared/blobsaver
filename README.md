@@ -23,7 +23,6 @@ If you have an antivirus or firewall, you may need to disable some other setting
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
-- Use macOS menu bar
 - Auto-upload to Dropbox/Google Drive
 - Package into .app/.exe [maybe this](https://github.com/Jorl17/jar2app)
 - Better notifications

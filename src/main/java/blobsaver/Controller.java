@@ -20,11 +20,13 @@ package blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
+import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -33,6 +35,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
@@ -54,6 +57,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static blobsaver.Main.appPrefs;
+import static blobsaver.Main.primaryStage;
 import static blobsaver.Shared.githubIssue;
 import static blobsaver.Shared.newReportableError;
 import static blobsaver.Shared.newUnreportableError;
@@ -63,6 +67,8 @@ import static blobsaver.Shared.resizeAlertButtons;
 
 public class Controller {
 
+
+    @FXML private MenuBar menuBar;
 
     @FXML private ChoiceBox deviceTypeChoiceBox;
     @FXML private ChoiceBox deviceModelChoiceBox;
@@ -261,6 +267,17 @@ public class Controller {
         path = path.replaceAll("%20", " ");
         pathField.setText(path);
 
+        if (PlatformUtil.isMac()) {
+            EventHandler<WindowEvent> onShowing = new EventHandler<WindowEvent>() {
+                @Override
+                public void handle(WindowEvent event) {
+                    log("using macos menu bar");
+                    useMacOSMenuBar();
+                    primaryStage.removeEventHandler(event.getEventType(), this);
+                }
+            };
+            primaryStage.setOnShowing(onShowing);
+        }
     }
 
     public void checkForUpdatesHandler() {
@@ -768,59 +785,130 @@ public class Controller {
                 "This program is licensed under GNU GPL v3.0-only");
         resizeAlertButtons(alert);
         alert.showAndWait();
-        if (githubRepo.equals(alert.getResult())) {
-            try {
-                Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver"));
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-            }
-        } else if (viewLicense.equals(alert.getResult())) {
-            try {
-                InputStream input;
-                if (PlatformUtil.isWindows()) {
-                    input = Main.class.getResourceAsStream("gpl-3.0_windows.txt");
-                } else {
-                    input = Main.class.getResourceAsStream("gpl-3.0.txt");
+        switch (alert.getResult().getText()) {
+            case "Github Repo":
+                try {
+                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver"));
+                } catch (IOException | URISyntaxException e) {
+                    e.printStackTrace();
                 }
-                File licenseFile = File.createTempFile("gpl-3.0_", ".txt");
-                OutputStream out = new FileOutputStream(licenseFile);
-                int read;
-                byte[] bytes = new byte[1024];
+                break;
+            case "View License":
+                try {
+                    InputStream input;
+                    if (PlatformUtil.isWindows()) {
+                        input = Main.class.getResourceAsStream("gpl-3.0_windows.txt");
+                    } else {
+                        input = Main.class.getResourceAsStream("gpl-3.0.txt");
+                    }
+                    File licenseFile = File.createTempFile("gpl-3.0_", ".txt");
+                    OutputStream out = new FileOutputStream(licenseFile);
+                    int read;
+                    byte[] bytes = new byte[1024];
 
-                while ((read = input.read(bytes)) != -1) {
-                    out.write(bytes, 0, read);
+                    while ((read = input.read(bytes)) != -1) {
+                        out.write(bytes, 0, read);
+                    }
+                    out.close();
+                    licenseFile.deleteOnExit();
+                    licenseFile.setReadOnly();
+                    java.awt.Desktop.getDesktop().edit(licenseFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                out.close();
-                licenseFile.deleteOnExit();
-                licenseFile.setReadOnly();
-                java.awt.Desktop.getDesktop().edit(licenseFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else if (librariesUsed.equals(alert.getResult())) {
-            try {
-                InputStream input;
-                if (PlatformUtil.isWindows()) {
-                    input = getClass().getResourceAsStream("libraries_used_windows.txt");
-                } else {
-                    input = getClass().getResourceAsStream("libraries_used.txt");
-                }
-                File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
-                OutputStream out = new FileOutputStream(libsUsedFile);
-                int read;
-                byte[] bytes = new byte[1024];
+                break;
+            case "Libraries Used":
+                try {
+                    InputStream input;
+                    if (PlatformUtil.isWindows()) {
+                        input = Main.class.getResourceAsStream("libraries_used_windows.txt");
+                    } else {
+                        input = Main.class.getResourceAsStream("libraries_used.txt");
+                    }
+                    File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
+                    OutputStream out = new FileOutputStream(libsUsedFile);
+                    int read;
+                    byte[] bytes = new byte[1024];
 
-                while ((read = input.read(bytes)) != -1) {
-                    out.write(bytes, 0, read);
+                    while ((read = input.read(bytes)) != -1) {
+                        out.write(bytes, 0, read);
+                    }
+                    out.close();
+                    libsUsedFile.deleteOnExit();
+                    libsUsedFile.setReadOnly();
+                    java.awt.Desktop.getDesktop().edit(libsUsedFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                out.close();
-                libsUsedFile.deleteOnExit();
-                libsUsedFile.setReadOnly();
-                java.awt.Desktop.getDesktop().edit(libsUsedFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                break;
         }
+    }
+
+    private void useMacOSMenuBar() {
+
+        ((VBox) menuBar.getParent()).setMinHeight(560.0);
+        ((VBox) menuBar.getParent()).setPrefHeight(560.0);
+        presetVBox.setMinHeight(560.0);
+        presetVBox.setPrefHeight(560.0);
+
+        menuBar.setUseSystemMenuBar(true);
+        MenuBar macOSMenuBar = new MenuBar();
+        MenuToolkit tk = MenuToolkit.toolkit();
+
+        Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver");
+
+        MenuItem aboutMenuItem = new MenuItem("About blobsaver");
+        aboutMenuItem.setOnAction(event2 -> aboutMenuHandler());
+        applicationMenu.getItems().set(0, aboutMenuItem);
+
+        MenuItem checkForUpdatesMenuItem = new MenuItem("Check for Updates...");
+        checkForUpdatesMenuItem.setOnAction(event1 -> checkForUpdatesHandler());
+        applicationMenu.getItems().add(1, new SeparatorMenuItem());
+        applicationMenu.getItems().add(2, checkForUpdatesMenuItem);
+
+        MenuItem clearAllDataMenuItem = new MenuItem("Clear all data...");
+        clearAllDataMenuItem.setOnAction(event1 -> resetAppHandler());
+        applicationMenu.getItems().add(3, new SeparatorMenuItem());
+        applicationMenu.getItems().add(4, clearAllDataMenuItem);
+
+        macOSMenuBar.getMenus().add(0, applicationMenu);
+
+
+        Menu windowMenu = new Menu("Window");
+
+        windowMenu.getItems().add(new SeparatorMenuItem());
+        windowMenu.getItems().add(tk.createMinimizeMenuItem());
+        windowMenu.getItems().add(tk.createCycleWindowsItem());
+
+        MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug log");
+        debugLogMenuItem.setOnAction(event -> {
+            debugLogHandler();
+            tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
+        });
+        windowMenu.getItems().add(new SeparatorMenuItem());
+        windowMenu.getItems().add(debugLogMenuItem);
+
+        windowMenu.getItems().add(new SeparatorMenuItem());
+        windowMenu.getItems().add(tk.createBringAllToFrontItem());
+        windowMenu.getItems().add(new SeparatorMenuItem());
+        tk.autoAddWindowMenuItems(windowMenu);
+
+        macOSMenuBar.getMenus().add(windowMenu);
+
+
+        Menu helpMenu = menuBar.getMenus().get(1);
+
+        helpMenu.getItems().add(1, new SeparatorMenuItem());
+        helpMenu.getItems().add(4, new SeparatorMenuItem());
+
+        MenuItem checkForValidBlobsMenuItem = new MenuItem("Check for Valid Blobs...");
+        checkForValidBlobsMenuItem.setOnAction(event -> checkBlobs());
+        helpMenu.getItems().set(5, checkForValidBlobsMenuItem);
+
+        macOSMenuBar.getMenus().add(helpMenu);
+
+
+        tk.setMenuBar(primaryStage, macOSMenuBar);
     }
 
     public void backgroundSettingsHandler() {

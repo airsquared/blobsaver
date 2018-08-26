@@ -79,6 +79,10 @@ class DebugWindow {
         System.setErr(sysOut);
     }
 
+    static Stage getDebugStage() {
+        return debugStage;
+    }
+
     static boolean isShowing() {
         return debugStage.isShowing();
     }
