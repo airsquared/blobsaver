@@ -770,6 +770,20 @@ public class Controller {
                     }
                 }
                 break;
+            case "location":
+                openLink = new ButtonType("Open link");
+                alert = new Alert(Alert.AlertType.INFORMATION, "Click \"Open link\" to see how to automatically upload blobs you save to the cloud.", openLink, ButtonType.OK);
+                alert.setTitle("Help: Saving Blobs to the Cloud");
+                alert.setHeaderText("Help");
+                alert.showAndWait();
+                if (openLink.equals(alert.getResult())) {
+                    try {
+                        Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud(Dropbox,-Google-Drive,-iCloud)"));
+                    } catch (IOException | URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
         }
     }
 
@@ -1102,6 +1116,9 @@ public class Controller {
                 break;
             case "Running on system startup":
                 url = "https://github.com/airsquared/blobsaver/wiki/Running-on-system-startup";
+                break;
+            case "Automatically upload blobs to the cloud":
+                url = "https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud(Dropbox,-Google-Drive,-iCloud)";
                 break;
             default:
                 url = "https://github.com/airsquared/blobsaver/wiki";

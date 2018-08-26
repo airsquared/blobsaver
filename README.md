@@ -1,6 +1,8 @@
 # blobsaver
 A GUI for saving SHSH blobs using encounter's fork of tsschecker(uses tihmstar's original for linux). Supports both Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
 
+**Tip:** if you want blobs you save to automatically be uploaded to the cloud, see [this](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud\(Dropbox,-Google-Drive,-iCloud\))
+
 [Download here](https://github.com/airsquared/blobsaver/releases/latest)
 
 If you have an antivirus or firewall, you may need to disable some other settings or disable the firewall completely for automatically saving blobs in the background to work. If you use Norton, go to Settings -> Firewall -> Advanced Program Control and set the option "Low Risk Applications" to "Allow".
@@ -23,7 +25,6 @@ If you have an antivirus or firewall, you may need to disable some other setting
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
-- Auto-upload to Dropbox/Google Drive
 - Package into .app/.exe [maybe this](https://github.com/Jorl17/jar2app)
 - Better notifications
 
