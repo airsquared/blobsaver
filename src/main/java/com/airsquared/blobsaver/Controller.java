@@ -145,7 +145,8 @@ public class Controller {
                 "iPhone 6+", "iPhone 6", "iPhone 6s", "iPhone 6s+", "iPhone SE", "iPhone 7 (Global)(iPhone9,1)",
                 "iPhone 7+ (Global)(iPhone9,2)", "iPhone 7 (GSM)(iPhone9,3)", "iPhone 7+ (GSM)(iPhone9,4)",
                 "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
-                "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)");
+                "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "iPhone XS (Global) (iPhone11,2)",
+                "iPhone XS Max (iPhone11,4)", "iPhone XS Max (China) (iPhone11,6)", "iPhone XR (iPhone11,8)");
         final ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6");
         final ObservableList iPads = FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
                 "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
@@ -196,7 +197,7 @@ public class Controller {
                 return;
             }
             final String v = (String) newValue;
-            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 6 (WiFi)(iPad 7,5)") || v.equals("iPad 6 (Cellular)(iPad7,6)")) {
+            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 6 (WiFi)(iPad 7,5)") || v.equals("iPad 6 (Cellular)(iPad7,6)") || v.equals("iPad 5 (Wifi)") || v.equals("iPad 5 (Cellular)")) {
                 boardConfigField.setEffect(borderGlow);
                 getBoardConfig = true;
                 boardConfigField.setDisable(false);
@@ -209,7 +210,7 @@ public class Controller {
         });
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
             identifierField.setEffect(null);
-            if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4") || newValue.equals("iPad7,5") || newValue.equals("iPad7,6")) {
+            if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4") || newValue.equals("iPad7,5") || newValue.equals("iPad7,6") || newValue.equals("iPad6,11") || newValue.equals("iPad6,12")) {
                 boardConfigField.setEffect(borderGlow);
                 getBoardConfig = true;
                 boardConfigField.setDisable(false);

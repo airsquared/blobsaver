@@ -79,7 +79,7 @@
                 </padding>
             </Label>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button onAction="#readInfo" text="Read from connected device">
+            <Button onAction="#readInfo" text="Read from connected device (beta)">
                 <HBox.margin>
                     <Insets right="5.0"/>
                 </HBox.margin>

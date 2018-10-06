@@ -14,7 +14,7 @@ If you have an antivirus or firewall, you may need to disable some other setting
 - **Automatically save blobs in the background**
 - Store up to ten devices with presets
 - Save blobs for beta versions
-- Automatically read ECID and other info from device so you don't to get it manually
+- Read ECID and other info from device so you don't to get it manually (currently broken on Windows)
 - No need to download entire .ipsw for beta versions(just specify link)
 - Choose where to save blobs with file picker
 - Explains how to get ECID, Board Config(if needed), and information necessary for beta versions
@@ -26,6 +26,7 @@ If you have an antivirus or firewall, you may need to disable some other setting
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
 ## TODO:
+- Fix reading the information from the device on Windows
 - Better notifications
 
 ## Built With
