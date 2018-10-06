@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright (c) 2018  airsquared
   ~
@@ -20,24 +21,21 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<HBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="blobsaver.Controller">
+<HBox xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8"
+      fx:controller="com.airsquared.blobsaver.Controller">
     <VBox maxHeight="Infinity" maxWidth="-Infinity" minHeight="580.0" prefWidth="500.0">
         <MenuBar fx:id="menuBar">
             <Menu mnemonicParsing="false" text="Options">
-                <MenuItem mnemonicParsing="false" onAction="#debugLogHandler"
-                          text="Debug log"/>
-                <MenuItem mnemonicParsing="false" onAction="#checkBlobs"
-                          text="Check for valid blobs..."/>
+                <MenuItem mnemonicParsing="false" onAction="#debugLogHandler" text="Debug log"/>
+                <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for valid blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"
                           text="Check for Updates..."/>
-                <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Clear all data"/>
+                <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Uninstall..."/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
                 <Menu mnemonicParsing="false" text="blobsaver Help/Wiki">
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                              text="Wiki Home"/>
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                              text="What are blobs?"/>
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki" text="Wiki Home"/>
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki" text="What are blobs?"/>
                     <MenuItem mnemonicParsing="false" onAction="#showWiki"
                               text="Getting the required information"/>
                     <MenuItem mnemonicParsing="false" onAction="#showWiki"
@@ -49,8 +47,7 @@
                 </Menu>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
                           text="Send Feedback(Github Issue)"/>
-                <MenuItem mnemonicParsing="false" onAction="#sendRedditPM"
-                          text="Send Feedback(Reddit PM)"/>
+                <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback(Reddit PM)"/>
                 <MenuItem mnemonicParsing="false" onAction="#aboutMenuHandler" text="About"/>
             </Menu>
         </MenuBar>
@@ -59,6 +56,7 @@
                 <Insets left="10.0" top="10.0"/>
             </VBox.margin>
         </Label>
+
         <HBox>
             <VBox.margin>
                 <Insets bottom="5.0" top="5.0"/>
@@ -68,7 +66,7 @@
                     <Insets left="10.0"/>
                 </HBox.margin>
             </TextField>
-            <Label text="?" onMouseClicked="#helpLabelHandler" id="ecidHelp">
+            <Label id="ecidHelp" onMouseClicked="#helpLabelHandler" text="?">
                 <HBox.margin>
                     <Insets/>
                 </HBox.margin>
@@ -80,6 +78,12 @@
                     <Insets bottom="5.0" left="5.0" right="5.0"/>
                 </padding>
             </Label>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button onAction="#readInfo" text="Read from connected device">
+                <HBox.margin>
+                    <Insets right="5.0"/>
+                </HBox.margin>
+            </Button>
         </HBox>
         <Label text="Identifier">
             <VBox.margin>
@@ -90,8 +94,8 @@
             <VBox.margin>
                 <Insets bottom="5.0" top="5.0"/>
             </VBox.margin>
-            <CheckBox fx:id="identifierCheckBox" mnemonicParsing="false"
-                      onAction="#identifierCheckBoxHandler" text="Manually Specify Identifier:">
+            <CheckBox fx:id="identifierCheckBox" mnemonicParsing="false" onAction="#identifierCheckBoxHandler"
+                      text="Manually Specify Identifier:">
                 <HBox.margin>
                     <Insets left="10.0"/>
                 </HBox.margin>
@@ -145,7 +149,7 @@
                     <Insets left="10.0"/>
                 </HBox.margin>
             </TextField>
-            <Label text="?" onMouseClicked="#helpLabelHandler" id="buildIDHelp">
+            <Label id="buildIDHelp" onMouseClicked="#helpLabelHandler" text="?">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>
@@ -165,7 +169,7 @@
                 <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
             </VBox.margin>
             <TextField fx:id="ipswField" disable="true" prefWidth="500.0" promptText="URL to .ipsw file"/>
-            <Label text="?" onMouseClicked="#helpLabelHandler" id="ipswURLHelp">
+            <Label id="ipswURLHelp" onMouseClicked="#helpLabelHandler" text="?">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>
@@ -186,7 +190,7 @@
             </VBox.margin>
             <TextField fx:id="boardConfigField" disable="true" prefWidth="500.0"
                        promptText="Board Configuration"/>
-            <Label text="?" onMouseClicked="#helpLabelHandler" id="boardConfigHelp">
+            <Label id="boardConfigHelp" onMouseClicked="#helpLabelHandler" text="?">
                 <HBox.margin>
                     <Insets/>
                 </HBox.margin>
@@ -221,24 +225,23 @@
             </VBox.margin>
             <AnchorPane HBox.hgrow="ALWAYS">
                 <TextField fx:id="pathField" promptText="Path" AnchorPane.bottomAnchor="0.0"
-                           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                           AnchorPane.topAnchor="0.0"/>
                 <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..."
                         AnchorPane.rightAnchor="0.0"/>
             </AnchorPane>
-            <Label text="?" onMouseClicked="#helpLabelHandler" id="locationHelp">
+            <Label id="locationHelp" onMouseClicked="#helpLabelHandler" text="?">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>
                 <tooltip>
-                    <Tooltip
-                            text="Click to see how to automatically upload to a cloud service"/>
+                    <Tooltip text="Click to see how to automatically upload to a cloud service"/>
                 </tooltip>
             </Label>
         </HBox>
         <Region VBox.vgrow="ALWAYS"/>
         <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#goButtonHandler"
-                prefWidth="Infinity"
-                text="Go">
+                prefWidth="Infinity" text="Go">
             <VBox.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0"/>
             </VBox.margin>
@@ -249,56 +252,56 @@
         <padding>
             <Insets left="10.0" right="10.0"/>
         </padding>
-        <Button id="preset1" fx:id="preset1Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 1">
+        <Button id="preset1" fx:id="preset1Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 1">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset2" fx:id="preset2Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 2">
+        <Button id="preset2" fx:id="preset2Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 2">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset3" fx:id="preset3Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 3">
+        <Button id="preset3" fx:id="preset3Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 3">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset4" fx:id="preset4Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 4">
+        <Button id="preset4" fx:id="preset4Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 4">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset5" fx:id="preset5Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 5">
+        <Button id="preset5" fx:id="preset5Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 5">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset6" fx:id="preset6Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 6">
+        <Button id="preset6" fx:id="preset6Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 6">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset7" fx:id="preset7Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 7">
+        <Button id="preset7" fx:id="preset7Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 7">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset8" fx:id="preset8Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 8">
+        <Button id="preset8" fx:id="preset8Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 8">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset9" fx:id="preset9Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 9">
+        <Button id="preset9" fx:id="preset9Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 9">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
@@ -328,8 +331,8 @@
                 <Insets bottom="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="savePresetButton" maxWidth="Infinity" mnemonicParsing="false"
-                onAction="#savePresetHandler" prefWidth="Infinity" text="Save">
+        <Button fx:id="savePresetButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#savePresetHandler"
+                prefWidth="Infinity" text="Save">
             <VBox.margin>
                 <Insets bottom="10.0"/>
             </VBox.margin>

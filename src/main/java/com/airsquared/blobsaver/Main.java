@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package blobsaver;
+package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.application.PlatformImpl;
@@ -35,7 +35,7 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.1";
+    static final String appVersion = "v2.2-beta";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;

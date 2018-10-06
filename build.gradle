@@ -1,16 +1,17 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.4' // plugin for fat jar
+    id 'edu.sc.seis.launch4j' version '2.4.4' // for bundling into .exe
+    id "edu.sc.seis.macAppBundle" version "2.2.2" // for bundling into .app
+    id 'com.github.johnrengelman.shadow' version '2.0.4' // for fat jar
     id 'java'
 }
 
-version '2.1'
-
+version null
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
     maven {
-        url "http://repo.spring.io/plugins-release/"
+        url "http://repo.spring.io/plugins-release/" // for junique
     }
 }
 
@@ -29,11 +30,64 @@ compileJava {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'blobsaver.Main'
+        attributes 'Main-Class': 'com.airsquared.blobsaver.Main'
     }
 }
 
 shadowJar {
     classifier = null // remove '-all' suffix
     from "LICENSE"
+}
+
+macAppBundle {
+    mainClassName = "com.airsquared.blobsaver.Main"
+//    bundleJRE = true
+    icon = "icons/blob_emoji.icns"
+    backgroundImage = "icons/dmg_background.png"
+    appName = 'blobsaver'
+    dmgName = 'blobsaver-macos'
+}
+
+launch4j { // Windows only, don't use this, use createWindowsInstaller
+    mainClassName = "com.airsquared.blobsaver.Main"
+    copyright = "Copyright (c) 2018  airsquared"
+    downloadUrl = "https://java.com/inc/BrowserRedirect1.jsp"
+    icon = "${projectDir}/icons/blob_emoji.ico"
+}
+
+task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
+    // IMPORTANT: first make sure you have installed Inno Setup
+    //            Install Inno Setup Preprocessor (ISPP) along with Inno Setup
+    //            and make sure you have wine in your path if you are not on windows
+    //            Inno Setup **MUST** be installed to C:\Program Files (x86)\Inno Setup 5\
+    doFirst {
+        new File(projectDir, "build/innosetup/").mkdirs()
+        workingDir = projectDir
+        println "running Inno Setup Compiler"
+        if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")) {
+            commandLine 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
+        } else {
+            commandLine 'wine', 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
+        }
+    }
+}
+
+void buildEverything() {
+    println "creating fat/uber jar with shadowJar:"
+    shadowJar.execute()
+    println "creating mac app bundle:"
+    if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
+        println "  creating full .dmg"
+        createDmg.execute()
+    } else {
+        println "  creating .zip with .app inside"
+        createAppZip.execute()
+    }
+    println "creating windows installer with inno setup:"
+    println "         **IMPORTANT:** (for creating windows installer)"
+    println "  first make sure you have installed Inno Setup first"
+    println "  and make sure you have wine in your path if you are not on windows"
+    println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
+
+    createWindowsInstaller.execute()
 }

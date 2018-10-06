@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package blobsaver;
+package com.airsquared.blobsaver;
 
 import eu.hansolo.enzo.notification.Notification;
 import javafx.application.Platform;
@@ -51,12 +51,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-import static blobsaver.Main.appPrefs;
-import static blobsaver.Shared.checkForUpdates;
-import static blobsaver.Shared.githubIssue;
-import static blobsaver.Shared.redditPM;
-import static blobsaver.Shared.reportError;
-import static blobsaver.Shared.resizeAlertButtons;
+import static com.airsquared.blobsaver.Main.appPrefs;
+import static com.airsquared.blobsaver.Shared.checkForUpdates;
+import static com.airsquared.blobsaver.Shared.githubIssue;
+import static com.airsquared.blobsaver.Shared.redditPM;
+import static com.airsquared.blobsaver.Shared.reportError;
+import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
 
 class Background {
 

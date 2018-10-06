@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package blobsaver;
+package com.airsquared.blobsaver;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;

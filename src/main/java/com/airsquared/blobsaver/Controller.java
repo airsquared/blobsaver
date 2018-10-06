@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package blobsaver;
+package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
@@ -39,13 +39,7 @@ import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -56,14 +50,14 @@ import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static blobsaver.Main.appPrefs;
-import static blobsaver.Main.primaryStage;
-import static blobsaver.Shared.githubIssue;
-import static blobsaver.Shared.newReportableError;
-import static blobsaver.Shared.newUnreportableError;
-import static blobsaver.Shared.redditPM;
-import static blobsaver.Shared.reportError;
-import static blobsaver.Shared.resizeAlertButtons;
+import static com.airsquared.blobsaver.Main.appPrefs;
+import static com.airsquared.blobsaver.Main.primaryStage;
+import static com.airsquared.blobsaver.Shared.githubIssue;
+import static com.airsquared.blobsaver.Shared.newReportableError;
+import static com.airsquared.blobsaver.Shared.newUnreportableError;
+import static com.airsquared.blobsaver.Shared.redditPM;
+import static com.airsquared.blobsaver.Shared.reportError;
+import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
 
 public class Controller {
 
@@ -191,6 +185,7 @@ public class Controller {
                     break;
             }
         });
+
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
             deviceModelChoiceBox.setEffect(null);
             if (newValue == null) {
@@ -247,36 +242,38 @@ public class Controller {
         presetButtons.forEach((Button btn) -> btn.setOnAction(this::presetButtonHandler));
 
         final String url = getClass().getResource("Controller.class").toString();
-        String path = url.substring(0, url.length() - "blobsaver/Controller.class".length());
+        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Controller.class".length());
         if (path.startsWith("jar:")) {
             path = path.substring("jar:".length(), path.length() - 2);
         }
         if (path.startsWith("file:")) {
-            path = path.substring("file:".length(), path.length());
+            path = path.substring("file:".length());
         }
-        path = new File(path).getParentFile().toString();
-        if (PlatformUtil.isWindows() && path.endsWith("\\")) {
-            path = path + "Blobs";
-        } else if (PlatformUtil.isWindows()) {
-            path = path + "\\Blobs";
-        } else if (path.endsWith("/")) {
+        path = new File(path).getParentFile().toString().replaceAll("%20", " ");
+        if (path.endsWith("blobsaver.app/Contents/Java")) {
+            path = path.replaceAll("blobsaver\\.app/Contents/Java", "");
+        }
+        if (path.contains("\\Program Files") || path.contains("/Applications")) {
+            path = System.getProperty("user.home");
+        }
+
+        if (path.endsWith(System.getProperty("file.separator"))) {
             path = path + "Blobs";
         } else {
-            path = path + "/Blobs";
+            path = path + System.getProperty("file.separator") + "Blobs";
         }
-        path = path.replaceAll("%20", " ");
         pathField.setText(path);
 
         if (PlatformUtil.isMac()) {
-            EventHandler<WindowEvent> onShowing = new EventHandler<WindowEvent>() {
+            primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
+                // can't use lambda due to using the 'this' keyword
                 @Override
                 public void handle(WindowEvent event) {
-                    log("using macos menu bar");
                     useMacOSMenuBar();
+                    log("using macos menu bar");
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
-            };
-            primaryStage.setOnShowing(onShowing);
+            });
         }
     }
 
@@ -298,17 +295,10 @@ public class Controller {
         }
         tsschecker.deleteOnExit();
 
-        if (!tsschecker.setExecutable(true, false)) {
-            newReportableError("There was an error setting tsschecker as executable.");
-            deleteTempFiles(tsschecker, null);
-            return;
-        }
-
         File locationToSaveBlobs = new File(pathField.getText());
         //noinspection ResultOfMethodCallIgnored
         locationToSaveBlobs.mkdirs();
-        ArrayList<String> args;
-        args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
+        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
         if (getBoardConfig) {
             args.add("--boardconfig");
             args.add(boardConfigField.getText());
@@ -370,7 +360,7 @@ public class Controller {
         }
         Process proc;
         try {
-            System.out.println("Running: " + args.toString());
+            log("Running: " + args.toString());
             proc = new ProcessBuilder(args).start();
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
@@ -383,7 +373,7 @@ public class Controller {
             StringBuilder logBuilder = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line + "\n");
+                log(line + "\n");
                 logBuilder.append(line).append("\n");
             }
             tsscheckerLog = logBuilder.toString();
@@ -880,7 +870,7 @@ public class Controller {
         applicationMenu.getItems().add(1, new SeparatorMenuItem());
         applicationMenu.getItems().add(2, checkForUpdatesMenuItem);
 
-        MenuItem clearAllDataMenuItem = new MenuItem("Clear all data...");
+        MenuItem clearAllDataMenuItem = new MenuItem("Uninstall...");
         clearAllDataMenuItem.setOnAction(event1 -> resetAppHandler());
         applicationMenu.getItems().add(3, new SeparatorMenuItem());
         applicationMenu.getItems().add(4, clearAllDataMenuItem);
@@ -1070,7 +1060,7 @@ public class Controller {
 
     public void resetAppHandler() {
         try {
-            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to reset this application to defaults?", ButtonType.NO, ButtonType.YES);
+            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to uninstall this application?", ButtonType.NO, ButtonType.YES);
             confirmationAlert.showAndWait();
             if ((confirmationAlert.getResult() == null) || ButtonType.CANCEL.equals(confirmationAlert.getResult()) || ButtonType.NO.equals(confirmationAlert.getResult())) {
                 return;
@@ -1080,12 +1070,30 @@ public class Controller {
             prefs.clear();
             prefs.removeNode();
             prefs.flush();
-            Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application will now exit.", ButtonType.OK);
+            File blobsaver_bin = new File(System.getProperty("user.home"), ".blobsaver_bin");
+            deleteFolder(blobsaver_bin);
+            Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall .exe. Otherwise, you can just delete the .app or .jar file.\nThe application will now exit.", ButtonType.OK);
             applicationCloseAlert.showAndWait();
             Platform.exit();
             System.exit(0);
         } catch (BackingStoreException e) {
             newReportableError("There was an error resetting the application.", e.getMessage());
+        }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void deleteFolder(File folder) {
+        if (folder.exists()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                Arrays.asList(files).forEach(file -> {
+                    if (file.isDirectory()) {
+                        deleteFolder(file);
+                    } else {
+                        file.delete();
+                    }
+                });
+            }
         }
     }
 
@@ -1128,6 +1136,176 @@ public class Controller {
             Desktop.getDesktop().browse(new URI(url));
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "UnnecessaryReturnStatement"})
+    public void readInfo() {
+        String alertText;
+        if (PlatformUtil.isMac()) {
+            alertText = "This feature is in beta, and may or may not work. Please report any bugs with this feature to me using the help menu.";
+        } else if (PlatformUtil.isWindows()) {
+            alertText = "This feature will most likely not work, but you can give it a try. If this feature doesn't work, please don't report this bug to me, I already know and am trying to fix it.";
+        } else {
+            alertText = "IMPORTANT: make sure to install libimobiledevice before running it and `ideviceinfo` and `idevicepair` are in your $PATH\n\nThis feature is in beta, and may or may not work. Please report any bugs with this feature to me using the help menu.";
+        }
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, alertText);
+        confirmationAlert.showAndWait();
+        if (confirmationAlert.getResult().equals(ButtonType.CANCEL)) {
+            return;
+        }
+        String idevicepairPath;
+        try {
+            idevicepairPath = Shared.getidevicepair().getPath();
+        } catch (FileNotFoundException e) {
+            if (e.getMessage().equals("idevicepair is not in $PATH")) {
+                newUnreportableError("Either idevicepair is not in the $PATH, or libimobiledevice is not installed. Please install it before continuing");
+            } else {
+                e.printStackTrace();
+            }
+            return;
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            return;
+        }
+        // validate pairing status
+        try {
+            String idevicepairResult = executeProgram(idevicepairPath, "pair");
+            log("idevicepair: " + idevicepairResult);
+            //noinspection StatementWithEmptyBody
+            if (idevicepairResult.contains("Paired with device")) {
+                // continue
+            } else if (idevicepairResult.contains("Please accept the trust dialog")) {
+                newUnreportableError("Please accept the trust dialog on the device");
+                return;
+            } else if (idevicepairResult.contains("No device found")) {
+                newUnreportableError("No device found, is it plugged in?");
+                return;
+            } else if (idevicepairResult.contains("ERROR") && idevicepairResult.contains("a passcode is set")) {
+                newUnreportableError("Please unlock your device.");
+                return;
+            } else if (idevicepairResult.contains("ERROR")) {
+                newReportableError("idevicepair error.", idevicepairResult);
+                return;
+            } else {
+                newReportableError("Unknown idevicepair result: " + idevicepairResult, idevicepairResult);
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            newReportableError("Unable to validate pairing.", e.getMessage());
+        }
+        String ideviceinfoPath;
+        try {
+            ideviceinfoPath = Shared.getideviceinfo().getPath();
+        } catch (FileNotFoundException e) {
+            if (e.getMessage().equals("ideviceinfo is not in $PATH")) {
+                newUnreportableError("Either ideviceinfo is not in the $PATH, or libimobiledevice is not installed. Please install it or add it to the path before continuing");
+            } else {
+                e.printStackTrace();
+            }
+            return;
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            return;
+        }
+        // read ECID
+        try {
+            String ideviceinfoResult = executeProgram(ideviceinfoPath, "-k", "UniqueChipID").trim();
+            log("ideviceinfo -k UniqueChipID:" + ideviceinfoResult);
+            if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
+                newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
+                return;
+            } else if (ideviceinfoResult.contains("No device found")) {
+                newUnreportableError("No device found, is it plugged in?");
+                return;
+            } else if (ideviceinfoResult.contains("ERROR")) {
+                newReportableError("ideviceinfo error.", ideviceinfoResult);
+                return;
+            } else {
+                try {
+                    ecidField.setText(Long.toHexString(Long.valueOf(ideviceinfoResult)).toUpperCase());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    newReportableError("Unknown ideviceinfo(ecid) result: " + ideviceinfoResult, ideviceinfoResult);
+                    return;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            newReportableError("Unable to get ECID.", e.getMessage());
+        }
+        // read device model
+        try {
+            String ideviceinfoResult = executeProgram(ideviceinfoPath, "-k", "ProductType").trim();
+            log("ideviceinfo -k ProductType: " + ideviceinfoResult);
+            if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
+                newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
+                return;
+            } else if (ideviceinfoResult.contains("No device found")) {
+                newUnreportableError("No device found, is it plugged in?");
+                return;
+            } else if (ideviceinfoResult.contains("ERROR")) {
+                newReportableError("ideviceinfo error.", ideviceinfoResult);
+            } else if (ideviceinfoResult.startsWith("iPhone")) {
+                deviceTypeChoiceBox.setValue("iPhone");
+                deviceModelChoiceBox.setValue(Shared.deviceModels.getOrDefault(ideviceinfoResult, null));
+            } else if (ideviceinfoResult.startsWith("iPod")) {
+                deviceTypeChoiceBox.setValue("iPod");
+                deviceModelChoiceBox.setValue(Shared.deviceModels.get(ideviceinfoResult));
+            } else if (ideviceinfoResult.startsWith("iPad")) {
+                deviceTypeChoiceBox.setValue("iPad");
+                deviceModelChoiceBox.setValue(Shared.deviceModels.get(ideviceinfoResult));
+            } else if (ideviceinfoResult.startsWith("AppleTV")) {
+                deviceTypeChoiceBox.setValue("Apple TV");
+                deviceModelChoiceBox.setValue(Shared.deviceModels.get(ideviceinfoResult));
+            } else {
+                newReportableError("Unknown ideviceinfo(device model) result: " + ideviceinfoResult, ideviceinfoResult);
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            newReportableError("Unable to get device model.", e.getMessage());
+        }
+        // read board config
+        if (!boardConfigField.isDisabled()) {
+            try {
+                String ideviceinfoResult = executeProgram(ideviceinfoPath, "-k", "HardwareModel").trim();
+                log("ideviceinfo -k HardwareModel: " + ideviceinfoResult);
+                if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
+                    newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
+                    return;
+                } else if (ideviceinfoResult.contains("No device found")) {
+                    newUnreportableError("No device found, is it plugged in?");
+                    return;
+                } else if (ideviceinfoResult.contains("ERROR")) {
+                    newReportableError("ideviceinfo error.", ideviceinfoResult);
+                    return;
+                } else {
+                    boardConfigField.setText(ideviceinfoResult);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                newReportableError("Unable to get board config.", e.getMessage());
+            }
+        }
+    }
+
+    private String executeProgram(String... command) throws IOException {
+        Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            StringBuilder logBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                log("read:\"" + line + "\"");
+                logBuilder.append(line).append("\n");
+            }
+            return logBuilder.toString();
         }
     }
 
