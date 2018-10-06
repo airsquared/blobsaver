@@ -46,6 +46,7 @@ macAppBundle {
     backgroundImage = "icons/dmg_background.png"
     appName = 'blobsaver'
     dmgName = 'blobsaver-macos'
+    volumeName = 'blobsaver-macos'
 }
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
@@ -88,6 +89,5 @@ void buildEverything() {
     println "  first make sure you have installed Inno Setup first"
     println "  and make sure you have wine in your path if you are not on windows"
     println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
-
     createWindowsInstaller.execute()
 }

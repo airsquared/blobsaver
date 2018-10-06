@@ -44,6 +44,8 @@
                               text="Automatically upload blobs to the cloud"/>
                     <MenuItem mnemonicParsing="false" onAction="#showWiki"
                               text="Running on system startup"/>
+                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
+                              text="How do I get a crash log?"/>
                 </Menu>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
                           text="Send Feedback(Github Issue)"/>
@@ -79,7 +81,7 @@
                 </padding>
             </Label>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button onAction="#readInfo" text="Read from connected device (beta)">
+            <Button fx:id="readFromConnectedDeviceButton" onAction="#readInfo" text="Read from connected device">
                 <HBox.margin>
                     <Insets right="5.0"/>
                 </HBox.margin>

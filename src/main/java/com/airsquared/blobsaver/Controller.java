@@ -83,6 +83,7 @@ public class Controller {
 
     @FXML private Label versionLabel;
 
+    @FXML private Button readFromConnectedDeviceButton;
     @FXML private Button startBackgroundButton;
     @FXML private Button chooseTimeToRunButton;
     @FXML private Button forceCheckForBlobs;
@@ -242,6 +243,7 @@ public class Controller {
         presetButtons = new ArrayList<>(Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button));
         presetButtons.forEach((Button btn) -> btn.setOnAction(this::presetButtonHandler));
 
+        // the following is to set the path to save blobs to the correct location
         final String url = getClass().getResource("Controller.class").toString();
         String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Controller.class".length());
         if (path.startsWith("jar:")) {
@@ -265,7 +267,7 @@ public class Controller {
         }
         pathField.setText(path);
 
-        if (PlatformUtil.isMac()) {
+        if (PlatformUtil.isMac()) { // use macos menu bar or not
             primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
                 // can't use lambda due to using the 'this' keyword
                 @Override
@@ -275,6 +277,10 @@ public class Controller {
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
             });
+        }
+
+        if (!PlatformUtil.isMac()) {
+            readFromConnectedDeviceButton.setText("Read from connected device(beta)");
         }
     }
 
@@ -1129,6 +1135,9 @@ public class Controller {
             case "Automatically upload blobs to the cloud":
                 url = "https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud(Dropbox,-Google-Drive,-iCloud)";
                 break;
+            case "How do I get a crash log?":
+                url = "https://github.com/airsquared/blobsaver/wiki/How-do-I-get-a-crash-log%3F";
+                break;
             default:
                 url = "https://github.com/airsquared/blobsaver/wiki";
                 break;
@@ -1142,18 +1151,18 @@ public class Controller {
 
     @SuppressWarnings({"unchecked", "UnnecessaryReturnStatement"})
     public void readInfo() {
-        String alertText;
-        if (PlatformUtil.isMac()) {
-            alertText = "This feature is in beta, and may or may not work. Please report any bugs with this feature to me using the help menu.";
-        } else if (PlatformUtil.isWindows()) {
-            alertText = "This feature will most likely not work, but you can give it a try. If this feature doesn't work, please don't report this bug to me, I already know and am trying to fix it.";
-        } else {
-            alertText = "IMPORTANT: make sure to install libimobiledevice before running it and `ideviceinfo` and `idevicepair` are in your $PATH\n\nThis feature is in beta, and may or may not work. Please report any bugs with this feature to me using the help menu.";
-        }
-        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, alertText);
-        confirmationAlert.showAndWait();
-        if (confirmationAlert.getResult().equals(ButtonType.CANCEL)) {
-            return;
+        if (!PlatformUtil.isMac()) {
+            String alertText;
+            if (PlatformUtil.isWindows()) {
+                alertText = "This feature will most likely not work, but you can give it a try. If this feature doesn't work, please don't report this bug to me, I already know and am trying to fix it.";
+            } else {
+                alertText = "IMPORTANT: make sure to install libimobiledevice before running it and `ideviceinfo` and `idevicepair` are in your $PATH\n\nThis feature is in beta, and may or may not work. Please report any bugs with this feature to me using the help menu.";
+            }
+            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, alertText);
+            confirmationAlert.showAndWait();
+            if (confirmationAlert.getResult().equals(ButtonType.CANCEL)) {
+                return;
+            }
         }
         String idevicepairPath;
         try {

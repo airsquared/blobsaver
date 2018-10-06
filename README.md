@@ -7,14 +7,14 @@ A GUI for saving SHSH blobs using encounter's fork of tsschecker(uses tihmstar's
 
 If you have an antivirus or firewall, you may need to disable some other settings or disable the firewall completely for automatically saving blobs in the background to work. If you use Norton, go to Settings -> Firewall -> Advanced Program Control and set the option "Low Risk Applications" to "Allow".
 
-![Mac Screenshot](https://i.imgur.com/DLPbzNd.png)
-![Windows Screenshot](https://i.imgur.com/oxqUZsI.png)
+![Mac Screenshot](https://i.imgur.com/2UvuaCZ.png)
+![Windows Screenshot](https://i.imgur.com/ENSX4E5.png)
 
 ## Features
 - **Automatically save blobs in the background**
 - Store up to ten devices with presets
 - Save blobs for beta versions
-- Read ECID and other info from device so you don't to get it manually (currently broken on Windows)
+- Read ECID and other info from device so you don't have to get it manually (currently broken on Windows)
 - No need to download entire .ipsw for beta versions(just specify link)
 - Choose where to save blobs with file picker
 - Explains how to get ECID, Board Config(if needed), and information necessary for beta versions

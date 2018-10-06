@@ -35,7 +35,7 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.2-beta";
+    static final String appVersion = "v2.2";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;
