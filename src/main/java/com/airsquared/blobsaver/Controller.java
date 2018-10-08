@@ -198,10 +198,41 @@ public class Controller {
                 return;
             }
             final String v = (String) newValue;
-            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 6 (WiFi)(iPad 7,5)") || v.equals("iPad 6 (Cellular)(iPad7,6)") || v.equals("iPad 5 (Wifi)") || v.equals("iPad 5 (Cellular)")) {
+            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 5 (Wifi)") || v.equals("iPad 5 (Cellular)")) {
+                boardConfigField.setText("");
                 boardConfigField.setEffect(borderGlow);
                 getBoardConfig = true;
                 boardConfigField.setDisable(false);
+            } else if (v.equals("iPad 6 (WiFi)(iPad 7,5)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J71bAP");
+            } else if (v.equals("iPad 6 (Cellular)(iPad7,6)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J72bAP");
+            } else if (v.equals("iPhone XS (Global) (iPhone11,2)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("D321AP");
+            } else if (v.equals("iPhone XS Max (iPhone11,4)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("D331AP");
+            } else if (v.equals("iPhone XS Max (China) (iPhone11,6)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("D331pAP");
+            } else if (v.equals("iPhone XR (iPhone11,8)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("N841AP");
             } else {
                 boardConfigField.setEffect(null);
                 getBoardConfig = false;
@@ -211,10 +242,41 @@ public class Controller {
         });
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
             identifierField.setEffect(null);
-            if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4") || newValue.equals("iPad7,5") || newValue.equals("iPad7,6") || newValue.equals("iPad6,11") || newValue.equals("iPad6,12")) {
+            if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4") || newValue.equals("iPad6,11") || newValue.equals("iPad6,12")) {
+                boardConfigField.setText("");
                 boardConfigField.setEffect(borderGlow);
                 getBoardConfig = true;
                 boardConfigField.setDisable(false);
+            } else if (newValue.equals("iPad7,5")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J71bAP");
+            } else if (newValue.equals("iPad7,6")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J72bAP");
+            } else if (newValue.equals("iPhone11,2")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("D321AP");
+            } else if (newValue.equals("iPhone11,4")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("D331AP");
+            } else if (newValue.equals("iPhone11,6")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("D331pAP");
+            } else if (newValue.endsWith("iPhone11,8")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("N841AP");
             } else {
                 boardConfigField.setEffect(null);
                 getBoardConfig = false;
