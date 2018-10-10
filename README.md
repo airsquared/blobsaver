@@ -1,3 +1,5 @@
+Help support this project by ⭐️'ing it!
+
 # blobsaver
 A GUI for saving SHSH blobs using encounter's fork of tsschecker(uses tihmstar's original for linux). Supports both Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
 
