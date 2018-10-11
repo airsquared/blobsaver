@@ -1,4 +1,4 @@
-Help support this project by ⭐️'ing it!
+Help support this project by ⭐️'ing it! [Donations](https://www.paypal.me/airsqrd) also appreciated!
 
 # blobsaver
 A GUI for saving SHSH blobs using encounter's fork of tsschecker(uses tihmstar's original for linux). Supports both Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
@@ -39,6 +39,8 @@ Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/
 - [gradle-macappbundle](https://github.com/crotwell/gradle-macappbundle) (Mac) (gradle plugin)
 - [gradle-launch4j](https://github.com/TheBoegl/gradle-launch4j) (Windows) (gradle plugin)
 - [Inno Setup](http://www.jrsoftware.org/isinfo.php) (Windows) (for creating Windows installer)
+
+See the full credits [here](src/main/resources/com/airsquared/blobsaver/libraries_used.txt).
 
 ## License
 This project is licensed under GNU GPL v3.0-only - see the [LICENSE](https://github.com/airsquared/blobsaver/blob/master/LICENSE) file for details
