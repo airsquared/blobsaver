@@ -851,10 +851,11 @@ public class Controller {
         ButtonType githubRepo = new ButtonType("Github Repo");
         ButtonType viewLicense = new ButtonType("View License");
         ButtonType librariesUsed = new ButtonType("Libraries Used");
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here", librariesUsed, viewLicense, githubRepo, ButtonType.OK);
+        ButtonType donate = new ButtonType("Donate!");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here", librariesUsed, viewLicense, donate, githubRepo, ButtonType.OK);
         alert.setTitle("About");
         alert.setHeaderText("blobsaver " + Main.appVersion);
-        alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n" +
+        alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
         resizeAlertButtons(alert);
         alert.showAndWait();
@@ -913,6 +914,9 @@ public class Controller {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                break;
+            case "Donate!":
+                donate();
                 break;
         }
     }
@@ -977,6 +981,7 @@ public class Controller {
         MenuItem checkForValidBlobsMenuItem = new MenuItem("Check for Valid Blobs...");
         checkForValidBlobsMenuItem.setOnAction(event -> checkBlobs());
         helpMenu.getItems().set(5, checkForValidBlobsMenuItem);
+        helpMenu.getItems().add(6, new SeparatorMenuItem());
 
         macOSMenuBar.getMenus().add(helpMenu);
 
@@ -1242,11 +1247,17 @@ public class Controller {
         }
         // validate pairing status
         try {
-            String idevicepairResult = executeProgram(idevicepairPath, "pair");
+            String idevicepairResult = executeProgram(idevicepairPath, "pair").trim();
             log("idevicepair: " + idevicepairResult);
             //noinspection StatementWithEmptyBody
             if (idevicepairResult.contains("Paired with device")) {
                 // continue
+            } else if (idevicepairResult.contains("dyld: Library not loaded:")) {
+                deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
+                newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
+                Platform.exit();
+                System.exit(-1);
+                return;
             } else if (idevicepairResult.contains("Please accept the trust dialog")) {
                 newUnreportableError("Please accept the trust dialog on the device");
                 return;
@@ -1288,6 +1299,12 @@ public class Controller {
             if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
                 newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
                 return;
+            } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
+                deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
+                newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
+                Platform.exit();
+                System.exit(-1);
+                return;
             } else if (ideviceinfoResult.contains("No device found")) {
                 newUnreportableError("No device found, is it plugged in?");
                 return;
@@ -1313,6 +1330,12 @@ public class Controller {
             log("ideviceinfo -k ProductType: " + ideviceinfoResult);
             if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
                 newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
+                return;
+            } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
+                deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
+                newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
+                Platform.exit();
+                System.exit(-1);
                 return;
             } else if (ideviceinfoResult.contains("No device found")) {
                 newUnreportableError("No device found, is it plugged in?");
@@ -1347,6 +1370,12 @@ public class Controller {
                 if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
                     newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
                     return;
+                } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
+                    deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
+                    newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
+                    Platform.exit();
+                    System.exit(-1);
+                    return;
                 } else if (ideviceinfoResult.contains("No device found")) {
                     newUnreportableError("No device found, is it plugged in?");
                     return;
@@ -1378,6 +1407,14 @@ public class Controller {
                 logBuilder.append(line).append("\n");
             }
             return logBuilder.toString();
+        }
+    }
+
+    public void donate() {
+        try {
+            Desktop.getDesktop().browse(new URI("https://www.paypal.me/airsqrd"));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
         }
     }
 
