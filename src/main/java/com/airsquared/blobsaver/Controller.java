@@ -1267,6 +1267,9 @@ public class Controller {
             } else if (idevicepairResult.contains("ERROR") && idevicepairResult.contains("a passcode is set")) {
                 newUnreportableError("Please unlock your device.");
                 return;
+            } else if (idevicepairResult.contains("Device") && idevicepairResult.contains("returned unhandled error code -13")) {
+                newUnreportableError("Please disconnect your device, unlock it, plug it back in, and try again. If this doesn't work, please create a new Github issue or PM me on Reddit via the help menu.");
+                return;
             } else if (idevicepairResult.contains("ERROR")) {
                 newReportableError("idevicepair error.", idevicepairResult);
                 return;
