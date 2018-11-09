@@ -1,6 +1,6 @@
 Help support this project by ⭐️'ing it! [Donations](https://www.paypal.me/airsqrd) also appreciated!
 
-# blobsaver
+# blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases/latest) 
 A GUI for saving SHSH blobs using encounter's fork of tsschecker(uses tihmstar's original for linux). Supports both Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
 
 **Tip:** if you want blobs you save to automatically be uploaded to the cloud, see [this](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud\(Dropbox,-Google-Drive,-iCloud\))
@@ -42,5 +42,5 @@ Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/
 
 See the full credits [here](src/main/resources/com/airsquared/blobsaver/libraries_used.txt).
 
-## License
+## License [![GitHub license](https://img.shields.io/github/license/airsquared/blobsaver.svg)](https://github.com/airsquared/blobsaver/blob/master/LICENSE)
 This project is licensed under GNU GPL v3.0-only - see the [LICENSE](https://github.com/airsquared/blobsaver/blob/master/LICENSE) file for details
