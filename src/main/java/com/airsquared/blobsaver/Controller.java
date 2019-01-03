@@ -993,7 +993,7 @@ public class Controller {
         if (choosingRunInBackground) {
             backgroundSettingsButton.setText("Back");
             presetVBox.setEffect(borderGlow);
-            presetButtons.forEach((btn) -> {
+            presetButtons.forEach(btn -> {
                 ArrayList<String> presetsToSaveFor = new ArrayList<>();
                 JSONArray presetsToSaveForJson = new JSONArray(appPrefs.get("Presets to save in background", "[]"));
                 for (int i = 0; i < presetsToSaveForJson.length(); i++) {
@@ -1031,7 +1031,7 @@ public class Controller {
             savePresetButton.setVisible(true);
             savePresetButton.setManaged(true);
             backgroundSettingsButton.setText("Background settings");
-            presetButtons.forEach((btn) -> {
+            presetButtons.forEach(btn -> {
                 if (btn.getText().startsWith("Cancel ")) {
                     btn.setText("Load " + btn.getText().substring("Cancel ".length()));
                 } else {

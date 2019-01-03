@@ -53,14 +53,14 @@ public class Main {
                 if (appPrefs.getBoolean("Start background immediately", false) && PlatformUtil.isMac()) {
                     PlatformImpl.setTaskbarApplication(false);
                 }
-                JavaFxApplication.launchit(args);
+                JavaFxApplication.launchIt(args);
             } else {
                 int result = javax.swing.JOptionPane.showOptionDialog(null, "Cannot detect the OS. Assuming it is Linux. Continue?",
                         "Warning", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null, null, null);
                 if (result == javax.swing.JOptionPane.CANCEL_OPTION) {
                     System.exit(0);
                 }
-                JavaFxApplication.launchit(args);
+                JavaFxApplication.launchIt(args);
             }
         } catch (ClassNotFoundException e) {
             javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx.\nOn Linux, use sudo apt-get install openjfx", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
@@ -70,7 +70,7 @@ public class Main {
 
     public static class JavaFxApplication extends Application {
 
-        static void launchit(String[] args) {
+        static void launchIt(String[] args) {
             launch(args);
         }
 

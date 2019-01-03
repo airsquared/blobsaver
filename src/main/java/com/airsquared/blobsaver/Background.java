@@ -73,7 +73,7 @@ class Background {
         }
         ArrayList<String> presetsToSaveNames = new ArrayList<>();
         if (!presetsToSave.isEmpty()) {
-            presetsToSave.forEach((preset) -> presetsToSaveNames.add(appPrefs.get("Name Preset" + preset, "")));
+            presetsToSave.forEach(preset -> presetsToSaveNames.add(appPrefs.get("Name Preset" + preset, "")));
         } else {
             inBackground = false;
             return;
@@ -108,7 +108,7 @@ class Background {
             trayIcon.setImageAutoSize(true);
 
             MenuItem openItem = new MenuItem("Open window");
-            openItem.addActionListener((evt) -> Platform.runLater(Background::showStage));
+            openItem.addActionListener(evt -> Platform.runLater(Background::showStage));
             openItem.setFont(Font.decode(null).deriveFont(java.awt.Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
@@ -196,7 +196,7 @@ class Background {
         } catch (IOException e) {
             Notification notification = new Notification("Saving blobs failed", "Check your internet connection.\nIf it is working, click here to report this error.", Notification.ERROR_ICON);
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-            Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+            Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                 Notification.Notifier.INSTANCE.stop();
                 showStage();
                 Alert alert = new Alert(Alert.AlertType.ERROR,
@@ -222,7 +222,7 @@ class Background {
         }
         log("saved versions:" + savedVersions);
         ArrayList<String> versionsToSave = new ArrayList<>();
-        signedVersions.forEach((version) -> {
+        signedVersions.forEach(version -> {
             if (!savedVersions.contains(version)) {
                 versionsToSave.add(version);
             }
@@ -234,14 +234,14 @@ class Background {
         String ecid = presetPrefs.get("ECID", "");
         String path = presetPrefs.get("Path", "");
         String boardConfig = presetPrefs.get("Board Config", "");
-        versionsToSave.forEach((version) -> {
+        versionsToSave.forEach(version -> {
             File tsschecker;
             try {
                 tsschecker = Shared.getTsschecker();
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error creating tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
                     showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
@@ -259,7 +259,7 @@ class Background {
             if (!tsschecker.setExecutable(true, false)) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error setting tsschecker as executable. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
                     showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
@@ -290,7 +290,7 @@ class Background {
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
                     showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
@@ -317,7 +317,7 @@ class Background {
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
                     showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
@@ -342,7 +342,7 @@ class Background {
                 Platform.runLater(() -> {
                     Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
                     Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
-                    Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                    Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                         Notification.Notifier.INSTANCE.stop();
                         showStage();
                         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + path, ButtonType.OK);
@@ -359,7 +359,7 @@ class Background {
             } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
                 Notification notification = new Notification("Saving blobs failed", "Check your internet connection. If it is working, click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
                     showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
@@ -377,7 +377,7 @@ class Background {
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
                     showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR, "Saving blobs failed." + "\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
@@ -394,7 +394,7 @@ class Background {
             } catch (InterruptedException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
                     showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,

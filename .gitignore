@@ -21,16 +21,20 @@
 .idea/**/dbnavigator.xml
 
 # Gradle
+.gradle
 .idea/**/gradle.xml
 .idea/**/libraries
+
+# Gradle builds
+build/
 
 # Gradle and Maven with auto-import
 # When using Gradle or Maven with auto-import, you should exclude module files,
 # since they will be recreated, and may cause churn.  Uncomment if using
 # auto-import.
-# .idea/modules.xml
-# .idea/*.iml
-# .idea/modules
+.idea/modules.xml
+.idea/*.iml
+.idea/modules
 
 # CMake
 cmake-build-*/
@@ -66,6 +70,8 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 
+
+#macOS Stuff
 
 # General
 .DS_Store

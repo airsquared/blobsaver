@@ -45,7 +45,7 @@ class DebugWindow {
         vBox.getChildren().add(textArea);
         debugStage.setTitle("Debug Log");
         debugStage.setScene(new Scene(vBox));
-        debugStage.setOnCloseRequest((event) -> {
+        debugStage.setOnCloseRequest(event -> {
             hide();
             event.consume();
         });
