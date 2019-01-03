@@ -813,7 +813,6 @@ public class Controller {
                         e.printStackTrace();
                     }
                 }
-                alert.showAndWait();
                 break;
             case "boardConfig":
                 openLink = new ButtonType("BMSSM app");
@@ -1486,4 +1485,4 @@ public class Controller {
             run(Shared.textToIdentifier(deviceModel));
         }
     }
-} 
+}
