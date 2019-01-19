@@ -44,7 +44,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -1112,16 +1112,17 @@ public class Controller {
                 appPrefs.putBoolean("Start background immediately", false);
                 startBackgroundButton.setText("Start background");
             }
-        } else if (appPrefs.getBoolean("Show background startup message", true) && PlatformUtil.isMac()) {
+        } else if (appPrefs.getBoolean("Show background startup message", true)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
                             + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
             alert.showAndWait();
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
-            Platform.exit();
-            System.exit(0);
-        } else if (appPrefs.getBoolean("Show background startup message", true)) {
+//            Platform.exit();
+//            System.exit(0);
+            Background.startBackground(false);
+        } /*else if (appPrefs.getBoolean("Show background startup message", true)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
                             + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
@@ -1129,7 +1130,7 @@ public class Controller {
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
             Background.startBackground(false);
-        } else {
+        }*/ else {
             Background.startBackground(false);
             startBackgroundButton.setText("Cancel Background");
         }

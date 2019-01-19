@@ -29,6 +29,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import me.matetoes.libdockvisibility.DockVisibility;
 
 import java.io.IOException;
 import java.util.prefs.Preferences;
@@ -68,6 +69,29 @@ public class Main {
         }
     }
 
+    static void showStage() {
+        primaryStage.show();
+        primaryStage.toFront();
+        primaryStage.requestFocus();
+        if (PlatformUtil.isMac()) {
+            System.out.println("showing dock icon");
+            DockVisibility.INSTANCE.show();
+//            PlatformImpl.setTaskbarApplication(true); //probably only does something on launch time
+
+            /*AccessController.doPrivileged((PrivilegedAction<Void>) () -> { //also probably only works at launch
+                System.setProperty("glass.taskbarApplication", "true");
+                return null;
+            });*/
+        }
+    }
+
+    static void hideStage() {
+        primaryStage.hide();
+        if (PlatformUtil.isMac()) {
+            DockVisibility.INSTANCE.hide();
+        }
+    }
+
     public static class JavaFxApplication extends Application {
 
         static void launchit(String[] args) {
@@ -87,7 +111,7 @@ public class Main {
                 primaryStage.getIcons().clear();
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
             }
-            primaryStage.show();
+            showStage();
             primaryStage.setResizable(false);
             Controller.afterStageShowing();
             Platform.setImplicitExit(false);
@@ -97,7 +121,7 @@ public class Main {
             primaryStage.setOnCloseRequest(event -> {
                 event.consume();
                 if (Background.inBackground) {
-                    primaryStage.hide();
+                    hideStage();
                 } else {
                     Platform.exit();
                     System.exit(0);
