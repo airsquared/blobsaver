@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2019  airsquared
+ *
+ * This file is part of blobsaver.
+ *
+ * blobsaver is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * blobsaver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 plugins {
     id 'edu.sc.seis.launch4j' version '2.4.4' // for bundling into .exe
     id "edu.sc.seis.macAppBundle" version "2.2.2" // for bundling into .app

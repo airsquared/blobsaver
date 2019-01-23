@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018  airsquared
+ * Copyright (c) 2019  airsquared
  *
  * This file is part of blobsaver.
  *
