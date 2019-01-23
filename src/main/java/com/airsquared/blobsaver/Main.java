@@ -19,7 +19,6 @@
 package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
-import com.sun.javafx.application.PlatformImpl;
 import it.sauronsoftware.junique.AlreadyLockedException;
 import it.sauronsoftware.junique.JUnique;
 import javafx.application.Application;
@@ -50,9 +49,6 @@ public class Main {
         try {
             Class.forName("javafx.application.Application");
             if (PlatformUtil.isMac() || PlatformUtil.isWindows() || PlatformUtil.isLinux()) {
-                if (appPrefs.getBoolean("Start background immediately", false) && PlatformUtil.isMac()) {
-                    PlatformImpl.setTaskbarApplication(false);
-                }
                 JavaFxApplication.launchIt(args);
             } else {
                 int result = javax.swing.JOptionPane.showOptionDialog(null, "Cannot detect the OS. Assuming it is Linux. Continue?",

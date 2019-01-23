@@ -28,6 +28,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
@@ -62,48 +63,82 @@ import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
 public class Controller {
 
 
-    @FXML private MenuBar menuBar;
+    @FXML
+    private MenuBar menuBar;
 
-    @FXML private ChoiceBox deviceTypeChoiceBox;
-    @FXML private ChoiceBox deviceModelChoiceBox;
+    @FXML
+    private ChoiceBox deviceTypeChoiceBox;
+    @FXML
+    private ChoiceBox deviceModelChoiceBox;
 
-    @FXML private TextField ecidField;
-    @FXML private TextField boardConfigField;
-    @FXML private TextField apnonceField;
-    @FXML private TextField versionField;
-    @FXML private TextField identifierField;
-    @FXML private TextField pathField;
-    @FXML private TextField ipswField;
-    @FXML private TextField buildIDField;
+    @FXML
+    private TextField ecidField;
+    @FXML
+    private TextField boardConfigField;
+    @FXML
+    private TextField apnonceField;
+    @FXML
+    private TextField versionField;
+    @FXML
+    private TextField identifierField;
+    @FXML
+    private TextField pathField;
+    @FXML
+    private TextField ipswField;
+    @FXML
+    private TextField buildIDField;
 
-    @FXML private CheckBox apnonceCheckBox;
-    @FXML private CheckBox versionCheckBox;
-    @FXML private CheckBox identifierCheckBox;
-    @FXML private CheckBox betaCheckBox;
+    @FXML
+    private CheckBox apnonceCheckBox;
+    @FXML
+    private CheckBox versionCheckBox;
+    @FXML
+    private CheckBox identifierCheckBox;
+    @FXML
+    private CheckBox betaCheckBox;
 
-    @FXML private Label versionLabel;
+    @FXML
+    private Label versionLabel;
 
-    @FXML private Button readFromConnectedDeviceButton;
-    @FXML private Button startBackgroundButton;
-    @FXML private Button chooseTimeToRunButton;
-    @FXML private Button forceCheckForBlobs;
-    @FXML private Button backgroundSettingsButton;
-    @FXML private Button savePresetButton;
-    @FXML private Button preset1Button;
-    @FXML private Button preset2Button;
-    @FXML private Button preset3Button;
-    @FXML private Button preset4Button;
-    @FXML private Button preset5Button;
-    @FXML private Button preset6Button;
-    @FXML private Button preset7Button;
-    @FXML private Button preset8Button;
-    @FXML private Button preset9Button;
-    @FXML private Button preset10Button;
+    @FXML
+    private Button readFromConnectedDeviceButton;
+    @FXML
+    private Button startBackgroundButton;
+    @FXML
+    private Button chooseTimeToRunButton;
+    @FXML
+    private Button forceCheckForBlobs;
+    @FXML
+    private Button backgroundSettingsButton;
+    @FXML
+    private Button savePresetButton;
+    @FXML
+    private Button preset1Button;
+    @FXML
+    private Button preset2Button;
+    @FXML
+    private Button preset3Button;
+    @FXML
+    private Button preset4Button;
+    @FXML
+    private Button preset5Button;
+    @FXML
+    private Button preset6Button;
+    @FXML
+    private Button preset7Button;
+    @FXML
+    private Button preset8Button;
+    @FXML
+    private Button preset9Button;
+    @FXML
+    private Button preset10Button;
     private ArrayList<Button> presetButtons;
 
-    @FXML private VBox presetVBox;
+    @FXML
+    private VBox presetVBox;
 
-    @FXML private Button goButton;
+    @FXML
+    private Button goButton;
 
     private boolean getBoardConfig = false;
     private boolean editingPresets = false;
@@ -335,7 +370,7 @@ public class Controller {
                 @Override
                 public void handle(WindowEvent event) {
                     useMacOSMenuBar();
-                    log("using macos menu bar");
+                    log("using macOS menu bar");
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
             });
@@ -856,6 +891,13 @@ public class Controller {
         alert.setHeaderText("blobsaver " + Main.appVersion);
         alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
+
+        //workaround to get "x" button to work
+        alert.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        Node closeButton = alert.getDialogPane().lookupButton(ButtonType.CLOSE);
+        closeButton.managedProperty().bind(closeButton.visibleProperty());
+        closeButton.setVisible(false);
+
         resizeAlertButtons(alert);
         alert.showAndWait();
         switch (alert.getResult().getText()) {
@@ -956,7 +998,7 @@ public class Controller {
         windowMenu.getItems().add(tk.createMinimizeMenuItem());
         windowMenu.getItems().add(tk.createCycleWindowsItem());
 
-        MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug log");
+        MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug Log");
         debugLogMenuItem.setOnAction(event -> {
             debugLogHandler();
             tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
@@ -1135,7 +1177,9 @@ public class Controller {
         try {
             Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to uninstall this application?", ButtonType.NO, ButtonType.YES);
             confirmationAlert.showAndWait();
-            if ((confirmationAlert.getResult() == null) || ButtonType.CANCEL.equals(confirmationAlert.getResult()) || ButtonType.NO.equals(confirmationAlert.getResult())) {
+            if ((confirmationAlert.getResult() == null)
+                    || ButtonType.CANCEL.equals(confirmationAlert.getResult())
+                    || ButtonType.NO.equals(confirmationAlert.getResult())) {
                 return;
             }
             Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver");
