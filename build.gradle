@@ -1,6 +1,17 @@
+import proguard.gradle.ProGuardTask
+
+buildscript {
+    repositories {
+        flatDir dirs: 'proguard6.0.3/lib'
+    }
+    dependencies {
+        classpath ':proguard:'
+    }
+}
+
 plugins {
     id 'edu.sc.seis.launch4j' version '2.4.4' // for bundling into .exe
-    id "edu.sc.seis.macAppBundle" version "2.2.2" // for bundling into .app
+    id "edu.sc.seis.macAppBundle" version "2.2.3" // for bundling into .app
     id 'com.github.johnrengelman.shadow' version '2.0.4' // for fat jar
     id 'java'
 }
@@ -17,7 +28,7 @@ repositories {
 
 dependencies {
     compile group: 'org.json', name: 'json', version: '20180130'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile files('libs/Notification-0.3.6.jar')
     compile group: 'it.sauronsoftware', name: 'junique', version: '1.0.4'
     compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6"
 }
@@ -41,12 +52,42 @@ shadowJar {
 
 macAppBundle {
     mainClassName = "com.airsquared.blobsaver.Main"
-//    bundleJRE = true
+    bundleJRE = true
     icon = "icons/blob_emoji.icns"
     backgroundImage = "icons/dmg_background.png"
     appName = 'blobsaver'
     dmgName = 'blobsaver-macos'
     volumeName = 'blobsaver-macos'
+    jvmVersion = '1.8'
+    jarTask = "shadowJar"
+}
+
+task shrinkJRE(type: ProGuardTask, dependsOn: 'createApp') {
+    if (new File("build/libs/pro/").exists()) {
+        new File("build/libs/pro/").deleteDir()
+    }
+    injars "build/macApp/"
+    ignorewarnings()
+    dontobfuscate()
+    dontoptimize()
+    keep "class com.airsquared.** { *; }"
+    keep "class java.** { *; }"
+    outjars "build/libs/pro/"
+
+    // delete useless JRE Files (README, HTML files, unused dylibs)
+    doLast {
+        String jreFolder = new File(projectDir, "build/libs/pro/blobsaver.app/Contents/PlugIns/").listFiles()[0].toString() + "/Contents/Home/jre/"
+        // delete README for JRE
+        new File(jreFolder, "README").delete()
+        new File(jreFolder, "Welcome.html").delete()
+        // delete JavaFX WebKit dylib
+        new File(jreFolder, "lib/libjfxwebkit.dylib").delete()
+        // delete AppleScriptEngine dylib
+        new File(jreFolder, "lib/libAppleScriptEngine.dylib").delete()
+        // delete Flight Recorder files
+        new File(jreFolder, "lib/jfr").delete()
+        new File(jreFolder, "lib/jfr.jar").delete()
+    }
 }
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
@@ -62,6 +103,11 @@ task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
     //            and make sure you have wine in your path if you are not on windows
     //            Inno Setup **MUST** be installed to C:\Program Files (x86)\Inno Setup 5\
     doFirst {
+        println "creating windows installer with inno setup:"
+        println "         **IMPORTANT:** (for creating windows installer)"
+        println "  first make sure you have installed Inno Setup first"
+        println "  and make sure you have wine in your path if you are not on windows"
+        println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
         new File(projectDir, "build/innosetup/").mkdirs()
         workingDir = projectDir
         println "running Inno Setup Compiler"
@@ -84,10 +130,5 @@ void buildEverything() {
         println "  creating .zip with .app inside"
         createAppZip.execute()
     }
-    println "creating windows installer with inno setup:"
-    println "         **IMPORTANT:** (for creating windows installer)"
-    println "  first make sure you have installed Inno Setup first"
-    println "  and make sure you have wine in your path if you are not on windows"
-    println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
     createWindowsInstaller.execute()
 }

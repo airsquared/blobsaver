@@ -12,5 +12,10 @@
       </set>
     </option>
     <option name="configurationPath" value="" />
+    <option name="exclusions">
+      <set>
+        <option value="blobsaver/build.gradle" />
+      </set>
+    </option>
   </component>
 </project>
