@@ -1096,7 +1096,7 @@ public class Controller {
     }
 
     public void startBackgroundHandler() {
-        if (Background.inBackground) {
+        if (Background.inBackground) { //stops background if already in background
             if (PlatformUtil.isMac()) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
                         "You will need to restart the application for changes to take effect.", ButtonType.OK);
@@ -1113,10 +1113,10 @@ public class Controller {
                 startBackgroundButton.setText("Start background");
             }
         } else if (appPrefs.getBoolean("Show background startup message", true)) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
-                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
-            alert.showAndWait();
+//            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+//                    "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
+//                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
+//            alert.showAndWait();
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
 //            Platform.exit();
