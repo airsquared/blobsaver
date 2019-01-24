@@ -26,7 +26,7 @@
     <VBox maxHeight="Infinity" maxWidth="-Infinity" minHeight="580.0" prefWidth="500.0">
         <MenuBar fx:id="menuBar">
             <Menu mnemonicParsing="false" text="Options">
-                <MenuItem mnemonicParsing="false" onAction="#debugLogHandler" text="Debug log"/>
+                <MenuItem mnemonicParsing="false" onAction="#debugLogHandler" text="Debug Log"/>
                 <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for valid blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"
                           text="Check for Updates..."/>
@@ -48,8 +48,8 @@
                               text="How do I get a crash log?"/>
                 </Menu>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
-                          text="Send Feedback(Github Issue)"/>
-                <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback(Reddit PM)"/>
+                          text="Send Feedback (Github Issue)"/>
+                <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback (Reddit PM)"/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#donate" text="Donate!"/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
