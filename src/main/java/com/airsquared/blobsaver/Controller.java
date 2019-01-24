@@ -585,8 +585,8 @@ public class Controller {
             ipswField.setEffect(borderGlow);
             buildIDField.setDisable(false);
             buildIDField.setEffect(borderGlow);
-            if (versionCheckBox.isSelected()) {
-                versionCheckBox.fire();
+            if (versionCheckBox.isSelected()) { //cannot use latest versions + beta blobs in conjunction
+                versionCheckBox.fire(); //turns latest version off
             }
             versionCheckBox.setDisable(true);
         } else {
