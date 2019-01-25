@@ -38,7 +38,7 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final boolean DEBUG_MODE = true; //temp
+    static final boolean DEBUG_MODE = false; //enables debug menu icon in tray icon to create a breakpoint
     static final String appVersion = "v2.2.1";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
