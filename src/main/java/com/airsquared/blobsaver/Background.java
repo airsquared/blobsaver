@@ -123,6 +123,13 @@ class Background {
             final PopupMenu popup = new PopupMenu();
             popup.add(openItem);
             popup.addSeparator();
+            if (Main.DEBUG_MODE) {
+                MenuItem debugItem = new MenuItem("Debug");
+                debugItem.addActionListener(
+                        event -> System.out.println("Add a breakpoint here!"));
+                popup.add(debugItem);
+                popup.addSeparator();
+            }
             popup.add(exitItem);
             trayIcon.setPopupMenu(popup);
 
