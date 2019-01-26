@@ -109,7 +109,7 @@ public class Controller {
     private boolean getBoardConfig = false;
     private boolean editingPresets = false;
     private boolean choosingRunInBackground = false;
-
+    private MenuBar macOSMenuBar;
     private DropShadow errorBorder = new DropShadow();
     private DropShadow borderGlow = new DropShadow();
 
@@ -340,9 +340,7 @@ public class Controller {
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
             });
-        }
-
-        if (!PlatformUtil.isMac()) {
+        } else { // because libimobiledevice support not fully supported
             readFromConnectedDeviceButton.setText("Read from connected device(beta)");
         }
     }
@@ -933,15 +931,16 @@ public class Controller {
         }
     }
 
-    private void useMacOSMenuBar() {
-
+    //sets up mac OS menu bar and returns it
+    private MenuBar getMacOSMenuBar() {
+        // makes the app taller to compensate for the missing menu bar
         ((VBox) menuBar.getParent()).setMinHeight(560.0);
         ((VBox) menuBar.getParent()).setPrefHeight(560.0);
         presetVBox.setMinHeight(560.0);
         presetVBox.setPrefHeight(560.0);
 
         menuBar.setUseSystemMenuBar(true);
-        MenuBar macOSMenuBar = new MenuBar();
+        macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
         Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver");
@@ -994,11 +993,16 @@ public class Controller {
         checkForValidBlobsMenuItem.setOnAction(event -> checkBlobs());
         helpMenu.getItems().set(5, checkForValidBlobsMenuItem);
         helpMenu.getItems().add(6, new SeparatorMenuItem());
-
         macOSMenuBar.getMenus().add(helpMenu);
 
+        return macOSMenuBar;
+    }
 
-        tk.setMenuBar(primaryStage, macOSMenuBar);
+    private void useMacOSMenuBar() {
+        if (macOSMenuBar == null) {
+            macOSMenuBar = getMacOSMenuBar();
+        }
+        MenuToolkit.toolkit().setMenuBar(primaryStage, macOSMenuBar);
     }
 
     public void backgroundSettingsHandler() {
@@ -1083,7 +1087,7 @@ public class Controller {
             appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
             log("alert menu canceled");
-            backgroundSettingsButton.fire();
+            backgroundSettingsButton.fire(); //goes back to main menu
             return;
         }
         if (Background.inBackground) {
@@ -1096,8 +1100,8 @@ public class Controller {
     }
 
     public void startBackgroundHandler() {
-        if (Background.inBackground) {
-            if (PlatformUtil.isMac()) {
+        if (Background.inBackground) { //stops background if already in background
+            /*if (PlatformUtil.isMac()) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
                         "You will need to restart the application for changes to take effect.", ButtonType.OK);
                 alert.showAndWait();
@@ -1106,22 +1110,23 @@ public class Controller {
                 Platform.exit();
                 Background.stopBackground(false);
                 System.exit(0);
-            } else {
-                Background.stopBackground(true);
-                appPrefs.putBoolean("Show background startup message", true);
-                appPrefs.putBoolean("Start background immediately", false);
-                startBackgroundButton.setText("Start background");
-            }
-        } else if (appPrefs.getBoolean("Show background startup message", true) && PlatformUtil.isMac()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
-                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
-            alert.showAndWait();
+            } else {*/
+            Background.stopBackground(true);
+            appPrefs.putBoolean("Show background startup message", true);
+            appPrefs.putBoolean("Start background immediately", false);
+            startBackgroundButton.setText("Start background");
+        } else if (appPrefs.getBoolean("Show background startup message", true)) {
+//            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+//                    "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
+//                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
+//            alert.showAndWait();
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
-            Platform.exit();
-            System.exit(0);
-        } else if (appPrefs.getBoolean("Show background startup message", true)) {
+//            Platform.exit();
+//            System.exit(0);
+            startBackgroundButton.setText("Stop background");
+            Background.startBackground(false);
+        } /*else if (appPrefs.getBoolean("Show background startup message", true)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
                             + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
@@ -1129,7 +1134,7 @@ public class Controller {
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
             Background.startBackground(false);
-        } else {
+        }*/ else {
             Background.startBackground(false);
             startBackgroundButton.setText("Cancel Background");
         }

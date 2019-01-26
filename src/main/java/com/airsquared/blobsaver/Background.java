@@ -79,13 +79,13 @@ class Background {
             return;
         }
         if (!runOnlyOnce && Platform.isFxApplicationThread()) {
-            Main.primaryStage.hide();
+            Main.hideStage();
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
             Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for\nthe icon."
                     + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
         } else if (!runOnlyOnce) {
             Platform.runLater(() -> {
-                Main.primaryStage.hide();
+                Main.hideStage();
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
                 Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for the icon.\n"
                         + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
@@ -108,7 +108,7 @@ class Background {
             trayIcon.setImageAutoSize(true);
 
             MenuItem openItem = new MenuItem("Open window");
-            openItem.addActionListener(evt -> Platform.runLater(Background::showStage));
+            openItem.addActionListener(event -> Platform.runLater(Main::showStage));
             openItem.setFont(Font.decode(null).deriveFont(java.awt.Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
@@ -123,6 +123,13 @@ class Background {
             final PopupMenu popup = new PopupMenu();
             popup.add(openItem);
             popup.addSeparator();
+            if (Main.DEBUG_MODE) {
+                MenuItem debugItem = new MenuItem("Debug");
+                debugItem.addActionListener(
+                        event -> System.out.println("Add a breakpoint here!"));
+                popup.add(debugItem);
+                popup.addSeparator();
+            }
             popup.add(exitItem);
             trayIcon.setPopupMenu(popup);
 
@@ -198,7 +205,7 @@ class Background {
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
             Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                 Notification.Notifier.INSTANCE.stop();
-                showStage();
+                Main.showStage();
                 Alert alert = new Alert(Alert.AlertType.ERROR,
                         "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                         githubIssue, redditPM, ButtonType.OK);
@@ -243,7 +250,7 @@ class Background {
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "There was an error creating tsschecker.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -261,7 +268,7 @@ class Background {
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "There was an error setting tsschecker as executable.\n\n. Please create a new issue on Github or PM me on Reddit.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -292,7 +299,7 @@ class Background {
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "There was an error starting tsschecker.\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -319,7 +326,7 @@ class Background {
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "There was an error getting the tsschecker result.\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -344,7 +351,7 @@ class Background {
                     Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
                     Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                         Notification.Notifier.INSTANCE.stop();
-                        showStage();
+                        Main.showStage();
                         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + path, ButtonType.OK);
                         alert.setTitle("Success");
                         alert.setHeaderText("Success!");
@@ -361,7 +368,7 @@ class Background {
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -379,7 +386,7 @@ class Background {
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR, "Saving blobs failed." + "\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.CANCEL);
                     resizeAlertButtons(alert);
@@ -396,7 +403,7 @@ class Background {
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "There tsschecker process was interrupted.\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -412,12 +419,6 @@ class Background {
             presetPrefs.put("Saved Versions", new JSONArray(savedVersions).toString());
             log("it worked");
         });
-    }
-
-    private static void showStage() {
-        Main.primaryStage.show();
-        Main.primaryStage.toFront();
-        Main.primaryStage.requestFocus();
     }
 
     static void stopBackground(boolean showAlert) {
