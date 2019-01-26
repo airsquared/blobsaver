@@ -28,6 +28,12 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
@@ -52,12 +58,7 @@ import java.util.zip.ZipInputStream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.primaryStage;
-import static com.airsquared.blobsaver.Shared.githubIssue;
-import static com.airsquared.blobsaver.Shared.newReportableError;
-import static com.airsquared.blobsaver.Shared.newUnreportableError;
-import static com.airsquared.blobsaver.Shared.redditPM;
-import static com.airsquared.blobsaver.Shared.reportError;
-import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
+import static com.airsquared.blobsaver.Shared.*;
 
 public class Controller {
 
@@ -335,7 +336,7 @@ public class Controller {
                 @Override
                 public void handle(WindowEvent event) {
                     useMacOSMenuBar();
-                    log("using macos menu bar");
+                    log("using macOS menu bar");
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
             });
@@ -813,7 +814,6 @@ public class Controller {
                         e.printStackTrace();
                     }
                 }
-                alert.showAndWait();
                 break;
             case "boardConfig":
                 openLink = new ButtonType("BMSSM app");
@@ -852,11 +852,23 @@ public class Controller {
         ButtonType viewLicense = new ButtonType("View License");
         ButtonType librariesUsed = new ButtonType("Libraries Used");
         ButtonType donate = new ButtonType("Donate!");
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here", librariesUsed, viewLicense, donate, githubRepo, ButtonType.OK);
+        ButtonType customOK = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here",
+                librariesUsed, viewLicense, donate, githubRepo, customOK);
         alert.setTitle("About");
+
+        //Deactivate default behavior for librariesUsed Button:
+        Button libButton = (Button) alert.getDialogPane().lookupButton(librariesUsed);
+        libButton.setDefaultButton(false);
+
+        //Activate default behavior for OK-Button:
+        Button OkButton = (Button) alert.getDialogPane().lookupButton(customOK);
+        OkButton.setDefaultButton(true);
+
         alert.setHeaderText("blobsaver " + Main.appVersion);
         alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
+        
         resizeAlertButtons(alert);
         alert.showAndWait();
         switch (alert.getResult().getText()) {
@@ -886,7 +898,7 @@ public class Controller {
                     out.close();
                     licenseFile.deleteOnExit();
                     licenseFile.setReadOnly();
-                    java.awt.Desktop.getDesktop().edit(licenseFile);
+                    Desktop.getDesktop().edit(licenseFile);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -910,7 +922,7 @@ public class Controller {
                     out.close();
                     libsUsedFile.deleteOnExit();
                     libsUsedFile.setReadOnly();
-                    java.awt.Desktop.getDesktop().edit(libsUsedFile);
+                    Desktop.getDesktop().edit(libsUsedFile);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -957,7 +969,7 @@ public class Controller {
         windowMenu.getItems().add(tk.createMinimizeMenuItem());
         windowMenu.getItems().add(tk.createCycleWindowsItem());
 
-        MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug log");
+        MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug Log");
         debugLogMenuItem.setOnAction(event -> {
             debugLogHandler();
             tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
@@ -1136,7 +1148,9 @@ public class Controller {
         try {
             Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to uninstall this application?", ButtonType.NO, ButtonType.YES);
             confirmationAlert.showAndWait();
-            if ((confirmationAlert.getResult() == null) || ButtonType.CANCEL.equals(confirmationAlert.getResult()) || ButtonType.NO.equals(confirmationAlert.getResult())) {
+            if ((confirmationAlert.getResult() == null)
+                    || ButtonType.CANCEL.equals(confirmationAlert.getResult())
+                    || ButtonType.NO.equals(confirmationAlert.getResult())) {
                 return;
             }
             Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver");
@@ -1486,4 +1500,4 @@ public class Controller {
             run(Shared.textToIdentifier(deviceModel));
         }
     }
-} 
+}
