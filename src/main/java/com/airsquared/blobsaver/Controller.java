@@ -158,7 +158,10 @@ public class Controller {
                 "iPad Mini 4 (Wifi)", "iPad Mini 4 (Cellular)", "iPad Air 2 (WiFi)", "iPad Air 2 (Cellular)",
                 "iPad Pro 9.7 (Wifi)", "iPad Pro 9.7 (Cellular)", "iPad Pro 12.9 (WiFi)", "iPad Pro 12.9 (Cellular)",
                 "iPad 5 (Wifi)", "iPad 5 (Cellular)", "iPad Pro 2 12.9 (WiFi)(iPad7,1)", "iPad Pro 2 12.9 (Cellular)(iPad7,2)",
-                "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)", "iPad 6 (Cellular)(iPad7,6)");
+                "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)",
+                "iPad 6 (Cellular)(iPad7,6)", "iPad Pro 3 11' (WiFi)(iPad8,1)", "iPad Pro 3 11' (WiFi)(iPad8,2)",
+                "iPad Pro 3 11' (Cellular)(iPad8,3)", "iPad Pro 3 11' (Cellular)(iPad8,4)", "iPad Pro 3 12.9'(WiFi)(iPad8,5)",
+                "iPad Pro 3 12.9 (WiFi)(iPad8,6)", "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)");
         final ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
         deviceTypeChoiceBox.setItems(FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV"));
 
@@ -234,6 +237,46 @@ public class Controller {
                 getBoardConfig = true;
                 boardConfigField.setDisable(false);
                 boardConfigField.setText("N841AP");
+            } else if (v.equals("iPad Pro 3 11' (WiFi)(iPad8,1)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J317AP");
+            } else if (v.equals("iPad Pro 3 11' (WiFi)(iPad8,2)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J317xAP");
+            } else if (v.equals("iPad Pro 3 11' (Cellular)(iPad8,3)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J318AP");
+            } else if (v.equals("iPad Pro 3 11' (Cellular)(iPad8,4)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J318xAP");
+            } else if (v.equals("iPad Pro 3 12.9'(WiFi)(iPad8,5)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J320AP");
+            } else if (v.equals("iPad Pro 3 12.9 (WiFi)(iPad8,6)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J320xAP");
+            } else if (v.equals("iPad Pro 3 12.9 (Cellular)(iPad8,7)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J321AP");
+            } else if (v.equals("iPad Pro 3 12.9 (Cellular)(iPad8,8)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J321xAP");
             } else {
                 boardConfigField.setEffect(null);
                 getBoardConfig = false;
@@ -278,6 +321,46 @@ public class Controller {
                 getBoardConfig = true;
                 boardConfigField.setDisable(false);
                 boardConfigField.setText("N841AP");
+            } else if (newValue.equals("iPad8,1")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J317AP");
+            } else if (newValue.equals("iPad8,2")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J317xAP");
+            } else if (newValue.equals("iPad8,3")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J318AP");
+            } else if (newValue.equals("iPad8,4)")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J318xAP");
+            } else if (newValue.equals("iPad8,5")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J320AP");
+            } else if (newValue.equals("iPad8,6")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J320xAP");
+            } else if (newValue.equals("iPad8,7")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J321AP");
+            } else if (newValue.equals("iPad8,8")) {
+                boardConfigField.setEffect(borderGlow);
+                getBoardConfig = true;
+                boardConfigField.setDisable(false);
+                boardConfigField.setText("J321xAP");
             } else {
                 boardConfigField.setEffect(null);
                 getBoardConfig = false;
@@ -866,7 +949,7 @@ public class Controller {
         alert.setHeaderText("blobsaver " + Main.appVersion);
         alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
-        
+
         resizeAlertButtons(alert);
         alert.showAndWait();
         switch (alert.getResult().getText()) {
