@@ -28,24 +28,38 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
-import javafx.scene.control.*;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -58,7 +72,12 @@ import java.util.zip.ZipInputStream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.primaryStage;
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Shared.githubIssue;
+import static com.airsquared.blobsaver.Shared.newReportableError;
+import static com.airsquared.blobsaver.Shared.newUnreportableError;
+import static com.airsquared.blobsaver.Shared.redditPM;
+import static com.airsquared.blobsaver.Shared.reportError;
+import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
 
 public class Controller {
 
@@ -202,86 +221,107 @@ public class Controller {
                 return;
             }
             final String v = (String) newValue;
-            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 5 (Wifi)") || v.equals("iPad 5 (Cellular)")) {
-                boardConfigField.setText("");
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-            } else if (v.equals("iPad 6 (WiFi)(iPad 7,5)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J71bAP");
-            } else if (v.equals("iPad 6 (Cellular)(iPad7,6)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J72bAP");
-            } else if (v.equals("iPhone XS (Global) (iPhone11,2)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D321AP");
-            } else if (v.equals("iPhone XS Max (iPhone11,4)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D331AP");
-            } else if (v.equals("iPhone XS Max (China) (iPhone11,6)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D331pAP");
-            } else if (v.equals("iPhone XR (iPhone11,8)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("N841AP");
-            } else if (v.equals("iPad Pro 3 11' (WiFi)(iPad8,1)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J317AP");
-            } else if (v.equals("iPad Pro 3 11' (WiFi)(iPad8,2)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J317xAP");
-            } else if (v.equals("iPad Pro 3 11' (Cellular)(iPad8,3)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J318AP");
-            } else if (v.equals("iPad Pro 3 11' (Cellular)(iPad8,4)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J318xAP");
-            } else if (v.equals("iPad Pro 3 12.9'(WiFi)(iPad8,5)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J320AP");
-            } else if (v.equals("iPad Pro 3 12.9 (WiFi)(iPad8,6)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J320xAP");
-            } else if (v.equals("iPad Pro 3 12.9 (Cellular)(iPad8,7)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J321AP");
-            } else if (v.equals("iPad Pro 3 12.9 (Cellular)(iPad8,8)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J321xAP");
-            } else {
-                boardConfigField.setEffect(null);
-                getBoardConfig = false;
-                boardConfigField.setText("");
-                boardConfigField.setDisable(true);
+            switch (v) {
+                case "iPhone 6s":
+                case "iPhone 6s+":
+                case "iPhone SE":
+                case "iPad 5 (Wifi)":
+                case "iPad 5 (Cellular)":
+                    boardConfigField.setText("");
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    break;
+                case "iPad 6 (WiFi)(iPad 7,5)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J71bAP");
+                    break;
+                case "iPad 6 (Cellular)(iPad7,6)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J72bAP");
+                    break;
+                case "iPhone XS (Global) (iPhone11,2)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("D321AP");
+                    break;
+                case "iPhone XS Max (iPhone11,4)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("D331AP");
+                    break;
+                case "iPhone XS Max (China) (iPhone11,6)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("D331pAP");
+                    break;
+                case "iPhone XR (iPhone11,8)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("N841AP");
+                    break;
+                case "iPad Pro 3 11' (WiFi)(iPad8,1)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J317AP");
+                    break;
+                case "iPad Pro 3 11' (WiFi)(iPad8,2)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J317xAP");
+                    break;
+                case "iPad Pro 3 11' (Cellular)(iPad8,3)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J318AP");
+                    break;
+                case "iPad Pro 3 11' (Cellular)(iPad8,4)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J318xAP");
+                    break;
+                case "iPad Pro 3 12.9'(WiFi)(iPad8,5)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J320AP");
+                    break;
+                case "iPad Pro 3 12.9 (WiFi)(iPad8,6)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J320xAP");
+                    break;
+                case "iPad Pro 3 12.9 (Cellular)(iPad8,7)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J321AP");
+                    break;
+                case "iPad Pro 3 12.9 (Cellular)(iPad8,8)":
+                    boardConfigField.setEffect(borderGlow);
+                    getBoardConfig = true;
+                    boardConfigField.setDisable(false);
+                    boardConfigField.setText("J321xAP");
+                    break;
+                default:
+                    boardConfigField.setEffect(null);
+                    getBoardConfig = false;
+                    boardConfigField.setText("");
+                    boardConfigField.setDisable(true);
+                    break;
             }
         });
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -853,6 +893,7 @@ public class Controller {
     }
 
     public void helpLabelHandler(MouseEvent evt) {
+        if (Main.DEBUG_MODE) return; //click on the question mark and add this method as a breakpoint
         String labelID;
         // if user clicks on question mark instead of padding, evt.getTarget() returns LabeledText instead of Label
         if (evt.getTarget() instanceof LabeledText) {
@@ -928,7 +969,14 @@ public class Controller {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void aboutMenuHandler() {
+    public void aboutMenuHandler() { //handles the "About Blobsaver" menu
+        Stage aboutStage;
+        if ((aboutStage = Main.getStage("About")) != null) { //if about menu already opened
+            aboutStage.toFront();
+            aboutStage.requestFocus();
+            return;
+        }
+
         ButtonType githubRepo = new ButtonType("Github Repo");
         ButtonType viewLicense = new ButtonType("View License");
         ButtonType librariesUsed = new ButtonType("Libraries Used");
@@ -947,70 +995,89 @@ public class Controller {
         OkButton.setDefaultButton(true);
 
         alert.setHeaderText("blobsaver " + Main.appVersion);
-        alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n\n" +
+        alert.setContentText("blobsaver Copyright (c) 2019  airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
 
         resizeAlertButtons(alert);
+
+        Platform.runLater(() -> { //run this later so that alert.showAndWait() makes the stage first
+            Stage aboutStage2; //aboutStage is already used in this scope
+            if ((aboutStage2 = Main.getStage("About")) != null) {
+                aboutStage2.setAlwaysOnTop(true);
+            } else {
+                System.out.println("bad news: About stage hasn't been initialized yet");
+            }
+        });
+
         alert.showAndWait();
-        switch (alert.getResult().getText()) {
-            case "Github Repo":
-                try {
-                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver"));
-                } catch (IOException | URISyntaxException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case "View License":
-                try {
-                    InputStream input;
-                    if (PlatformUtil.isWindows()) {
-                        input = Main.class.getResourceAsStream("gpl-3.0_windows.txt");
-                    } else {
-                        input = Main.class.getResourceAsStream("gpl-3.0.txt");
+        try {
+            switch (alert.getResult().getText()) {
+                case "Github Repo":
+                    try {
+                        Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver"));
+                    } catch (IOException | URISyntaxException e) {
+                        e.printStackTrace();
                     }
-                    File licenseFile = File.createTempFile("gpl-3.0_", ".txt");
-                    OutputStream out = new FileOutputStream(licenseFile);
-                    int read;
-                    byte[] bytes = new byte[1024];
+                    break;
+                case "View License":
+                    try {
+                        InputStream input;
+                        if (PlatformUtil.isWindows()) {
+                            input = Main.class.getResourceAsStream("gpl-3.0_windows.txt");
+                        } else {
+                            input = Main.class.getResourceAsStream("gpl-3.0.txt");
+                        }
+                        File licenseFile = File.createTempFile("gpl-3.0_", ".txt");
+                        OutputStream out = new FileOutputStream(licenseFile);
+                        int read;
+                        byte[] bytes = new byte[1024];
 
-                    while ((read = input.read(bytes)) != -1) {
-                        out.write(bytes, 0, read);
+                        while ((read = input.read(bytes)) != -1) {
+                            out.write(bytes, 0, read);
+                        }
+                        out.close();
+                        licenseFile.deleteOnExit();
+                        licenseFile.setReadOnly();
+                        Desktop.getDesktop().edit(licenseFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    out.close();
-                    licenseFile.deleteOnExit();
-                    licenseFile.setReadOnly();
-                    Desktop.getDesktop().edit(licenseFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case "Libraries Used":
-                try {
-                    InputStream input;
-                    if (PlatformUtil.isWindows()) {
-                        input = Main.class.getResourceAsStream("libraries_used_windows.txt");
-                    } else {
-                        input = Main.class.getResourceAsStream("libraries_used.txt");
-                    }
-                    File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
-                    OutputStream out = new FileOutputStream(libsUsedFile);
-                    int read;
-                    byte[] bytes = new byte[1024];
+                    break;
+                case "Libraries Used":
+                    try {
+                        InputStream input;
+                        if (PlatformUtil.isWindows()) {
+                            input = Main.class.getResourceAsStream("libraries_used_windows.txt");
+                        } else {
+                            input = Main.class.getResourceAsStream("libraries_used.txt");
+                        }
+                        File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
+                        OutputStream out = new FileOutputStream(libsUsedFile);
+                        int read;
+                        byte[] bytes = new byte[1024];
 
-                    while ((read = input.read(bytes)) != -1) {
-                        out.write(bytes, 0, read);
+                        while ((read = input.read(bytes)) != -1) {
+                            out.write(bytes, 0, read);
+                        }
+                        out.close();
+                        libsUsedFile.deleteOnExit();
+                        libsUsedFile.setReadOnly();
+                        Desktop.getDesktop().edit(libsUsedFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    out.close();
-                    libsUsedFile.deleteOnExit();
-                    libsUsedFile.setReadOnly();
-                    Desktop.getDesktop().edit(libsUsedFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                break;
-            case "Donate!":
-                donate();
-                break;
+                    break;
+                case "Donate!":
+                    donate();
+                    break;
+            }
+        } catch (NullPointerException e) { //the alert can be closed without a selection, causing NullPointerException
+            if (alert.getResult() == null || alert.getResult().getText() == null) {
+                System.out.println("no selection was given in about menu!");
+            } else {
+                System.out.println("something weird happened with the about menu");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1049,14 +1116,16 @@ public class Controller {
 
         windowMenu.getItems().add(new SeparatorMenuItem());
         windowMenu.getItems().add(tk.createMinimizeMenuItem());
+        windowMenu.getItems().add(tk.createCloseWindowMenuItem()); //TODO: add windows/linux equivalent [ctrl + w]
         windowMenu.getItems().add(tk.createCycleWindowsItem());
+
+        windowMenu.getItems().add(new SeparatorMenuItem());
 
         MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug Log");
         debugLogMenuItem.setOnAction(event -> {
             debugLogHandler();
             tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
         });
-        windowMenu.getItems().add(new SeparatorMenuItem());
         windowMenu.getItems().add(debugLogMenuItem);
 
         windowMenu.getItems().add(new SeparatorMenuItem());
@@ -1085,7 +1154,7 @@ public class Controller {
         if (macOSMenuBar == null) {
             macOSMenuBar = getMacOSMenuBar();
         }
-        MenuToolkit.toolkit().setMenuBar(primaryStage, macOSMenuBar);
+        MenuToolkit.toolkit().setGlobalMenuBar(macOSMenuBar);
     }
 
     public void backgroundSettingsHandler() {
@@ -1250,8 +1319,7 @@ public class Controller {
             deleteFolder(blobsaver_bin);
             Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall .exe. Otherwise, you can just delete the .app or .jar file.\nThe application will now exit.", ButtonType.OK);
             applicationCloseAlert.showAndWait();
-            Platform.exit();
-            System.exit(0);
+            Main.quit();
         } catch (BackingStoreException e) {
             newReportableError("There was an error resetting the application.", e.getMessage());
         }
