@@ -21,6 +21,11 @@ package com.airsquared.blobsaver;
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
 import de.codecentric.centerdevice.MenuToolkit;
+import de.codecentric.centerdevice.dialogs.about.AboutStageBuilder;
+import de.codecentric.centerdevice.icns.IcnsParser;
+import de.codecentric.centerdevice.icns.IcnsType;
+import de.codecentric.centerdevice.labels.LabelMaker;
+import de.codecentric.centerdevice.labels.LabelName;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -42,6 +47,10 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -65,6 +74,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Locale;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
@@ -124,6 +135,9 @@ public class Controller {
     @FXML private VBox presetVBox;
 
     @FXML private Button goButton;
+
+    //in order to make default about stage and quit menu item
+    private final LabelMaker labelMaker = new LabelMaker(Locale.ENGLISH);
 
     private boolean getBoardConfig = false;
     private boolean editingPresets = false;
@@ -458,7 +472,7 @@ public class Controller {
                 // can't use lambda due to using the 'this' keyword
                 @Override
                 public void handle(WindowEvent event) {
-                    useMacOSMenuBar();
+                    Platform.runLater(() -> useMacOSMenuBar());
                     log("using macOS menu bar");
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
@@ -1081,6 +1095,41 @@ public class Controller {
         }
     }
 
+    private Stage createDefaultAboutStage(String appName) {
+        AboutStageBuilder stageBuilder = AboutStageBuilder.start(
+                labelMaker.getLabel(LabelName.ABOUT, appName))
+                .withAppName(appName).withCloseOnFocusLoss().withCopyright("Copyright \u00A9 " + Calendar
+                        .getInstance().get(Calendar.YEAR));
+
+        try {
+            IcnsParser parser = IcnsParser.forFile(AboutStageBuilder.DEFAULT_APP_ICON);
+            stageBuilder = stageBuilder.withImage(new Image(parser.getIconStream(IcnsType.ic08)));
+        } catch (IOException e) {
+            newUnreportableError("Failed to load about stage dummy image");
+            e.printStackTrace();
+        }
+
+        return stageBuilder.build();
+    }
+
+    // so that there's no crash on cmd + q
+    private Menu createCustomApplicationMenu(MenuToolkit tk) {
+        return new Menu("Apple", null, tk.createAboutMenuItem("blobsaver", createDefaultAboutStage("blobsaver")),
+                new SeparatorMenuItem(),
+                tk.createHideMenuItem("blobsaver"),
+                tk.createHideOthersMenuItem(),
+                tk.createUnhideAllMenuItem(),
+                new SeparatorMenuItem(),
+                createCustomQuitMenuItem());
+    }
+
+    private MenuItem createCustomQuitMenuItem() {
+        MenuItem quit = new MenuItem(labelMaker.getLabel(LabelName.QUIT, "blobsaver"));
+        quit.setOnAction(event -> Main.quit());
+        quit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.META_DOWN));
+        return quit;
+    }
+
     //sets up mac OS menu bar and returns it
     private MenuBar getMacOSMenuBar() {
         // makes the app taller to compensate for the missing menu bar
@@ -1093,7 +1142,7 @@ public class Controller {
         macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
-        Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver");
+        Menu applicationMenu = createCustomApplicationMenu(tk);
 
         MenuItem aboutMenuItem = new MenuItem("About blobsaver");
         aboutMenuItem.setOnAction(event2 -> aboutMenuHandler());
@@ -1155,6 +1204,10 @@ public class Controller {
             macOSMenuBar = getMacOSMenuBar();
         }
         MenuToolkit.toolkit().setGlobalMenuBar(macOSMenuBar);
+        System.out.println("setting macos menu bar as global menu bar");
+        if (macOSMenuBar.getMenus().get(0).getItems().size() != 11) {
+            System.out.println("bad news: not right size: " + macOSMenuBar.getMenus().get(0).getItems().toString());
+        }
     }
 
     public void backgroundSettingsHandler() {
