@@ -455,7 +455,11 @@ public class Controller {
             args.add(boardConfigField.getText());
         }
         if (apnonceCheckBox.isSelected()) {
-            args.add("--apnonce");
+            if (PlatformUtil.isMac()) {
+                args.add("--generator");
+            } else {
+                args.add("--apnonce");
+            }
             args.add(apnonceField.getText());
         }
         if (versionCheckBox.isSelected()) {
