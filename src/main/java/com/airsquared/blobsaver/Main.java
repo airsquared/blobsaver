@@ -42,9 +42,9 @@ public class Main {
 
     //enables debug menu icon in tray icon and to create a breakpoint.
     //You can also create a breakpoint on the helpLabelHandler() function and click the question marks to debug
-    static final boolean DEBUG_MODE = true;
+    static final boolean DEBUG_MODE = false;
 
-    static final String appVersion = "v2.2.1";
+    static final String appVersion = "v2.2.3";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     private static boolean firstTimeShown = true; //whether it is the first time that primaryStage is shown
