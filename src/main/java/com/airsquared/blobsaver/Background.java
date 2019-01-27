@@ -60,10 +60,20 @@ import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
 
 class Background {
 
-    static boolean inBackground = false;
+//    private static KeyCombination quitShortcut = new KeyCodeCombination(KeyCode.Q, KeyCombination.META_DOWN);
 
-    private static ScheduledExecutorService executor;
-    private static TrayIcon trayIcon;
+    static boolean inBackground = false;
+    static ScheduledExecutorService executor;
+    static TrayIcon trayIcon;
+
+    /*private static void enableQuitShortcut() {
+        // TODO: Replace System.exit(0) with a cleaner stop
+        Main.primaryStage.getScene().getAccelerators().put(quitShortcut, () -> System.exit(0));
+    }
+
+    private static void disableQuitShortcut() {
+        Main.primaryStage.getScene().getAccelerators().remove(quitShortcut);
+    }*/
 
     static void startBackground(boolean runOnlyOnce) {
         ArrayList<Integer> presetsToSave = new ArrayList<>();
@@ -92,6 +102,9 @@ class Background {
             });
         }
         if (!runOnlyOnce) {
+            /*if (PlatformUtil.isMac()) {
+                enableQuitShortcut();
+            }*/
             inBackground = true;
             executor = Executors.newScheduledThreadPool(1);
             SystemTray tray = SystemTray.getSystemTray();
@@ -112,12 +125,7 @@ class Background {
             openItem.setFont(Font.decode(null).deriveFont(java.awt.Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
-            exitItem.addActionListener(event -> {
-                executor.shutdownNow();
-                Platform.runLater(Platform::exit);
-                tray.remove(trayIcon);
-                System.exit(0);
-            });
+            exitItem.addActionListener(event -> Main.quit());
 
             // setup the popup menu for the application.
             final PopupMenu popup = new PopupMenu();
@@ -126,7 +134,7 @@ class Background {
             if (Main.DEBUG_MODE) {
                 MenuItem debugItem = new MenuItem("Debug");
                 debugItem.addActionListener(
-                        event -> System.out.println("Add a breakpoint here!"));
+                        event -> System.out.println("Add a breakpoint here!")); //add a breakpoint here to execute arbitrary code
                 popup.add(debugItem);
                 popup.addSeparator();
             }
@@ -423,6 +431,9 @@ class Background {
 
     static void stopBackground(boolean showAlert) {
         inBackground = false;
+        /*if (PlatformUtil.isMac()) {
+            disableQuitShortcut();
+        }*/
         executor.shutdownNow();
         SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
         if (showAlert && Platform.isFxApplicationThread()) {

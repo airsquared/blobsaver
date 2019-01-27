@@ -41,6 +41,11 @@ dependencies {
     compile 'net.java.dev.jna:jna:5.2.0'
 }
 
+build {
+//    minifyEnabled = true
+//    buildConfigField "boolean", "debugMode", false //maybe only works for android?
+}
+
 compileJava {
     options.fork = true
     options.forkOptions.javaHome = new File("${System.properties.'java.home'}")
@@ -70,7 +75,7 @@ macAppBundle {
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
     mainClassName = "com.airsquared.blobsaver.Main"
-    copyright = "Copyright (c) 2018  airsquared"
+    copyright = "Copyright (c) 2019  airsquared"
     downloadUrl = "https://java.com/inc/BrowserRedirect1.jsp"
     icon = "${projectDir}/icons/blob_emoji.ico"
 }
