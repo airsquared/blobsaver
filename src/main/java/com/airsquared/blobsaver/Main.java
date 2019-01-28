@@ -18,6 +18,7 @@
 
 package com.airsquared.blobsaver;
 
+import com.airsquared.blobsaver.Model.Version;
 import com.sun.javafx.PlatformUtil;
 import de.codecentric.centerdevice.util.StageUtils;
 import it.sauronsoftware.junique.AlreadyLockedException;
@@ -44,7 +45,7 @@ public class Main {
     //You can also create a breakpoint on the helpLabelHandler() function and click the question marks to debug
     static final boolean DEBUG_MODE = false;
 
-    static final String appVersion = "v2.2.3";
+    static final Version appVersion = new Version("2.2.3");
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     private static boolean firstTimeShown = true; //whether it is the first time that primaryStage is shown
@@ -191,7 +192,7 @@ public class Main {
                 }
             });
 
-            appPrefs.put("App version", appVersion);
+            appPrefs.put("App version", appVersion.toString()); //I couldn't find any uses for this??
         }
 
         /*private void addShutdownListener() { //doesn't seem to work

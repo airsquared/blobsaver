@@ -18,6 +18,7 @@
 
 package com.airsquared.blobsaver;
 
+import com.airsquared.blobsaver.Model.Version;
 import com.sun.javafx.PlatformUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
@@ -130,23 +131,27 @@ class Shared {
                             }
                             in.close();
                         } catch (FileNotFoundException ignored) {
-                            return null;
+                            newUnreportableError("Could not check for updates. " +
+                                    "Looks like either blobsaver has been abandoned " +
+                                    "or the GitHub project has been moved elsewhere");
+                            return null; //TODO: find the use of this
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        String newVersion;
+                        Version newVersion;
                         String changelog;
                         try {
-                            newVersion = new JSONObject(response.toString()).getString("tag_name");
+                            newVersion = new Version(new JSONObject(response.toString()).getString("tag_name"));
                             changelog = new JSONObject(response.toString()).getString("body");
                             changelog = changelog.substring(changelog.indexOf("Changelog"));
                         } catch (JSONException e) {
                             newVersion = Main.appVersion;
                             changelog = "";
                         }
-                        if (!newVersion.equals(Main.appVersion) && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
+                        if (newVersion.compareTo(Main.appVersion) < 0 //check if this is >= latest version
+                                && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion.toString()))) {
                             final CountDownLatch latch = new CountDownLatch(1);
-                            final String finalNewVersion = newVersion;
+                            final String finalNewVersion = newVersion.toString(); //so that the lambda works
                             final String finalChangelog = changelog;
                             Platform.runLater(() -> {
                                 try {
