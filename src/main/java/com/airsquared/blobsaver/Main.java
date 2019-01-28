@@ -75,7 +75,9 @@ public class Main {
                 JavaFxApplication.launchIt(args);
             }
         } catch (ClassNotFoundException e) {
-            javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx.\nOn Linux, use sudo apt-get install openjfx", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. " +
+                    "Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx." +
+                    "\nOn Linux, use sudo apt-get install openjfx", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
         }
     }
@@ -192,7 +194,7 @@ public class Main {
                 }
             });
 
-            appPrefs.put("App version", appVersion.toString()); //I couldn't find any uses for this??
+            appPrefs.put("App version", appVersion.toString()); //No uses for now; maybe needed later
         }
 
         /*private void addShutdownListener() { //doesn't seem to work

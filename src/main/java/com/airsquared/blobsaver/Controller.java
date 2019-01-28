@@ -472,6 +472,12 @@ public class Controller {
                 // can't use lambda due to using the 'this' keyword
                 @Override
                 public void handle(WindowEvent event) {
+                    // makes the app taller to compensate for the missing menu bar
+                    ((VBox) menuBar.getParent()).setMinHeight(560.0);
+                    ((VBox) menuBar.getParent()).setPrefHeight(560.0);
+                    presetVBox.setMinHeight(560.0);
+                    presetVBox.setPrefHeight(560.0);
+
                     Platform.runLater(() -> useMacOSMenuBar());
                     log("using macOS menu bar");
                     primaryStage.removeEventHandler(event.getEventType(), this);
@@ -1099,10 +1105,10 @@ public class Controller {
         }
     }
 
-    private Stage createDefaultAboutStage(String appName) {
+    private Stage createDefaultAboutStage() {
         AboutStageBuilder stageBuilder = AboutStageBuilder.start(
-                labelMaker.getLabel(LabelName.ABOUT, appName))
-                .withAppName(appName).withCloseOnFocusLoss().withCopyright("Copyright \u00A9 " + Calendar
+                labelMaker.getLabel(LabelName.ABOUT, "blobsaver"))
+                .withAppName("blobsaver").withCloseOnFocusLoss().withCopyright("Copyright \u00A9 " + Calendar
                         .getInstance().get(Calendar.YEAR));
 
         try {
@@ -1118,7 +1124,7 @@ public class Controller {
 
     // so that there's no crash on cmd + q
     private Menu createCustomApplicationMenu(MenuToolkit tk) {
-        return new Menu("Apple", null, tk.createAboutMenuItem("blobsaver", createDefaultAboutStage("blobsaver")),
+        return new Menu("Apple", null, tk.createAboutMenuItem("blobsaver", createDefaultAboutStage()),
                 new SeparatorMenuItem(),
                 tk.createHideMenuItem("blobsaver"),
                 tk.createHideOthersMenuItem(),
@@ -1136,11 +1142,6 @@ public class Controller {
 
     //sets up mac OS menu bar and returns it
     private MenuBar getMacOSMenuBar() {
-        // makes the app taller to compensate for the missing menu bar
-        ((VBox) menuBar.getParent()).setMinHeight(560.0);
-        ((VBox) menuBar.getParent()).setPrefHeight(560.0);
-        presetVBox.setMinHeight(560.0);
-        presetVBox.setPrefHeight(560.0);
 
         menuBar.setUseSystemMenuBar(true);
         macOSMenuBar = new MenuBar();
