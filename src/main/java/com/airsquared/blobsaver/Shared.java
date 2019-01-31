@@ -176,15 +176,16 @@ class Shared {
     }
 
     static File getTsschecker() throws IOException {
+        if (PlatformUtil.isWindows()) {
+            return getTsscheckerWindows();
+        }
         File executablesFolder = getExecutablesFolder();
         File tsschecker = new File(executablesFolder, "tsschecker");
-        if (tsschecker.exists()) {
+        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
             return tsschecker;
         } else {
             InputStream input;
-            if (PlatformUtil.isWindows()) {
-                input = Shared.class.getResourceAsStream("tsschecker_windows.exe");
-            } else if (PlatformUtil.isMac()) {
+            if (PlatformUtil.isMac()) {
                 input = Shared.class.getResourceAsStream("tsschecker_macos");
             } else {
                 input = Shared.class.getResourceAsStream("tsschecker_linux");
@@ -200,8 +201,24 @@ class Shared {
             out.close();
             tsschecker.setReadable(true, false);
             tsschecker.setExecutable(true, false);
+            appPrefs.putBoolean("tsschecker last update v2.2.3", true);
             return tsschecker;
         }
+    }
+
+    private static File getTsscheckerWindows() throws IOException {
+        File tsscheckerDir = new File(getExecutablesFolder(), "tsschecker_windows");
+        File tsschecker = new File(tsscheckerDir, "tsschecker.exe");
+        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
+            return tsschecker;
+        }
+        tsscheckerDir.mkdir();
+        String jarPath = "/com/airsquared/blobsaver/" + "tsschecker_windows";
+        copyDirFromJar(jarPath, tsscheckerDir.toPath());
+        appPrefs.putBoolean("tsschecker last update v2.2.3", true);
+        tsschecker.setReadable(true);
+        tsschecker.setExecutable(true, false);
+        return tsschecker;
     }
 
     static File getidevicepair() throws IOException {
@@ -243,6 +260,7 @@ class Shared {
         }
     }
 
+    @SuppressWarnings("Duplicates")
     private static File getlibimobiledeviceFolder() throws IOException {
         File libimobiledeviceFolder;
         if (PlatformUtil.isMac()) {
@@ -255,64 +273,30 @@ class Shared {
         } else {
             libimobiledeviceFolder.mkdir();
             if (Shared.class.getResource("Shared.class").toString().startsWith("jar:")) { // if being run from jar
-                try {
-                    final Path target = libimobiledeviceFolder.toPath();
-                    URI resource = Shared.class.getResource("").toURI();
-                    if (resource.toString().endsWith("blobsaver.exe!/com/airsquared/blobsaver/")) {
-                        resource = URI.create(resource.toString().replace("blobsaver.exe!/com/airsquared/blobsaver/", "blobsaver.jar!/com/airsquared/blobsaver/"));
-                    }
-                    java.nio.file.FileSystem fileSystem = FileSystems.newFileSystem(resource, Collections.<String, String>emptyMap());
-                    final Path jarPath;
-                    if (PlatformUtil.isMac()) {
-                        jarPath = fileSystem.getPath("/com/airsquared/blobsaver/" + "libimobiledevice_mac");
-                    } else {
-                        jarPath = fileSystem.getPath("/com/airsquared/blobsaver/" + "libimobiledevice_windows");
-                    }
-                    System.out.println("jarPath:" + jarPath.toString());
-                    Files.walkFileTree(jarPath, new SimpleFileVisitor<Path>() {
-                        private Path currentTarget;
-
-                        @Override
-                        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                            System.out.println("in preVisitDirectory, Path:" + dir);
-                            currentTarget = target.resolve(jarPath.relativize(dir).toString());
-                            System.out.println("after: currentTarget = target.resolve(jarPath.relativize(dir).toString()); ");
-                            Files.createDirectories(currentTarget);
-                            System.out.println("after: Files.createDirectories(currentTarget);");
-                            return FileVisitResult.CONTINUE;
-                        }
-
-                        @Override
-                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                            System.out.println("in visitFile, Path:" + file);
-                            Path resolveResult = target.resolve(jarPath.relativize(file).toString());
-                            System.out.println("after setting resolveResult:" + resolveResult);
-                            Files.copy(file, resolveResult, REPLACE_EXISTING);
-                            System.out.println("after: Files.copy(file, target.resolve(jarPath.relativize(file).toString()), REPLACE_EXISTING);");
-                            return FileVisitResult.CONTINUE;
+                final String jarPath;
+                if (PlatformUtil.isMac()) {
+                    jarPath = "/com/airsquared/blobsaver/" + "libimobiledevice_mac";
+                } else {
+                    jarPath = "/com/airsquared/blobsaver/" + "libimobiledevice_windows";
+                }
+                copyDirFromJar(jarPath, libimobiledeviceFolder.toPath());
+                try (Stream<Path> paths = Files.walk(new File(System.getProperty("user.home"), ".blobsaver_bin").toPath())) {
+                    paths.forEach(path -> {
+                        System.out.println("in for each loop");
+                        File file = path.toFile();
+                        String fileName = file.getName();
+                        if (!file.isDirectory() && (fileName.contains("ideviceinfo") || fileName.contains("idevicepair") || fileName.contains("iproxy"))) {
+                            System.out.println("setting " + fileName + " to readable and executable");
+                            file.setReadable(true, false);
+                            file.setExecutable(true, false);
                         }
                     });
-                    try (Stream<Path> paths = Files.walk(new File(System.getProperty("user.home"), ".blobsaver_bin").toPath())) {
-                        paths.forEach(path -> {
-                            System.out.println("in for each loop");
-                            File file = path.toFile();
-                            String fileName = file.getName();
-                            if (!file.isDirectory() && (fileName.contains("ideviceinfo") || fileName.contains("idevicepair") || fileName.contains("iproxy"))) {
-                                System.out.println("setting " + fileName + " to readable and executable");
-                                file.setReadable(true, false);
-                                file.setExecutable(true, false);
-                            }
-                        });
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                    System.out.println("returning from libimobiledevice");
-                    return libimobiledeviceFolder;
-                } catch (URISyntaxException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     return null;
                 }
+                System.out.println("returning from libimobiledevice");
+                return libimobiledeviceFolder;
             } else { // if being run directly from IDEA
                 System.out.println("run from idea");
                 final Path targetPath = libimobiledeviceFolder.toPath();
@@ -358,6 +342,44 @@ class Shared {
             }
         }
         return executablesFolder;
+    }
+
+    /**
+     * @param pathToSourceInJar the path to the directory in the jar(ex: "/com/airsquared/blobsaver/libimobiledevice_mac")
+     * @param target            where the directory will be copied to
+     */
+    @SuppressWarnings("Duplicates")
+    private static void copyDirFromJar(String pathToSourceInJar, Path target) throws IOException {
+        URI resource = null;
+        try {
+            resource = Shared.class.getResource("").toURI();
+        } catch (URISyntaxException e) {
+            return;
+        }
+        if (resource.toString().endsWith("blobsaver.exe!/com/airsquared/blobsaver/")) {
+            resource = URI.create(resource.toString().replace("blobsaver.exe!/com/airsquared/blobsaver/", "blobsaver.jar!/com/airsquared/blobsaver/"));
+        }
+        final java.nio.file.FileSystem fileSystem = FileSystems.newFileSystem(resource, Collections.<String, String>emptyMap());
+
+        final Path jarPath = fileSystem.getPath(pathToSourceInJar);
+        System.out.println("jarPath:" + jarPath.toString());
+        Files.walkFileTree(jarPath, new SimpleFileVisitor<Path>() {
+            private Path currentTarget;
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                currentTarget = target.resolve(jarPath.relativize(dir).toString());
+                Files.createDirectories(currentTarget);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Path resolveResult = target.resolve(jarPath.relativize(file).toString());
+                Files.copy(file, resolveResult, REPLACE_EXISTING);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     static void newGithubIssue() {
