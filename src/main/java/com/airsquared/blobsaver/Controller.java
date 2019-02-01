@@ -24,16 +24,9 @@ import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
@@ -46,8 +39,6 @@ import org.json.JSONArray;
 
 import java.awt.Desktop;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,251 +114,58 @@ public class Controller {
         Shared.checkForUpdates(false);
     }
 
-    public void newGithubIssue() {
-        Shared.newGithubIssue();
-    }
-
-    public void sendRedditPM() {
-        Shared.sendRedditPM();
-    }
-
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
-        // create border glow effect
+        // create effectd
         borderGlow.setOffsetY(0f);
         borderGlow.setOffsetX(0f);
         borderGlow.setColor(Color.DARKCYAN);
         borderGlow.setWidth(20);
         borderGlow.setHeight(20);
+        errorBorder.setOffsetY(0f);
+        errorBorder.setOffsetX(0f);
+        errorBorder.setColor(Color.RED);
+        errorBorder.setWidth(20);
+        errorBorder.setHeight(20);
 
-        final ObservableList iPhones = FXCollections.observableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
-                "iPhone 4 (GSM 2012)", "iPhone 4 (CDMA)", "iPhone 4[S]", "iPhone 5 (GSM)", "iPhone 5 (Global)",
-                "iPhone 5c (GSM)", "iPhone 5c (Global)", "iPhone 5s (GSM)", "iPhone 5s (Global)",
-                "iPhone 6+", "iPhone 6", "iPhone 6s", "iPhone 6s+", "iPhone SE", "iPhone 7 (Global)(iPhone9,1)",
-                "iPhone 7+ (Global)(iPhone9,2)", "iPhone 7 (GSM)(iPhone9,3)", "iPhone 7+ (GSM)(iPhone9,4)",
-                "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
-                "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "iPhone XS (Global) (iPhone11,2)",
-                "iPhone XS Max (iPhone11,4)", "iPhone XS Max (China) (iPhone11,6)", "iPhone XR (iPhone11,8)");
-        final ObservableList iPods = FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6");
-        final ObservableList iPads = FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
-                "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
-                "iPad 3 (WiFi)", "iPad 3 (CDMA)", "iPad 3 (GSM)", "iPad 4 (WiFi)", "iPad 4 (GSM)", "iPad 4 (Global)",
-                "iPad Air (Wifi)", "iPad Air (Cellular)", "iPad Air (China)", "iPad Mini 2 (WiFi)", "iPad Mini 2 (Cellular)",
-                "iPad Mini 2 (China)", "iPad Mini 3 (WiFi)", "iPad Mini 3 (Cellular)", "iPad Mini 3 (China)",
-                "iPad Mini 4 (Wifi)", "iPad Mini 4 (Cellular)", "iPad Air 2 (WiFi)", "iPad Air 2 (Cellular)",
-                "iPad Pro 9.7 (Wifi)", "iPad Pro 9.7 (Cellular)", "iPad Pro 12.9 (WiFi)", "iPad Pro 12.9 (Cellular)",
-                "iPad 5 (Wifi)", "iPad 5 (Cellular)", "iPad Pro 2 12.9 (WiFi)(iPad7,1)", "iPad Pro 2 12.9 (Cellular)(iPad7,2)",
-                "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)",
-                "iPad 6 (Cellular)(iPad7,6)", "iPad Pro 3 11' (WiFi)(iPad8,1)", "iPad Pro 3 11' (WiFi)(iPad8,2)",
-                "iPad Pro 3 11' (Cellular)(iPad8,3)", "iPad Pro 3 11' (Cellular)(iPad8,4)", "iPad Pro 3 12.9'(WiFi)(iPad8,5)",
-                "iPad Pro 3 12.9 (WiFi)(iPad8,6)", "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)");
-        final ObservableList AppleTVs = FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
-        deviceTypeChoiceBox.setItems(FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV"));
+        deviceTypeChoiceBox.setItems(FXCollections.observableArrayList(Devices.getDeviceTypes()));
 
         deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
             deviceTypeChoiceBox.setEffect(null);
-            if (newValue == null) {
-                versionLabel.setText("Version");
-                return;
-            }
-            final String v = (String) newValue;
-            switch (v) {
+            switch ((String) (newValue == null ? "" : newValue)) {
                 case "iPhone":
-                    deviceModelChoiceBox.setItems(iPhones);
+                    deviceModelChoiceBox.setItems(Devices.getiPhones());
                     versionLabel.setText("iOS Version");
                     break;
                 case "iPod":
-                    deviceModelChoiceBox.setItems(iPods);
+                    deviceModelChoiceBox.setItems(Devices.getiPods());
                     versionLabel.setText("iOS Version");
                     break;
                 case "iPad":
-                    deviceModelChoiceBox.setItems(iPads);
+                    deviceModelChoiceBox.setItems(Devices.getiPads());
                     versionLabel.setText("iOS Version");
                     break;
                 case "AppleTV":
-                    deviceModelChoiceBox.setItems(AppleTVs);
+                    deviceModelChoiceBox.setItems(Devices.getAppleTVs());
                     versionLabel.setText("tvOS Version");
+                    break;
+                default:
+                    versionLabel.setText("Version");
                     break;
             }
         });
 
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
             deviceModelChoiceBox.setEffect(null);
-            if (newValue == null) {
-                boardConfigField.setEffect(null);
-                getBoardConfig = false;
-                boardConfigField.setText("");
-                boardConfigField.setDisable(true);
-                return;
-            }
-            final String v = (String) newValue;
-            if (v.equals("iPhone 6s") || v.equals("iPhone 6s+") || v.equals("iPhone SE") || v.equals("iPad 5 (Wifi)") || v.equals("iPad 5 (Cellular)")) {
-                boardConfigField.setText("");
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-            } else if (v.equals("iPad 6 (WiFi)(iPad 7,5)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J71bAP");
-            } else if (v.equals("iPad 6 (Cellular)(iPad7,6)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J72bAP");
-            } else if (v.equals("iPhone XS (Global) (iPhone11,2)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D321AP");
-            } else if (v.equals("iPhone XS Max (iPhone11,4)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D331AP");
-            } else if (v.equals("iPhone XS Max (China) (iPhone11,6)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D331pAP");
-            } else if (v.equals("iPhone XR (iPhone11,8)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("N841AP");
-            } else if (v.equals("iPad Pro 3 11' (WiFi)(iPad8,1)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J317AP");
-            } else if (v.equals("iPad Pro 3 11' (WiFi)(iPad8,2)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J317xAP");
-            } else if (v.equals("iPad Pro 3 11' (Cellular)(iPad8,3)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J318AP");
-            } else if (v.equals("iPad Pro 3 11' (Cellular)(iPad8,4)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J318xAP");
-            } else if (v.equals("iPad Pro 3 12.9'(WiFi)(iPad8,5)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J320AP");
-            } else if (v.equals("iPad Pro 3 12.9 (WiFi)(iPad8,6)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J320xAP");
-            } else if (v.equals("iPad Pro 3 12.9 (Cellular)(iPad8,7)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J321AP");
-            } else if (v.equals("iPad Pro 3 12.9 (Cellular)(iPad8,8)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J321xAP");
-            } else {
-                boardConfigField.setEffect(null);
-                getBoardConfig = false;
-                boardConfigField.setText("");
-                boardConfigField.setDisable(true);
-            }
+            requireBoardConfig((String) newValue);
         });
         identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
             identifierField.setEffect(null);
-            if (newValue.equals("iPhone8,1") || newValue.equals("iPhone8,2") || newValue.equals("iPhone8,4") || newValue.equals("iPad6,11") || newValue.equals("iPad6,12")) {
-                boardConfigField.setText("");
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-            } else if (newValue.equals("iPad7,5")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J71bAP");
-            } else if (newValue.equals("iPad7,6")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J72bAP");
-            } else if (newValue.equals("iPhone11,2")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D321AP");
-            } else if (newValue.equals("iPhone11,4")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D331AP");
-            } else if (newValue.equals("iPhone11,6")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("D331pAP");
-            } else if (newValue.endsWith("iPhone11,8")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("N841AP");
-            } else if (newValue.equals("iPad8,1")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J317AP");
-            } else if (newValue.equals("iPad8,2")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J317xAP");
-            } else if (newValue.equals("iPad8,3")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J318AP");
-            } else if (newValue.equals("iPad8,4)")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J318xAP");
-            } else if (newValue.equals("iPad8,5")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J320AP");
-            } else if (newValue.equals("iPad8,6")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J320xAP");
-            } else if (newValue.equals("iPad8,7")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J321AP");
-            } else if (newValue.equals("iPad8,8")) {
-                boardConfigField.setEffect(borderGlow);
-                getBoardConfig = true;
-                boardConfigField.setDisable(false);
-                boardConfigField.setText("J321xAP");
-            } else {
-                boardConfigField.setEffect(null);
-                getBoardConfig = false;
-                boardConfigField.setText("");
-                boardConfigField.setDisable(true);
-            }
+            String v = Devices.getDeviceModelIdentifiersMap().get(newValue);
+            requireBoardConfig(v);
         });
+
         ecidField.textProperty().addListener((observable, oldValue, newValue) -> ecidField.setEffect(null));
         versionField.textProperty().addListener((observable, oldValue, newValue) -> versionField.setEffect(null));
         boardConfigField.textProperty().addListener((observable, oldValue, newValue) -> boardConfigField.setEffect(null));
@@ -380,14 +178,8 @@ public class Controller {
 
         goButton.setDefaultButton(true);
 
-        errorBorder.setOffsetY(0f);
-        errorBorder.setOffsetX(0f);
-        errorBorder.setColor(Color.RED);
-        errorBorder.setWidth(20);
-        errorBorder.setHeight(20);
-
         presetButtons = new ArrayList<>(Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button));
-        presetButtons.forEach((Button btn) -> btn.setOnAction(this::presetButtonHandler));
+        presetButtons.forEach(btn -> btn.setOnAction(this::presetButtonHandler));
 
         // the following is to set the path to save blobs to the correct location
         final String url = getClass().getResource("Controller.class").toString();
@@ -415,7 +207,6 @@ public class Controller {
 
         if (PlatformUtil.isMac()) { // use macos menu bar or not
             primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
-                // can't use lambda due to using the 'this' keyword
                 @Override
                 public void handle(WindowEvent event) {
                     useMacOSMenuBar();
@@ -427,6 +218,20 @@ public class Controller {
 
         if (!PlatformUtil.isMac()) {
             readFromConnectedDeviceButton.setText("Read from connected device(beta)");
+        }
+    }
+
+    private void requireBoardConfig(String newValue) {
+        if (!"".equals(newValue) && Devices.getRequiresBoardConfigMap().containsKey(newValue)) {
+            boardConfigField.setEffect(borderGlow);
+            getBoardConfig = true;
+            boardConfigField.setDisable(false);
+            boardConfigField.setText(Devices.getRequiresBoardConfigMap().get(newValue));
+        } else {
+            boardConfigField.setEffect(null);
+            getBoardConfig = false;
+            boardConfigField.setText("");
+            boardConfigField.setDisable(true);
         }
     }
 
@@ -738,11 +543,7 @@ public class Controller {
                 newUnreportableError("Preset doesn't have anything");
                 return;
             }
-            ArrayList<String> presetsToSaveFor = new ArrayList<>();
-            JSONArray presetsToSaveForJson = new JSONArray(appPrefs.get("Presets to save in background", "[]"));
-            for (int i = 0; i < presetsToSaveForJson.length(); i++) {
-                presetsToSaveFor.add(presetsToSaveForJson.getString(i));
-            }
+            ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
             if (btn.getText().startsWith("Cancel ")) {
                 presetsToSaveFor.remove(Integer.toString(preset));
                 if (presetsToSaveFor.isEmpty()) {
@@ -767,6 +568,7 @@ public class Controller {
         }
     }
 
+    @SuppressWarnings("Duplicates")
     private void savePreset(int preset) {
         boolean doReturn = false;
         if (ecidField.getText().equals("")) {
@@ -826,7 +628,7 @@ public class Controller {
         if (editingPresets) {
             savePresetButton.setText("Back");
             presetVBox.setEffect(borderGlow);
-            presetButtons.forEach((Button btn) -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
+            presetButtons.forEach(btn -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
             goButton.setDefaultButton(false);
             goButton.setDisable(true);
             backgroundSettingsButton.setVisible(false);
@@ -840,18 +642,12 @@ public class Controller {
             backgroundSettingsButton.setManaged(true);
             presetVBox.setEffect(null);
             savePresetButton.setText("Save");
-            presetButtons.forEach((Button btn) -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
+            presetButtons.forEach(btn -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
         }
     }
 
     public void checkBlobs() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(new URI("https://tsssaver.1conan.com/check.php"));
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-            }
-        }
+        openURL("https://tsssaver.1conan.com/check.php");
     }
 
     public void helpLabelHandler(MouseEvent evt) {
@@ -878,11 +674,7 @@ public class Controller {
                 alert.setHeaderText("Help");
                 alert.showAndWait();
                 if (openLink.equals(alert.getResult())) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://www.theiphonewiki.com/wiki/Beta_Firmware"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
+                    openURL("https://www.theiphonewiki.com/wiki/Beta_Firmware");
                 }
                 break;
             case "ipswURL":
@@ -891,11 +683,7 @@ public class Controller {
                 alert.setHeaderText("Help");
                 alert.showAndWait();
                 if (openLink.equals(alert.getResult())) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://www.theiphonewiki.com/wiki/Beta_Firmware"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
+                    openURL("https://www.theiphonewiki.com/wiki/Beta_Firmware");
                 }
                 break;
             case "boardConfig":
@@ -905,11 +693,7 @@ public class Controller {
                 alert.setHeaderText("Help");
                 alert.showAndWait();
                 if (openLink.equals(alert.getResult())) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://itunes.apple.com/us/app/battery-memory-system-status-monitor/id497937231"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
+                    openURL("https://itunes.apple.com/us/app/battery-memory-system-status-monitor/id497937231");
                 }
                 break;
             case "location":
@@ -919,11 +703,7 @@ public class Controller {
                 alert.setHeaderText("Help");
                 alert.showAndWait();
                 if (openLink.equals(alert.getResult())) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud(Dropbox,-Google-Drive,-iCloud)"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
+                    openURL("https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud(Dropbox,-Google-Drive,-iCloud)");
                 }
                 break;
         }
@@ -956,11 +736,7 @@ public class Controller {
         alert.showAndWait();
         switch (alert.getResult().getText()) {
             case "Github Repo":
-                try {
-                    Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver"));
-                } catch (IOException | URISyntaxException e) {
-                    e.printStackTrace();
-                }
+                openURL("https://github.com/airsquared/blobsaver");
                 break;
             case "View License":
                 try {
@@ -971,14 +747,7 @@ public class Controller {
                         input = Main.class.getResourceAsStream("gpl-3.0.txt");
                     }
                     File licenseFile = File.createTempFile("gpl-3.0_", ".txt");
-                    OutputStream out = new FileOutputStream(licenseFile);
-                    int read;
-                    byte[] bytes = new byte[1024];
-
-                    while ((read = input.read(bytes)) != -1) {
-                        out.write(bytes, 0, read);
-                    }
-                    out.close();
+                    copyStreamToFile(input, licenseFile);
                     licenseFile.deleteOnExit();
                     licenseFile.setReadOnly();
                     Desktop.getDesktop().edit(licenseFile);
@@ -995,14 +764,7 @@ public class Controller {
                         input = Main.class.getResourceAsStream("libraries_used.txt");
                     }
                     File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
-                    OutputStream out = new FileOutputStream(libsUsedFile);
-                    int read;
-                    byte[] bytes = new byte[1024];
-
-                    while ((read = input.read(bytes)) != -1) {
-                        out.write(bytes, 0, read);
-                    }
-                    out.close();
+                    Shared.copyStreamToFile(input, libsUsedFile);
                     libsUsedFile.deleteOnExit();
                     libsUsedFile.setReadOnly();
                     Desktop.getDesktop().edit(libsUsedFile);
@@ -1089,12 +851,8 @@ public class Controller {
         if (choosingRunInBackground) {
             backgroundSettingsButton.setText("Back");
             presetVBox.setEffect(borderGlow);
-            presetButtons.forEach((btn) -> {
-                ArrayList<String> presetsToSaveFor = new ArrayList<>();
-                JSONArray presetsToSaveForJson = new JSONArray(appPrefs.get("Presets to save in background", "[]"));
-                for (int i = 0; i < presetsToSaveForJson.length(); i++) {
-                    presetsToSaveFor.add(presetsToSaveForJson.getString(i));
-                }
+            presetButtons.forEach(btn -> {
+                ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
                 if (presetsToSaveFor.contains(btn.getId().substring("preset".length()))) {
                     btn.setText("Cancel " + btn.getText().substring("Load ".length()));
                 } else {
@@ -1127,7 +885,7 @@ public class Controller {
             savePresetButton.setVisible(true);
             savePresetButton.setManaged(true);
             backgroundSettingsButton.setText("Background settings");
-            presetButtons.forEach((btn) -> {
+            presetButtons.forEach(btn -> {
                 if (btn.getText().startsWith("Cancel ")) {
                     btn.setText("Load " + btn.getText().substring("Cancel ".length()));
                 } else {
@@ -1277,11 +1035,6 @@ public class Controller {
     }
 
     public void showWiki(ActionEvent event) {
-        try {
-            Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/wiki"));
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
         String url;
         switch (((MenuItem) event.getTarget()).getText()) {
             case "What are blobs?":
@@ -1306,11 +1059,7 @@ public class Controller {
                 url = "https://github.com/airsquared/blobsaver/wiki";
                 break;
         }
-        try {
-            Desktop.getDesktop().browse(new URI(url));
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
+        Shared.openURL(url);
     }
 
     @SuppressWarnings({"unchecked", "UnnecessaryReturnStatement"})
@@ -1400,10 +1149,7 @@ public class Controller {
                 newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
                 return;
             } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
-                deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
-                newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
-                Platform.exit();
-                System.exit(-1);
+                version2dot2libimobiledeviceError();
                 return;
             } else if (ideviceinfoResult.contains("No device found")) {
                 newUnreportableError("No device found, is it plugged in?");
@@ -1432,10 +1178,7 @@ public class Controller {
                 newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
                 return;
             } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
-                deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
-                newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
-                Platform.exit();
-                System.exit(-1);
+                version2dot2libimobiledeviceError();
                 return;
             } else if (ideviceinfoResult.contains("No device found")) {
                 newUnreportableError("No device found, is it plugged in?");
@@ -1444,16 +1187,16 @@ public class Controller {
                 newReportableError("ideviceinfo error.", ideviceinfoResult);
             } else if (ideviceinfoResult.startsWith("iPhone")) {
                 deviceTypeChoiceBox.setValue("iPhone");
-                deviceModelChoiceBox.setValue(Shared.deviceModels.getOrDefault(ideviceinfoResult, null));
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().getOrDefault(ideviceinfoResult, null));
             } else if (ideviceinfoResult.startsWith("iPod")) {
                 deviceTypeChoiceBox.setValue("iPod");
-                deviceModelChoiceBox.setValue(Shared.deviceModels.get(ideviceinfoResult));
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(ideviceinfoResult));
             } else if (ideviceinfoResult.startsWith("iPad")) {
                 deviceTypeChoiceBox.setValue("iPad");
-                deviceModelChoiceBox.setValue(Shared.deviceModels.get(ideviceinfoResult));
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(ideviceinfoResult));
             } else if (ideviceinfoResult.startsWith("AppleTV")) {
                 deviceTypeChoiceBox.setValue("Apple TV");
-                deviceModelChoiceBox.setValue(Shared.deviceModels.get(ideviceinfoResult));
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(ideviceinfoResult));
             } else {
                 newReportableError("Unknown ideviceinfo(device model) result: " + ideviceinfoResult, ideviceinfoResult);
                 return;
@@ -1471,10 +1214,7 @@ public class Controller {
                     newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
                     return;
                 } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
-                    deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
-                    newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
-                    Platform.exit();
-                    System.exit(-1);
+                    version2dot2libimobiledeviceError();
                     return;
                 } else if (ideviceinfoResult.contains("No device found")) {
                     newUnreportableError("No device found, is it plugged in?");
@@ -1492,36 +1232,22 @@ public class Controller {
         }
     }
 
-    private String executeProgram(String... command) throws IOException {
-        Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-        try {
-            process.waitFor();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            StringBuilder logBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                log("read:\"" + line + "\"");
-                logBuilder.append(line).append("\n");
-            }
-            return logBuilder.toString();
-        }
+    private void version2dot2libimobiledeviceError() {
+        deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
+        newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
+        Platform.exit();
+        System.exit(-1);
     }
 
     public void donate() {
-        try {
-            Desktop.getDesktop().browse(new URI("https://www.paypal.me/airsqrd"));
-        } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
+        Shared.openURL("https://www.paypal.me/airsqrd");
     }
 
-    private void log(String msg) {
+    private static void log(String msg) {
         System.out.println(msg);
     }
 
+    @SuppressWarnings("Duplicates")
     public void goButtonHandler() {
         boolean doReturn = false;
         if (ecidField.getText().equals("")) {

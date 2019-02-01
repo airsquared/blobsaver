@@ -46,9 +46,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
@@ -61,44 +58,17 @@ class Shared {
 
     static ButtonType redditPM = new ButtonType("PM on Reddit");
     static ButtonType githubIssue = new ButtonType("Create Issue on Github");
-    static HashMap<String, String> deviceModels = initializeDeviceModels();
-
-    private static HashMap<String, String> initializeDeviceModels() {
-        try {
-            Properties properties = new Properties();
-            properties.load(Shared.class.getResourceAsStream("devicemodels.properties"));
-            @SuppressWarnings("unchecked") Map<String, String> prop = ((Map) properties); // so I can avoid "unchecked call" warning
-            HashMap<String, String> hashMap = new HashMap<>(prop);
-            prop.forEach((key, value) -> hashMap.put(value, key));
-            return hashMap;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     static String textToIdentifier(String deviceModel) {
-        String toReturn = deviceModels.getOrDefault(deviceModel, "");
+        String toReturn = Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
         if (toReturn.equals("")) { // this will never happen in background
             Alert alert = new Alert(Alert.AlertType.ERROR, "Could not find: \"" + deviceModel + "\"" + "\n\nPlease create a new issue on Github or PM me on Reddit.", new ButtonType("Create Issue on Github"), new ButtonType("PM on Reddit"), ButtonType.CANCEL);
             resizeAlertButtons(alert);
             alert.showAndWait();
             if (alert.getResult().equals(new ButtonType("Create Issue on Github"))) {
-                if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new/choose"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                }
+                openURL("https://github.com/airsquared/blobsaver/issues/new/choose");
             } else if (alert.getResult().equals(new ButtonType("PM on Reddit"))) {
-                if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                }
+                openURL("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
             }
             return null;
         } else {
@@ -113,25 +83,20 @@ class Shared {
                 return new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
-                        StringBuilder response = new StringBuilder();
+                        String response;
                         try {
-                            URLConnection urlConnection = new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest").openConnection();
-                            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                            String inputLine;
-                            while ((inputLine = in.readLine()) != null) {
-                                response.append(inputLine);
-                            }
-                            in.close();
+                            response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
                         } catch (FileNotFoundException ignored) {
                             return null;
                         } catch (IOException e) {
                             e.printStackTrace();
+                            return null;
                         }
                         String newVersion;
                         String changelog;
                         try {
-                            newVersion = new JSONObject(response.toString()).getString("tag_name");
-                            changelog = new JSONObject(response.toString()).getString("body");
+                            newVersion = new JSONObject(response).getString("tag_name");
+                            changelog = new JSONObject(response).getString("body");
                             changelog = changelog.substring(changelog.indexOf("Changelog"));
                         } catch (JSONException e) {
                             newVersion = Main.appVersion;
@@ -152,12 +117,8 @@ class Shared {
                                     dlButton.setDefaultButton(true);
                                     resizeAlertButtons(alert);
                                     alert.showAndWait();
-                                    if (alert.getResult().equals(downloadNow) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                                        try {
-                                            Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/releases/latest"));
-                                        } catch (IOException | URISyntaxException ee) {
-                                            ee.printStackTrace();
-                                        }
+                                    if (alert.getResult().equals(downloadNow)) {
+                                        openURL("https://github.com/airsquared/blobsaver/releases/latest");
                                     } else if (alert.getResult().equals(ignore)) {
                                         appPrefs.put("Ignore Version", finalNewVersion);
                                     }
@@ -173,6 +134,18 @@ class Shared {
             }
         };
         service.start();
+    }
+
+    static String makeRequest(URL url) throws IOException {
+        URLConnection urlConnection = url.openConnection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+        String inputLine;
+        StringBuilder response = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        return response.toString();
     }
 
     static File getTsschecker() throws IOException {
@@ -191,14 +164,7 @@ class Shared {
                 input = Shared.class.getResourceAsStream("tsschecker_linux");
             }
             tsschecker.createNewFile();
-            OutputStream out = new FileOutputStream(tsschecker);
-            int read;
-            byte[] bytes = new byte[1024];
-
-            while ((read = input.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.close();
+            copyStreamToFile(input, tsschecker);
             tsschecker.setReadable(true, false);
             tsschecker.setExecutable(true, false);
             appPrefs.putBoolean("tsschecker last update v2.2.3", true);
@@ -260,7 +226,6 @@ class Shared {
         }
     }
 
-    @SuppressWarnings("Duplicates")
     private static File getlibimobiledeviceFolder() throws IOException {
         File libimobiledeviceFolder;
         if (PlatformUtil.isMac()) {
@@ -350,7 +315,7 @@ class Shared {
      */
     @SuppressWarnings("Duplicates")
     private static void copyDirFromJar(String pathToSourceInJar, Path target) throws IOException {
-        URI resource = null;
+        URI resource;
         try {
             resource = Shared.class.getResource("").toURI();
         } catch (URISyntaxException e) {
@@ -382,23 +347,47 @@ class Shared {
         });
     }
 
-    static void newGithubIssue() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new/choose"));
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-            }
+    static void copyStreamToFile(InputStream inputStream, File file) throws IOException {
+        OutputStream out = new FileOutputStream(file);
+        int read;
+        byte[] bytes = new byte[1024];
+
+        while ((read = inputStream.read(bytes)) != -1) {
+            out.write(bytes, 0, read);
         }
+        out.close();
+    }
+
+    static void newGithubIssue() {
+        openURL("https://github.com/airsquared/blobsaver/issues/new/choose");
     }
 
     static void sendRedditPM() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
+        openURL("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
+    }
+
+    static void openURL(String url) {
+        try {
+            Desktop.getDesktop().browse(new URI(url));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static String executeProgram(String... command) throws IOException {
+        Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            StringBuilder logBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logBuilder.append(line).append("\n");
             }
+            return logBuilder.toString();
         }
     }
 
