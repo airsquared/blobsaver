@@ -50,6 +50,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
+import static com.airsquared.blobsaver.Main.appVersion;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 // code shared by Controller and Background
@@ -61,7 +62,7 @@ class Shared {
 
     static String textToIdentifier(String deviceModel) {
         String toReturn = Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
-        if (toReturn.equals("")) { // this will never happen in background
+        if ("".equals(toReturn)) { // this will never happen in background
             Alert alert = new Alert(Alert.AlertType.ERROR, "Could not find: \"" + deviceModel + "\"" + "\n\nPlease create a new issue on Github or PM me on Reddit.", new ButtonType("Create Issue on Github"), new ButtonType("PM on Reddit"), ButtonType.CANCEL);
             resizeAlertButtons(alert);
             alert.showAndWait();
@@ -99,10 +100,10 @@ class Shared {
                             changelog = new JSONObject(response).getString("body");
                             changelog = changelog.substring(changelog.indexOf("Changelog"));
                         } catch (JSONException e) {
-                            newVersion = Main.appVersion;
+                            newVersion = appVersion;
                             changelog = "";
                         }
-                        if (!newVersion.equals(Main.appVersion) && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
+                        if (!newVersion.equals(appVersion) && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
                             final CountDownLatch latch = new CountDownLatch(1);
                             final String finalNewVersion = newVersion;
                             final String finalChangelog = changelog;
@@ -110,7 +111,7 @@ class Shared {
                                 try {
                                     ButtonType downloadNow = new ButtonType("Download");
                                     ButtonType ignore = new ButtonType("Ignore this update");
-                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version " + Main.appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version " + appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
                                     alert.setHeaderText("New Update Available: " + finalNewVersion);
                                     alert.setTitle("New Update Available for blobsaver");
                                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
@@ -329,11 +330,9 @@ class Shared {
         final Path jarPath = fileSystem.getPath(pathToSourceInJar);
         System.out.println("jarPath:" + jarPath.toString());
         Files.walkFileTree(jarPath, new SimpleFileVisitor<Path>() {
-            private Path currentTarget;
-
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                currentTarget = target.resolve(jarPath.relativize(dir).toString());
+                Path currentTarget = target.resolve(jarPath.relativize(dir).toString());
                 Files.createDirectories(currentTarget);
                 return FileVisitResult.CONTINUE;
             }
@@ -356,6 +355,7 @@ class Shared {
             out.write(bytes, 0, read);
         }
         out.close();
+        inputStream.close();
     }
 
     static void newGithubIssue() {
@@ -389,6 +389,18 @@ class Shared {
             }
             return logBuilder.toString();
         }
+    }
+
+    static String getJarLocation() {
+        final String url = Shared.class.getResource("Shared.class").toString();
+        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Controller.class".length());
+        if (path.startsWith("jar:")) {
+            path = path.substring("jar:".length(), path.length() - 2);
+        }
+        if (path.startsWith("file:")) {
+            path = path.substring("file:".length());
+        }
+        return path;
     }
 
     static void reportError(Alert alert) {

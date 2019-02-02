@@ -22,7 +22,6 @@ import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
 import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -38,16 +37,23 @@ import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
+import static com.airsquared.blobsaver.Main.appVersion;
 import static com.airsquared.blobsaver.Main.primaryStage;
 import static com.airsquared.blobsaver.Shared.*;
 
@@ -101,17 +107,17 @@ public class Controller {
     private boolean editingPresets = false;
     private boolean choosingRunInBackground = false;
 
-    private DropShadow errorBorder = new DropShadow();
-    private DropShadow borderGlow = new DropShadow();
+    private static DropShadow errorBorder = new DropShadow();
+    private static DropShadow borderGlow = new DropShadow();
 
     static void afterStageShowing() {
         for (int i = 1; i < 11; i++) { // sets the names for the presets
-            if (!appPrefs.get("Name Preset" + i, "").equals("")) {
-                Button btn = (Button) Main.primaryStage.getScene().lookup("#preset" + i);
+            if (!"".equals(appPrefs.get("Name Preset" + i, ""))) {
+                Button btn = (Button) primaryStage.getScene().lookup("#preset" + i);
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
         }
-        Shared.checkForUpdates(false);
+        checkForUpdates(false);
     }
 
     @SuppressWarnings("unchecked")
@@ -131,7 +137,7 @@ public class Controller {
 
         deviceTypeChoiceBox.setItems(FXCollections.observableArrayList(Devices.getDeviceTypes()));
 
-        deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
+        deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceTypeChoiceBox.setEffect(null);
             switch ((String) (newValue == null ? "" : newValue)) {
                 case "iPhone":
@@ -155,49 +161,29 @@ public class Controller {
                     break;
             }
         });
-
-        deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((ObservableValue observable, Object oldValue, Object newValue) -> {
+        deviceTypeChoiceBox.setValue("iPhone");
+        deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceModelChoiceBox.setEffect(null);
             requireBoardConfig((String) newValue);
         });
-        identifierField.textProperty().addListener((observable, oldValue, newValue) -> {
+        identifierField.textProperty().addListener((x, y, newValue) -> {
             identifierField.setEffect(null);
-            String v = Devices.getDeviceModelIdentifiersMap().get(newValue);
-            requireBoardConfig(v);
+            requireBoardConfig(Devices.getDeviceModelIdentifiersMap().get(newValue));
         });
 
-        ecidField.textProperty().addListener((observable, oldValue, newValue) -> ecidField.setEffect(null));
-        versionField.textProperty().addListener((observable, oldValue, newValue) -> versionField.setEffect(null));
-        boardConfigField.textProperty().addListener((observable, oldValue, newValue) -> boardConfigField.setEffect(null));
-        apnonceField.textProperty().addListener((observable, oldValue, newValue) -> apnonceField.setEffect(null));
-        pathField.textProperty().addListener((observable, oldValue, newValue) -> pathField.setEffect(null));
-        buildIDField.textProperty().addListener((observable, oldValue, newValue) -> buildIDField.setEffect(null));
-        ipswField.textProperty().addListener((observable, oldValue, newValue) -> ipswField.setEffect(null));
-
-        deviceTypeChoiceBox.setValue("iPhone");
-
-        goButton.setDefaultButton(true);
+        addListenerToSetNullEffect(ecidField, versionField, boardConfigField, apnonceField, pathField, buildIDField, ipswField);
 
         presetButtons = new ArrayList<>(Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button));
         presetButtons.forEach(btn -> btn.setOnAction(this::presetButtonHandler));
 
         // the following is to set the path to save blobs to the correct location
-        final String url = getClass().getResource("Controller.class").toString();
-        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Controller.class".length());
-        if (path.startsWith("jar:")) {
-            path = path.substring("jar:".length(), path.length() - 2);
-        }
-        if (path.startsWith("file:")) {
-            path = path.substring("file:".length());
-        }
-        path = new File(path).getParentFile().toString().replaceAll("%20", " ");
+        String path = new File(getJarLocation()).getParentFile().toString().replaceAll("%20", " ");
         if (path.endsWith("blobsaver.app/Contents/Java")) {
             path = path.replaceAll("blobsaver\\.app/Contents/Java", "");
         }
         if (path.contains("\\Program Files") || path.contains("/Applications")) {
             path = System.getProperty("user.home");
         }
-
         if (path.endsWith(System.getProperty("file.separator"))) {
             path = path + "Blobs";
         } else {
@@ -205,7 +191,8 @@ public class Controller {
         }
         pathField.setText(path);
 
-        if (PlatformUtil.isMac()) { // use macos menu bar or not
+        // use macos menu bar or not
+        if (PlatformUtil.isMac()) {
             primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
@@ -220,6 +207,16 @@ public class Controller {
             readFromConnectedDeviceButton.setText("Read from connected device(beta)");
         }
     }
+
+    private static void addListenerToSetNullEffect(TextField... textFields) {
+        for (TextField textField : textFields) {
+            textField.textProperty().addListener((x, y, z) -> textField.setEffect(null));
+        }
+    }
+
+    public void newGithubIssue() { Shared.newGithubIssue(); }
+
+    public void sendRedditPM() { Shared.sendRedditPM(); }
 
     private void requireBoardConfig(String newValue) {
         if (!"".equals(newValue) && Devices.getRequiresBoardConfigMap().containsKey(newValue)) {
@@ -236,17 +233,17 @@ public class Controller {
     }
 
     public void checkForUpdatesHandler() {
-        Shared.checkForUpdates(true);
+        checkForUpdates(true);
     }
 
     private void run(String device) {
-        if (device == null || device.equals("")) {
+        if ("".equals(device)) {
             return;
         }
         File tsschecker;
         File buildManifestPlist = null;
         try {
-            tsschecker = Shared.getTsschecker();
+            tsschecker = getTsschecker();
         } catch (IOException e) {
             newReportableError("There was an error creating tsschecker.", e.getMessage());
             return;
@@ -258,12 +255,10 @@ public class Controller {
         locationToSaveBlobs.mkdirs();
         ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
         if (getBoardConfig) {
-            args.add("--boardconfig");
-            args.add(boardConfigField.getText());
+            Collections.addAll(args, "--boardconfig", boardConfigField.getText());
         }
         if (apnonceCheckBox.isSelected()) {
-            args.add("--apnonce");
-            args.add(apnonceField.getText());
+            Collections.addAll(args, "--apnonce", apnonceField.getText());
         }
         if (versionCheckBox.isSelected()) {
             args.add("-l");
@@ -275,7 +270,6 @@ public class Controller {
                     return;
                 }
                 buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
-                OutputStream out = new FileOutputStream(buildManifestPlist);
                 ZipInputStream zin;
                 try {
                     URL url = new URL(ipswField.getText());
@@ -287,17 +281,11 @@ public class Controller {
                 }
                 ZipEntry ze;
                 while ((ze = zin.getNextEntry()) != null) {
-                    if (ze.getName().equals("BuildManifest.plist")) {
-                        byte[] buffer = new byte[500_000];
-                        int len;
-                        while ((len = zin.read(buffer)) != -1) {
-                            out.write(buffer, 0, len);
-                        }
-                        out.close();
+                    if ("BuildManifest.plist".equals(ze.getName())) {
+                        copyStreamToFile(zin, buildManifestPlist);
                         break;
                     }
                 }
-                zin.close();
                 buildManifestPlist.deleteOnExit();
             } catch (IOException e) {
                 newReportableError("Unable to get BuildManifest from .ipsw.", e.getMessage());
@@ -305,16 +293,9 @@ public class Controller {
                 deleteTempFiles(tsschecker, buildManifestPlist);
                 return;
             }
-            args.add("-i");
-            args.add(versionField.getText());
-            args.add("--beta");
-            args.add("--buildid");
-            args.add(buildIDField.getText());
-            args.add("-m");
-            args.add(buildManifestPlist.toString());
+            Collections.addAll(args, "-i", versionField.getText(), "--beta", "--buildid", buildIDField.getText(), "-m", buildManifestPlist.toString());
         } else {
-            args.add("-i");
-            args.add(versionField.getText());
+            Collections.addAll(args, "-i", versionField.getText());
         }
         Process proc;
         try {
@@ -500,7 +481,7 @@ public class Controller {
         } else {
             dirChooser.setInitialDirectory(new File(System.getProperty("user.home")));
         }
-        File result = dirChooser.showDialog(Main.primaryStage);
+        File result = dirChooser.showDialog(primaryStage);
         if (result != null) {
             pathField.setText(result.toString());
         }
@@ -513,10 +494,10 @@ public class Controller {
             return;
         }
         ecidField.setText(prefs.get("ECID", ""));
-        if (!prefs.get("Path", "").equals("")) {
+        if (!"".equals(prefs.get("Path", ""))) {
             pathField.setText(prefs.get("Path", ""));
         }
-        if (prefs.get("Device Model", "").equals("none")) {
+        if ("none".equals(prefs.get("Device Model", ""))) {
             identifierCheckBox.setSelected(true);
             identifierCheckBoxHandler();
             identifierField.setText(prefs.get("Device Identifier", ""));
@@ -526,7 +507,7 @@ public class Controller {
             deviceTypeChoiceBox.setValue(prefs.get("Device Type", ""));
             deviceModelChoiceBox.setValue(prefs.get("Device Model", ""));
         }
-        if (!prefs.get("Board Config", "").equals("none")) {
+        if (!"none".equals(prefs.get("Board Config", ""))) {
             boardConfigField.setText(prefs.get("Board Config", ""));
         }
     }
@@ -571,19 +552,19 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     private void savePreset(int preset) {
         boolean doReturn = false;
-        if (ecidField.getText().equals("")) {
+        if ("".equals(ecidField.getText())) {
             ecidField.setEffect(errorBorder);
             doReturn = true;
         }
-        if (!identifierCheckBox.isSelected() && ((deviceModelChoiceBox.getValue() == null) || (deviceModelChoiceBox.getValue().equals("")))) {
+        if (!identifierCheckBox.isSelected() && "".equals(deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (identifierCheckBox.isSelected() && identifierField.getText().equals("")) {
+        if (identifierCheckBox.isSelected() && "".equals(identifierField.getText())) {
             identifierField.setEffect(errorBorder);
             doReturn = true;
         }
-        if (getBoardConfig && boardConfigField.getText().equals("")) {
+        if (getBoardConfig && "".equals(boardConfigField.getText())) {
             boardConfigField.setEffect(errorBorder);
             doReturn = true;
         }
@@ -597,9 +578,9 @@ public class Controller {
         textInputDialog.showAndWait();
 
         String result = textInputDialog.getResult();
-        if (result != null && !result.equals("")) {
+        if (result != null && !"".equals(result)) {
             appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
-            ((Button) Main.primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
+            ((Button) primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
         } else {
             return;
         }
@@ -728,7 +709,7 @@ public class Controller {
         Button OkButton = (Button) alert.getDialogPane().lookupButton(customOK);
         OkButton.setDefaultButton(true);
 
-        alert.setHeaderText("blobsaver " + Main.appVersion);
+        alert.setHeaderText("blobsaver " + appVersion);
         alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
 
@@ -764,7 +745,7 @@ public class Controller {
                         input = Main.class.getResourceAsStream("libraries_used.txt");
                     }
                     File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
-                    Shared.copyStreamToFile(input, libsUsedFile);
+                    copyStreamToFile(input, libsUsedFile);
                     libsUsedFile.deleteOnExit();
                     libsUsedFile.setReadOnly();
                     Desktop.getDesktop().edit(libsUsedFile);
@@ -1059,7 +1040,7 @@ public class Controller {
                 url = "https://github.com/airsquared/blobsaver/wiki";
                 break;
         }
-        Shared.openURL(url);
+        openURL(url);
     }
 
     @SuppressWarnings({"unchecked", "UnnecessaryReturnStatement"})
@@ -1079,9 +1060,9 @@ public class Controller {
         }
         String idevicepairPath;
         try {
-            idevicepairPath = Shared.getidevicepair().getPath();
+            idevicepairPath = getidevicepair().getPath();
         } catch (FileNotFoundException e) {
-            if (e.getMessage().equals("idevicepair is not in $PATH")) {
+            if ("idevicepair is not in $PATH".equals(e.getMessage())) {
                 newUnreportableError("Either idevicepair is not in the $PATH, or libimobiledevice is not installed. Please install it before continuing");
             } else {
                 e.printStackTrace();
@@ -1129,9 +1110,9 @@ public class Controller {
         }
         String ideviceinfoPath;
         try {
-            ideviceinfoPath = Shared.getideviceinfo().getPath();
+            ideviceinfoPath = getideviceinfo().getPath();
         } catch (FileNotFoundException e) {
-            if (e.getMessage().equals("ideviceinfo is not in $PATH")) {
+            if ("ideviceinfo is not in $PATH".equals(e.getMessage())) {
                 newUnreportableError("Either ideviceinfo is not in the $PATH, or libimobiledevice is not installed. Please install it or add it to the path before continuing");
             } else {
                 e.printStackTrace();
@@ -1239,74 +1220,58 @@ public class Controller {
         System.exit(-1);
     }
 
-    public void donate() {
-        Shared.openURL("https://www.paypal.me/airsqrd");
-    }
+    public void donate() { openURL("https://www.paypal.me/airsqrd"); }
 
-    private static void log(String msg) {
-        System.out.println(msg);
-    }
+    private static void log(String msg) { System.out.println(msg); }
 
     @SuppressWarnings("Duplicates")
     public void goButtonHandler() {
         boolean doReturn = false;
-        if (ecidField.getText().equals("")) {
-            ecidField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (!identifierCheckBox.isSelected() && ((deviceTypeChoiceBox.getValue() == null) || (deviceTypeChoiceBox.getValue().equals("")))) {
+        if (!identifierCheckBox.isSelected() && "".equals(deviceTypeChoiceBox.getValue())) {
             deviceTypeChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (!identifierCheckBox.isSelected() && ((deviceModelChoiceBox.getValue() == null) || (deviceModelChoiceBox.getValue().equals("")))) {
+        if (!identifierCheckBox.isSelected() && "".equals(deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (identifierCheckBox.isSelected() && identifierField.getText().equals("")) {
-            identifierField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (getBoardConfig && boardConfigField.getText().equals("")) {
-            boardConfigField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (apnonceCheckBox.isSelected() && apnonceField.getText().equals("")) {
-            apnonceField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (pathField.getText().equals("")) {
-            pathField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (!versionCheckBox.isSelected() && versionField.getText().equals("")) {
-            versionField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (betaCheckBox.isSelected() && buildIDField.getText().equals("")) {
-            buildIDField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (betaCheckBox.isSelected() && ipswField.getText().equals("")) {
-            ipswField.setEffect(errorBorder);
-            doReturn = true;
-        }
+        doReturn = doReturn || isTextFieldValid(true, ecidField);
+        doReturn = doReturn || isTextFieldValid(identifierCheckBox, identifierField);
+        doReturn = doReturn || isTextFieldValid(getBoardConfig, boardConfigField);
+        doReturn = doReturn || isTextFieldValid(apnonceCheckBox, apnonceField);
+        doReturn = doReturn || isTextFieldValid(true, pathField);
+        doReturn = doReturn || isTextFieldValid(!versionCheckBox.isSelected(), versionField);
+        doReturn = doReturn || isTextFieldValid(betaCheckBox, buildIDField);
+        doReturn = doReturn || isTextFieldValid(betaCheckBox, ipswField);
         if (doReturn) {
             return;
         }
         String deviceModel = (String) deviceModelChoiceBox.getValue();
-        if (deviceModel == null || deviceModel.equals("")) {
+        if ("".equals(deviceModel)) {
             String identifierText = identifierField.getText();
             try {
                 if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
                     run(identifierField.getText());
                 } else {
+                    identifierField.setEffect(errorBorder);
                     newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
                 }
             } catch (StringIndexOutOfBoundsException e) {
                 newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
             }
         } else {
-            run(Shared.textToIdentifier(deviceModel));
+            run(textToIdentifier(deviceModel));
         }
+    }
+
+    private static boolean isTextFieldValid(CheckBox checkBox, TextField textField) {
+        return isTextFieldValid(checkBox.isSelected(), textField);
+    }
+    private static boolean isTextFieldValid(boolean isTextFieldRequired, TextField textField) {
+        if (isTextFieldRequired && "".equals(textField.getText())) {
+            textField.setEffect(errorBorder);
+            return true;
+        }
+        return false;
     }
 }

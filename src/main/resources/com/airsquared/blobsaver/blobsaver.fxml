@@ -246,7 +246,7 @@
         </HBox>
         <Region VBox.vgrow="ALWAYS"/>
         <Button fx:id="goButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#goButtonHandler"
-                prefWidth="Infinity" text="Go">
+                prefWidth="Infinity" text="Go" defaultButton="true">
             <VBox.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0"/>
             </VBox.margin>

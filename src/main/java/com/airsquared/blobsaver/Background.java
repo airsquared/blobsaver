@@ -48,12 +48,9 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
-import static com.airsquared.blobsaver.Shared.checkForUpdates;
-import static com.airsquared.blobsaver.Shared.executeProgram;
-import static com.airsquared.blobsaver.Shared.githubIssue;
-import static com.airsquared.blobsaver.Shared.redditPM;
-import static com.airsquared.blobsaver.Shared.reportError;
-import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
+import static com.airsquared.blobsaver.Main.appVersion;
+import static com.airsquared.blobsaver.Main.primaryStage;
+import static com.airsquared.blobsaver.Shared.*;
 
 class Background {
 
@@ -85,17 +82,10 @@ class Background {
             return;
         }
         if (!runOnlyOnce && Platform.isFxApplicationThread()) {
-            Main.primaryStage.hide();
+            primaryStage.hide();
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
             Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for\nthe icon."
                     + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
-        } else if (!runOnlyOnce) {
-            Platform.runLater(() -> {
-                Main.primaryStage.hide();
-                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
-                Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for the icon.\n"
-                        + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
-            });
         }
         if (!runOnlyOnce) {
             inBackground = true;
@@ -110,12 +100,12 @@ class Background {
             }
 
             //noinspection ConstantConditions
-            trayIcon = new TrayIcon(image, "blobsaver " + Main.appVersion);
+            trayIcon = new TrayIcon(image, "blobsaver " + appVersion);
             trayIcon.setImageAutoSize(true);
 
             MenuItem openItem = new MenuItem("Open window");
             openItem.addActionListener((evt) -> Platform.runLater(Background::showStage));
-            openItem.setFont(Font.decode(null).deriveFont(java.awt.Font.BOLD)); // bold it
+            openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
             exitItem.addActionListener(event -> {
@@ -131,7 +121,6 @@ class Background {
             popup.addSeparator();
             popup.add(exitItem);
             trayIcon.setPopupMenu(popup);
-
 
             // add the application tray icon to the system tray.
             try {
@@ -182,17 +171,17 @@ class Background {
     private static void saveBackgroundBlobs(int preset) {
         log("attempting to save for " + preset);
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
-//        presetPrefs.put("Saved Versions", "[]");                                                       // for testing
+//        presetPrefs.put("Saved Versions", "[]");                                                        // for testing
         String identifier;
-        if (presetPrefs.get("Device Model", "").equals("none")) {
+        if ("none".equals(presetPrefs.get("Device Model", ""))) {
             identifier = presetPrefs.get("Device Identifier", "");
         } else {
-            identifier = Shared.textToIdentifier(presetPrefs.get("Device Model", ""));
+            identifier = textToIdentifier(presetPrefs.get("Device Model", ""));
         }
         log("identifier:" + identifier);
         String response;
         try {
-            response = Shared.makeRequest(new URL("https://api.ipsw.me/v4/device/" + identifier));
+            response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + identifier));
         } catch (IOException e) {
             Notification notification = new Notification("Saving blobs failed", "Check your internet connection.\nIf it is working, click here to report this error.", Notification.ERROR_ICON);
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -234,10 +223,10 @@ class Background {
         String ecid = presetPrefs.get("ECID", "");
         String path = presetPrefs.get("Path", "");
         String boardConfig = presetPrefs.get("Board Config", "");
-        versionsToSave.forEach((version) -> {
+        for (String version : versionsToSave) {
             File tsschecker;
             try {
-                tsschecker = Shared.getTsschecker();
+                tsschecker = getTsschecker();
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error creating tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -253,7 +242,7 @@ class Background {
                     reportError(alert, e.getMessage());
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-                return;
+                continue;
             }
 
             //noinspection ResultOfMethodCallIgnored
@@ -282,30 +271,29 @@ class Background {
                     reportError(alert, e.getMessage());
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-                return;
+                continue;
             }
             String presetName;
-            if (appPrefs.get("Name Preset" + preset, "").equals("")) {
+            if ("".equals(appPrefs.get("Name Preset" + preset, ""))) {
                 presetName = "Preset " + preset;
             } else {
                 presetName = appPrefs.get("Name Preset" + preset, "");
             }
             if (tsscheckerLog.contains("Saved shsh blobs")) {
-                Platform.runLater(() -> {
-                    Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
-                    Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
-                    Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
-                        Notification.Notifier.INSTANCE.stop();
-                        showStage();
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + path, ButtonType.OK);
-                        alert.setTitle("Success");
-                        alert.setHeaderText("Success!");
-                        resizeAlertButtons(alert);
-                        alert.showAndWait();
-                        alert.getDialogPane().toFront();
-                    });
-                    Notification.Notifier.INSTANCE.notify(notification);
+                Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
+                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
+                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                    Notification.Notifier.INSTANCE.stop();
+                    showStage();
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + path, ButtonType.OK);
+                    alert.setTitle("Success");
+                    alert.setHeaderText("Success!");
+                    resizeAlertButtons(alert);
+                    alert.showAndWait();
+                    alert.getDialogPane().toFront();
                 });
+                Notification.Notifier.INSTANCE.notify(notification);
+
                 log("displayed message");
 
             } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
@@ -324,7 +312,7 @@ class Background {
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
             } else if (tsscheckerLog.contains("iOS " + version + " for device " + identifier + " IS NOT being signed")) {
-                return;
+                continue;
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -343,13 +331,13 @@ class Background {
             savedVersions.add(version);
             presetPrefs.put("Saved Versions", new JSONArray(savedVersions).toString());
             log("it worked");
-        });
+        }
     }
 
     private static void showStage() {
-        Main.primaryStage.show();
-        Main.primaryStage.toFront();
-        Main.primaryStage.requestFocus();
+        primaryStage.show();
+        primaryStage.toFront();
+        primaryStage.requestFocus();
     }
 
     static void stopBackground(boolean showAlert) {
