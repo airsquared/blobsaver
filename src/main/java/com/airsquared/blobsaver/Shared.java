@@ -54,13 +54,11 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
+import static com.airsquared.blobsaver.Main.appVersion;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 // code shared by Controller and Background
@@ -69,44 +67,17 @@ class Shared {
 
     static ButtonType redditPM = new ButtonType("PM on Reddit");
     static ButtonType githubIssue = new ButtonType("Create Issue on Github");
-    static HashMap<String, String> deviceModels = initializeDeviceModels();
-
-    private static HashMap<String, String> initializeDeviceModels() {
-        try {
-            Properties properties = new Properties();
-            properties.load(Shared.class.getResourceAsStream("devicemodels.properties"));
-            @SuppressWarnings("unchecked") Map<String, String> prop = ((Map) properties); // so I can avoid "unchecked call" warning
-            HashMap<String, String> hashMap = new HashMap<>(prop);
-            prop.forEach((key, value) -> hashMap.put(value, key));
-            return hashMap;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     static String textToIdentifier(String deviceModel) {
-        String toReturn = deviceModels.getOrDefault(deviceModel, "");
-        if (toReturn.equals("")) { // this will never happen in background
+        String toReturn = Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
+        if ("".equals(toReturn)) { // this will never happen in background
             Alert alert = new Alert(Alert.AlertType.ERROR, "Could not find: \"" + deviceModel + "\"" + "\n\nPlease create a new issue on Github or PM me on Reddit.", new ButtonType("Create Issue on Github"), new ButtonType("PM on Reddit"), ButtonType.CANCEL);
             resizeAlertButtons(alert);
             alert.showAndWait();
             if (alert.getResult().equals(new ButtonType("Create Issue on Github"))) {
-                if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new/choose"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                }
+                openURL("https://github.com/airsquared/blobsaver/issues/new/choose");
             } else if (alert.getResult().equals(new ButtonType("PM on Reddit"))) {
-                if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    try {
-                        Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
-                    } catch (IOException | URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                }
+                openURL("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
             }
             return null;
         } else {
@@ -121,15 +92,9 @@ class Shared {
                 return new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
-                        StringBuilder response = new StringBuilder();
+                        String response;
                         try {
-                            URLConnection urlConnection = new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest").openConnection();
-                            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                            String inputLine;
-                            while ((inputLine = in.readLine()) != null) {
-                                response.append(inputLine);
-                            }
-                            in.close();
+                            response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
                         } catch (FileNotFoundException ignored) {
                             newUnreportableError("Could not check for updates. " +
                                     "Looks like either blobsaver has been abandoned " +
@@ -137,15 +102,16 @@ class Shared {
                             return null; //TODO: find the use of this
                         } catch (IOException e) {
                             e.printStackTrace();
+                            return null;
                         }
                         Version newVersion;
                         String changelog;
                         try {
-                            newVersion = new Version(new JSONObject(response.toString()).getString("tag_name"));
-                            changelog = new JSONObject(response.toString()).getString("body");
+                            newVersion = new Version(new JSONObject(response).getString("tag_name"));
+                            changelog = new JSONObject(response).getString("body");
                             changelog = changelog.substring(changelog.indexOf("Changelog"));
                         } catch (JSONException e) {
-                            newVersion = Main.appVersion;
+                            newVersion = appVersion;
                             changelog = "";
                         }
                         if (newVersion.compareTo(Main.appVersion) < 0 //check if this is >= latest version
@@ -157,19 +123,16 @@ class Shared {
                                 try {
                                     ButtonType downloadNow = new ButtonType("Download");
                                     ButtonType ignore = new ButtonType("Ignore this update");
-                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version " + Main.appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
+                                            + appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
                                     alert.setHeaderText("New Update Available: " + finalNewVersion);
                                     alert.setTitle("New Update Available for blobsaver");
                                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
                                     dlButton.setDefaultButton(true);
                                     resizeAlertButtons(alert);
                                     alert.showAndWait();
-                                    if (alert.getResult().equals(downloadNow) && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                                        try {
-                                            Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/releases/latest"));
-                                        } catch (IOException | URISyntaxException ee) {
-                                            ee.printStackTrace();
-                                        }
+                                    if (alert.getResult().equals(downloadNow)) {
+                                        openURL("https://github.com/airsquared/blobsaver/releases/latest");
                                     } else if (alert.getResult().equals(ignore)) {
                                         appPrefs.put("Ignore Version", finalNewVersion);
                                     }
@@ -187,33 +150,55 @@ class Shared {
         service.start();
     }
 
+    static String makeRequest(URL url) throws IOException {
+        URLConnection urlConnection = url.openConnection();
+        BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+        String inputLine;
+        StringBuilder response = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        return response.toString();
+    }
+
     static File getTsschecker() throws IOException {
+        if (PlatformUtil.isWindows()) {
+            return getTsscheckerWindows();
+        }
         File executablesFolder = getExecutablesFolder();
         File tsschecker = new File(executablesFolder, "tsschecker");
-        if (tsschecker.exists()) {
+        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
             return tsschecker;
         } else {
             InputStream input;
-            if (PlatformUtil.isWindows()) {
-                input = Shared.class.getResourceAsStream("tsschecker_windows.exe");
-            } else if (PlatformUtil.isMac()) {
+            if (PlatformUtil.isMac()) {
                 input = Shared.class.getResourceAsStream("tsschecker_macos");
             } else {
                 input = Shared.class.getResourceAsStream("tsschecker_linux");
             }
             tsschecker.createNewFile();
-            OutputStream out = new FileOutputStream(tsschecker);
-            int read;
-            byte[] bytes = new byte[1024];
-
-            while ((read = input.read(bytes)) != -1) {
-                out.write(bytes, 0, read);
-            }
-            out.close();
+            copyStreamToFile(input, tsschecker);
             tsschecker.setReadable(true, false);
             tsschecker.setExecutable(true, false);
+            appPrefs.putBoolean("tsschecker last update v2.2.3", true);
             return tsschecker;
         }
+    }
+
+    private static File getTsscheckerWindows() throws IOException {
+        File tsscheckerDir = new File(getExecutablesFolder(), "tsschecker_windows");
+        File tsschecker = new File(tsscheckerDir, "tsschecker.exe");
+        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
+            return tsschecker;
+        }
+        tsscheckerDir.mkdir();
+        String jarPath = "/com/airsquared/blobsaver/" + "tsschecker_windows";
+        copyDirFromJar(jarPath, tsscheckerDir.toPath());
+        appPrefs.putBoolean("tsschecker last update v2.2.3", true);
+        tsschecker.setReadable(true);
+        tsschecker.setExecutable(true, false);
+        return tsschecker;
     }
 
     static File getidevicepair() throws IOException {
@@ -267,64 +252,30 @@ class Shared {
         } else {
             libimobiledeviceFolder.mkdir();
             if (Shared.class.getResource("Shared.class").toString().startsWith("jar:")) { // if being run from jar
-                try {
-                    final Path target = libimobiledeviceFolder.toPath();
-                    URI resource = Shared.class.getResource("").toURI();
-                    if (resource.toString().endsWith("blobsaver.exe!/com/airsquared/blobsaver/")) {
-                        resource = URI.create(resource.toString().replace("blobsaver.exe!/com/airsquared/blobsaver/", "blobsaver.jar!/com/airsquared/blobsaver/"));
-                    }
-                    java.nio.file.FileSystem fileSystem = FileSystems.newFileSystem(resource, Collections.<String, String>emptyMap());
-                    final Path jarPath;
-                    if (PlatformUtil.isMac()) {
-                        jarPath = fileSystem.getPath("/com/airsquared/blobsaver/" + "libimobiledevice_mac");
-                    } else {
-                        jarPath = fileSystem.getPath("/com/airsquared/blobsaver/" + "libimobiledevice_windows");
-                    }
-                    System.out.println("jarPath:" + jarPath.toString());
-                    Files.walkFileTree(jarPath, new SimpleFileVisitor<Path>() {
-                        private Path currentTarget;
-
-                        @Override
-                        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                            System.out.println("in preVisitDirectory, Path:" + dir);
-                            currentTarget = target.resolve(jarPath.relativize(dir).toString());
-                            System.out.println("after: currentTarget = target.resolve(jarPath.relativize(dir).toString()); ");
-                            Files.createDirectories(currentTarget);
-                            System.out.println("after: Files.createDirectories(currentTarget);");
-                            return FileVisitResult.CONTINUE;
-                        }
-
-                        @Override
-                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                            System.out.println("in visitFile, Path:" + file);
-                            Path resolveResult = target.resolve(jarPath.relativize(file).toString());
-                            System.out.println("after setting resolveResult:" + resolveResult);
-                            Files.copy(file, resolveResult, REPLACE_EXISTING);
-                            System.out.println("after: Files.copy(file, target.resolve(jarPath.relativize(file).toString()), REPLACE_EXISTING);");
-                            return FileVisitResult.CONTINUE;
+                final String jarPath;
+                if (PlatformUtil.isMac()) {
+                    jarPath = "/com/airsquared/blobsaver/" + "libimobiledevice_mac";
+                } else {
+                    jarPath = "/com/airsquared/blobsaver/" + "libimobiledevice_windows";
+                }
+                copyDirFromJar(jarPath, libimobiledeviceFolder.toPath());
+                try (Stream<Path> paths = Files.walk(new File(System.getProperty("user.home"), ".blobsaver_bin").toPath())) {
+                    paths.forEach(path -> {
+                        System.out.println("in for each loop");
+                        File file = path.toFile();
+                        String fileName = file.getName();
+                        if (!file.isDirectory() && (fileName.contains("ideviceinfo") || fileName.contains("idevicepair") || fileName.contains("iproxy"))) {
+                            System.out.println("setting " + fileName + " to readable and executable");
+                            file.setReadable(true, false);
+                            file.setExecutable(true, false);
                         }
                     });
-                    try (Stream<Path> paths = Files.walk(new File(System.getProperty("user.home"), ".blobsaver_bin").toPath())) {
-                        paths.forEach(path -> {
-                            System.out.println("in for each loop");
-                            File file = path.toFile();
-                            String fileName = file.getName();
-                            if (!file.isDirectory() && (fileName.contains("ideviceinfo") || fileName.contains("idevicepair") || fileName.contains("iproxy"))) {
-                                System.out.println("setting " + fileName + " to readable and executable");
-                                file.setReadable(true, false);
-                                file.setExecutable(true, false);
-                            }
-                        });
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                    System.out.println("returning from libimobiledevice");
-                    return libimobiledeviceFolder;
-                } catch (URISyntaxException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     return null;
                 }
+                System.out.println("returning from libimobiledevice");
+                return libimobiledeviceFolder;
             } else { // if being run directly from IDEA
                 System.out.println("run from idea");
                 final Path targetPath = libimobiledeviceFolder.toPath();
@@ -372,24 +323,97 @@ class Shared {
         return executablesFolder;
     }
 
-    static void newGithubIssue() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(new URI("https://github.com/airsquared/blobsaver/issues/new/choose"));
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-            }
+    /**
+     * @param pathToSourceInJar the path to the directory in the jar(ex: "/com/airsquared/blobsaver/libimobiledevice_mac")
+     * @param target            where the directory will be copied to
+     */
+    @SuppressWarnings("Duplicates")
+    private static void copyDirFromJar(String pathToSourceInJar, Path target) throws IOException {
+        URI resource;
+        try {
+            resource = Shared.class.getResource("").toURI();
+        } catch (URISyntaxException e) {
+            return;
         }
+        if (resource.toString().endsWith("blobsaver.exe!/com/airsquared/blobsaver/")) {
+            resource = URI.create(resource.toString().replace("blobsaver.exe!/com/airsquared/blobsaver/", "blobsaver.jar!/com/airsquared/blobsaver/"));
+        }
+        final java.nio.file.FileSystem fileSystem = FileSystems.newFileSystem(resource, Collections.<String, String>emptyMap());
+
+        final Path jarPath = fileSystem.getPath(pathToSourceInJar);
+        System.out.println("jarPath:" + jarPath.toString());
+        Files.walkFileTree(jarPath, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                Path currentTarget = target.resolve(jarPath.relativize(dir).toString());
+                Files.createDirectories(currentTarget);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Path resolveResult = target.resolve(jarPath.relativize(file).toString());
+                Files.copy(file, resolveResult, REPLACE_EXISTING);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    static void copyStreamToFile(InputStream inputStream, File file) throws IOException {
+        OutputStream out = new FileOutputStream(file);
+        int read;
+        byte[] bytes = new byte[1024];
+
+        while ((read = inputStream.read(bytes)) != -1) {
+            out.write(bytes, 0, read);
+        }
+        out.close();
+        inputStream.close();
+    }
+
+    static void newGithubIssue() {
+        openURL("https://github.com/airsquared/blobsaver/issues/new/choose");
     }
 
     static void sendRedditPM() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            try {
-                Desktop.getDesktop().browse(new URI("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report"));
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
-            }
+        openURL("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
+    }
+
+    static void openURL(String url) {
+        try {
+            Desktop.getDesktop().browse(new URI(url));
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
         }
+    }
+
+    static String executeProgram(String... command) throws IOException {
+        Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            StringBuilder logBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logBuilder.append(line).append("\n");
+            }
+            return logBuilder.toString();
+        }
+    }
+
+    static String getJarLocation() {
+        final String url = Shared.class.getResource("Shared.class").toString();
+        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Controller.class".length());
+        if (path.startsWith("jar:")) {
+            path = path.substring("jar:".length(), path.length() - 2);
+        }
+        if (path.startsWith("file:")) {
+            path = path.substring("file:".length());
+        }
+        return path;
     }
 
     static void reportError(Alert alert) {

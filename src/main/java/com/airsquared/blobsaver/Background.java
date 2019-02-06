@@ -35,14 +35,10 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -52,11 +48,16 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
+import static com.airsquared.blobsaver.Main.appVersion;
 import static com.airsquared.blobsaver.Shared.checkForUpdates;
+import static com.airsquared.blobsaver.Shared.executeProgram;
+import static com.airsquared.blobsaver.Shared.getTsschecker;
 import static com.airsquared.blobsaver.Shared.githubIssue;
+import static com.airsquared.blobsaver.Shared.makeRequest;
 import static com.airsquared.blobsaver.Shared.redditPM;
 import static com.airsquared.blobsaver.Shared.reportError;
 import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
+import static com.airsquared.blobsaver.Shared.textToIdentifier;
 
 class Background {
 
@@ -64,7 +65,7 @@ class Background {
 
     static boolean inBackground = false;
     static ScheduledExecutorService executor;
-    static TrayIcon trayIcon;
+    private static TrayIcon trayIcon;
 
     /*private static void enableQuitShortcut() {
         // TODO: Replace System.exit(0) with a cleaner stop
@@ -74,6 +75,15 @@ class Background {
     private static void disableQuitShortcut() {
         Main.primaryStage.getScene().getAccelerators().remove(quitShortcut);
     }*/
+
+    static ArrayList<String> getPresetsToSaveFor() {
+        ArrayList<String> presetsToSaveFor = new ArrayList<>();
+        JSONArray presetsToSaveForJson = new JSONArray(appPrefs.get("Presets to save in background", "[]"));
+        for (int i = 0; i < presetsToSaveForJson.length(); i++) {
+            presetsToSaveFor.add(presetsToSaveForJson.getString(i));
+        }
+        return presetsToSaveFor;
+    }
 
     static void startBackground(boolean runOnlyOnce) {
         ArrayList<Integer> presetsToSave = new ArrayList<>();
@@ -93,13 +103,6 @@ class Background {
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
             Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for\nthe icon."
                     + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
-        } else if (!runOnlyOnce) {
-            Platform.runLater(() -> {
-                Main.hideStage();
-                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
-                Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for the icon.\n"
-                        + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
-            });
         }
         if (!runOnlyOnce) {
             /*if (PlatformUtil.isMac()) {
@@ -117,7 +120,7 @@ class Background {
             }
 
             //noinspection ConstantConditions
-            trayIcon = new TrayIcon(image, "blobsaver " + Main.appVersion);
+            trayIcon = new TrayIcon(image, "blobsaver " + appVersion);
             trayIcon.setImageAutoSize(true);
 
             MenuItem openItem = new MenuItem("Open window");
@@ -140,7 +143,6 @@ class Background {
             }
             popup.add(exitItem);
             trayIcon.setPopupMenu(popup);
-
 
             // add the application tray icon to the system tray.
             try {
@@ -191,23 +193,17 @@ class Background {
     private static void saveBackgroundBlobs(int preset) {
         log("attempting to save for " + preset);
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
-//        presetPrefs.put("Saved Versions", "[]");                                                       // for testing
+//        presetPrefs.put("Saved Versions", "[]");                                                        // for testing
         String identifier;
-        if (presetPrefs.get("Device Model", "").equals("none")) {
+        if ("none".equals(presetPrefs.get("Device Model", ""))) {
             identifier = presetPrefs.get("Device Identifier", "");
         } else {
-            identifier = Shared.textToIdentifier(presetPrefs.get("Device Model", ""));
+            identifier = textToIdentifier(presetPrefs.get("Device Model", ""));
         }
         log("identifier:" + identifier);
-        StringBuilder response = new StringBuilder();
+        String response;
         try {
-            URLConnection urlConnection = new URL("https://api.ipsw.me/v4/device/" + identifier).openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
+            response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + identifier));
         } catch (IOException e) {
             Notification notification = new Notification("Saving blobs failed", "Check your internet connection.\nIf it is working, click here to report this error.", Notification.ERROR_ICON);
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -226,7 +222,7 @@ class Background {
             return;
         }
         log("made request");
-        JSONArray firmwareListJson = new JSONObject(response.toString()).getJSONArray("firmwares");
+        JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
         @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
         List<String> signedVersions = firmwareList.stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).map(map -> map.get("version").toString()).collect(Collectors.toList());
         log("signed versions:" + signedVersions);
@@ -249,10 +245,10 @@ class Background {
         String ecid = presetPrefs.get("ECID", "");
         String path = presetPrefs.get("Path", "");
         String boardConfig = presetPrefs.get("Board Config", "");
-        versionsToSave.forEach(version -> {
+        for (String version : versionsToSave) {
             File tsschecker;
             try {
-                tsschecker = Shared.getTsschecker();
+                tsschecker = getTsschecker();
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error creating tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -268,67 +264,20 @@ class Background {
                     reportError(alert, e.getMessage());
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-                return;
-            }
-            tsschecker.deleteOnExit();
-            if (!tsschecker.setExecutable(true, false)) {
-                Notification notification = new Notification("Saving blobs failed", "There was an error setting tsschecker as executable. Click here to report this error.", Notification.ERROR_ICON);
-                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
-                    Notification.Notifier.INSTANCE.stop();
-                    Main.showStage();
-                    Alert alert = new Alert(Alert.AlertType.ERROR,
-                            "There was an error setting tsschecker as executable.\n\n. Please create a new issue on Github or PM me on Reddit.",
-                            githubIssue, redditPM, ButtonType.OK);
-                    resizeAlertButtons(alert);
-                    alert.showAndWait();
-                    alert.getDialogPane().toFront();
-                    reportError(alert);
-                });
-                Notification.Notifier.INSTANCE.notify(notification);
-                deleteTempFiles(tsschecker);
-                return;
+                continue;
             }
 
             //noinspection ResultOfMethodCallIgnored
             new File(path).mkdirs();
-            ArrayList<String> args;
-            args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", identifier, "-s", "-e", ecid, "--save-path", path, "-i", version));
-            if (!boardConfig.equals("none")) {
-                args.add("--boardconfig");
-                args.add(boardConfig);
-            }
-            Process proc;
-            try {
-                log("running:" + args.toString());
-                proc = new ProcessBuilder(args).start();
-            } catch (IOException e) {
-                Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
-                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
-                    Notification.Notifier.INSTANCE.stop();
-                    Main.showStage();
-                    Alert alert = new Alert(Alert.AlertType.ERROR,
-                            "There was an error starting tsschecker.\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
-                            githubIssue, redditPM, ButtonType.OK);
-                    resizeAlertButtons(alert);
-                    alert.showAndWait();
-                    alert.getDialogPane().toFront();
-                    reportError(alert, e.getMessage());
-                });
-                Notification.Notifier.INSTANCE.notify(notification);
-                deleteTempFiles(tsschecker);
-                return;
-            }
             String tsscheckerLog;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
-                StringBuilder logBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println(line + "\n");
-                    logBuilder.append(line).append("\n");
+            try {
+                if (!"none".equals(boardConfig) && !"".equals(boardConfig)) { // needs board config
+                    tsscheckerLog = executeProgram(tsschecker.getPath(), "-d", identifier, "-s", "-e", ecid,
+                            "--save-path", path, "-i", version, "--boardconfig", boardConfig);
+                } else {
+                    tsscheckerLog = executeProgram(tsschecker.getPath(), "-d", identifier, "-s", "-e", ecid,
+                            "--save-path", path, "-i", version);
                 }
-                tsscheckerLog = logBuilder.toString();
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -344,31 +293,29 @@ class Background {
                     reportError(alert, e.getMessage());
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-                deleteTempFiles(tsschecker);
-                return;
+                continue;
             }
             String presetName;
-            if (appPrefs.get("Name Preset" + preset, "").equals("")) {
+            if ("".equals(appPrefs.get("Name Preset" + preset, ""))) {
                 presetName = "Preset " + preset;
             } else {
                 presetName = appPrefs.get("Name Preset" + preset, "");
             }
             if (tsscheckerLog.contains("Saved shsh blobs")) {
-                Platform.runLater(() -> {
-                    Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
-                    Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
-                    Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
-                        Notification.Notifier.INSTANCE.stop();
-                        Main.showStage();
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + path, ButtonType.OK);
-                        alert.setTitle("Success");
-                        alert.setHeaderText("Success!");
-                        resizeAlertButtons(alert);
-                        alert.showAndWait();
-                        alert.getDialogPane().toFront();
-                    });
-                    Notification.Notifier.INSTANCE.notify(notification);
+                Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
+                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
+                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                    Notification.Notifier.INSTANCE.stop();
+                    Main.showStage();
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + path, ButtonType.OK);
+                    alert.setTitle("Success");
+                    alert.setHeaderText("Success!");
+                    resizeAlertButtons(alert);
+                    alert.showAndWait();
+                    alert.getDialogPane().toFront();
                 });
+                Notification.Notifier.INSTANCE.notify(notification);
+
                 log("displayed message");
 
             } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
@@ -387,8 +334,7 @@ class Background {
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
             } else if (tsscheckerLog.contains("iOS " + version + " for device " + identifier + " IS NOT being signed")) {
-                deleteTempFiles(tsschecker);
-                return;
+                continue;
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -404,29 +350,10 @@ class Background {
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
             }
-            try {
-                proc.waitFor();
-            } catch (InterruptedException e) {
-                Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
-                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
-                    Notification.Notifier.INSTANCE.stop();
-                    Main.showStage();
-                    Alert alert = new Alert(Alert.AlertType.ERROR,
-                            "There tsschecker process was interrupted.\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
-                            githubIssue, redditPM, ButtonType.OK);
-                    resizeAlertButtons(alert);
-                    alert.showAndWait();
-                    alert.getDialogPane().toFront();
-                    reportError(alert, e.getMessage());
-                });
-                Notification.Notifier.INSTANCE.notify(notification);
-            }
-            deleteTempFiles(tsschecker);
             savedVersions.add(version);
             presetPrefs.put("Saved Versions", new JSONArray(savedVersions).toString());
             log("it worked");
-        });
+        }
     }
 
     static void stopBackground(boolean showAlert) {
@@ -450,13 +377,6 @@ class Background {
             });
         }
         log("stopped background");
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void deleteTempFiles(File tsschecker) {
-        if (tsschecker.exists()) {
-            tsschecker.delete();
-        }
     }
 
     private static void log(String msg) {

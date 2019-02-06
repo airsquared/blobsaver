@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/blobsaver.iml" filepath="$PROJECT_DIR$/.idea/modules/blobsaver.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/blobsaver.main.iml" filepath="$PROJECT_DIR$/.idea/modules/blobsaver.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/blobsaver.test.iml" filepath="$PROJECT_DIR$/.idea/modules/blobsaver.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/blobsaver.iml" filepath="$PROJECT_DIR$/.idea/blobsaver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/blobsaver_main.iml" filepath="$PROJECT_DIR$/.idea/modules/blobsaver_main.iml" group="blobsaver" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/blobsaver_test.iml" filepath="$PROJECT_DIR$/.idea/modules/blobsaver_test.iml" group="blobsaver" />
     </modules>
   </component>
 </project>

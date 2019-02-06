@@ -27,7 +27,7 @@ If you have an antivirus or firewall, you may need to disable some other setting
 ## Feedback
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
 
-## TODO:
+## TODO
 See Github issues tagged [enhancement](https://github.com/airsquared/blobsaver/labels/enhancement)
 
 ## Built With
