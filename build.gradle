@@ -18,8 +18,8 @@
 
 plugins {
     id 'edu.sc.seis.launch4j' version '2.4.4' // for bundling into .exe
-    id "edu.sc.seis.macAppBundle" version "2.2.2" // for bundling into .app
-    id 'com.github.johnrengelman.shadow' version '2.0.4' // for fat jar
+    id "edu.sc.seis.macAppBundle" version "2.3.0" // for bundling into .app
+    id 'com.github.johnrengelman.shadow' version '4.0.4' // for fat jar
     id 'se.patrikerdes.use-latest-versions' version '0.2.7' // for updating Gradle plugins
     id 'com.github.ben-manes.versions' version '0.20.0'
     id 'java'
@@ -36,7 +36,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.json', name: 'json', version: '20180130'
+    compile group: 'org.json', name: 'json', version: '20180813'
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile group: 'it.sauronsoftware', name: 'junique', version: '1.0.4' //for only one copy of blobsaver at a time
     compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6" //for macOS menu bar
