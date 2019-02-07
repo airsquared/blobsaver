@@ -150,9 +150,6 @@ class Shared {
     }
 
     static File getTsschecker() throws IOException {
-        if (PlatformUtil.isWindows()) {
-            return getTsscheckerWindows();
-        }
         File executablesFolder = getExecutablesFolder();
         File tsschecker = new File(executablesFolder, "tsschecker");
         if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
@@ -161,6 +158,8 @@ class Shared {
             InputStream input;
             if (PlatformUtil.isMac()) {
                 input = Shared.class.getResourceAsStream("tsschecker_macos");
+            } else if (PlatformUtil.isWindows()) {
+                input = Shared.class.getResourceAsStream("tsschecker_windows.exe");
             } else {
                 input = Shared.class.getResourceAsStream("tsschecker_linux");
             }
@@ -171,21 +170,6 @@ class Shared {
             appPrefs.putBoolean("tsschecker last update v2.2.3", true);
             return tsschecker;
         }
-    }
-
-    private static File getTsscheckerWindows() throws IOException {
-        File tsscheckerDir = new File(getExecutablesFolder(), "tsschecker_windows");
-        File tsschecker = new File(tsscheckerDir, "tsschecker.exe");
-        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
-            return tsschecker;
-        }
-        tsscheckerDir.mkdir();
-        String jarPath = "/com/airsquared/blobsaver/" + "tsschecker_windows";
-        copyDirFromJar(jarPath, tsscheckerDir.toPath());
-        appPrefs.putBoolean("tsschecker last update v2.2.3", true);
-        tsschecker.setReadable(true);
-        tsschecker.setExecutable(true, false);
-        return tsschecker;
     }
 
     static File getidevicepair() throws IOException {
