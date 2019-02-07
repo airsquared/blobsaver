@@ -18,7 +18,7 @@
 
 package com.airsquared.blobsaver;
 
-import com.airsquared.blobsaver.Model.Version;
+import com.airsquared.blobsaver.model.Version;
 import com.sun.javafx.PlatformUtil;
 import de.codecentric.centerdevice.util.StageUtils;
 import it.sauronsoftware.junique.AlreadyLockedException;

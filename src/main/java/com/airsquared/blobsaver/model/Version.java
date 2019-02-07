@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver.Model;
+package com.airsquared.blobsaver.model;
 
 public class Version implements Comparable<Version> {
 
@@ -36,8 +36,9 @@ public class Version implements Comparable<Version> {
 
     @Override
     public int compareTo(Version that) {
-        if (that == null)
+        if (that == null) {
             return 1;
+        }
         String[] thisParts = this.get().split("\\.");
         String[] thatParts = that.get().split("\\.");
         int length = Math.max(thisParts.length, thatParts.length);
@@ -46,10 +47,12 @@ public class Version implements Comparable<Version> {
                     Integer.parseInt(thisParts[i]) : 0;
             int thatPart = i < thatParts.length ?
                     Integer.parseInt(thatParts[i]) : 0;
-            if (thisPart < thatPart)
+            if (thisPart < thatPart) {
                 return -1;
-            if (thisPart > thatPart)
+            }
+            if (thisPart > thatPart) {
                 return 1;
+            }
         }
         return 0;
     }

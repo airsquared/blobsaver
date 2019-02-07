@@ -125,7 +125,7 @@ class Background {
 
             MenuItem openItem = new MenuItem("Open window");
             openItem.addActionListener(event -> Platform.runLater(Main::showStage));
-            openItem.setFont(Font.decode(null).deriveFont(java.awt.Font.BOLD)); // bold it
+            openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
             exitItem.addActionListener(event -> Main.quit());
@@ -195,10 +195,10 @@ class Background {
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
 //        presetPrefs.put("Saved Versions", "[]");                                                        // for testing
         String identifier;
-        if ("none".equals(presetPrefs.get("Device Model", ""))) {
+        if ("none".equals(presetPrefs.get("Device model", ""))) {
             identifier = presetPrefs.get("Device Identifier", "");
         } else {
-            identifier = textToIdentifier(presetPrefs.get("Device Model", ""));
+            identifier = textToIdentifier(presetPrefs.get("Device model", ""));
         }
         log("identifier:" + identifier);
         String response;

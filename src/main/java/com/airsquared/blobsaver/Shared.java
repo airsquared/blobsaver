@@ -18,7 +18,7 @@
 
 package com.airsquared.blobsaver;
 
-import com.airsquared.blobsaver.Model.Version;
+import com.airsquared.blobsaver.model.Version;
 import com.sun.javafx.PlatformUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
@@ -114,7 +114,7 @@ class Shared {
                             newVersion = appVersion;
                             changelog = "";
                         }
-                        if (newVersion.compareTo(Main.appVersion) < 0 //check if this is >= latest version
+                        if (newVersion.compareTo(appVersion) < 0 //check if this is >= latest version
                                 && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion.toString()))) {
                             final CountDownLatch latch = new CountDownLatch(1);
                             final String finalNewVersion = newVersion.toString(); //so that the lambda works

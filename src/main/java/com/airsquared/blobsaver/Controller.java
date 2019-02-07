@@ -544,7 +544,7 @@ public class Controller {
         if (!"".equals(prefs.get("Path", ""))) {
             pathField.setText(prefs.get("Path", ""));
         }
-        if ("none".equals(prefs.get("Device Model", ""))) {
+        if ("none".equals(prefs.get("Device model", ""))) {
             identifierCheckBox.setSelected(true);
             identifierCheckBoxHandler();
             identifierField.setText(prefs.get("Device Identifier", ""));
@@ -552,7 +552,7 @@ public class Controller {
             identifierCheckBox.setSelected(false);
             identifierCheckBoxHandler();
             deviceTypeChoiceBox.setValue(prefs.get("Device Type", ""));
-            deviceModelChoiceBox.setValue(prefs.get("Device Model", ""));
+            deviceModelChoiceBox.setValue(prefs.get("Device model", ""));
         }
         if (!"none".equals(prefs.get("Board Config", ""))) {
             boardConfigField.setText(prefs.get("Board Config", ""));
@@ -638,11 +638,11 @@ public class Controller {
         presetPrefs.put("Path", pathField.getText());
         if (identifierCheckBox.isSelected()) {
             presetPrefs.put("Device Type", "none");
-            presetPrefs.put("Device Model", "none");
+            presetPrefs.put("Device model", "none");
             presetPrefs.put("Device Identifier", identifierField.getText());
         } else {
             presetPrefs.put("Device Type", (String) deviceTypeChoiceBox.getValue());
-            presetPrefs.put("Device Model", (String) deviceModelChoiceBox.getValue());
+            presetPrefs.put("Device model", (String) deviceModelChoiceBox.getValue());
         }
         if (getBoardConfig) {
             presetPrefs.put("Board Config", boardConfigField.getText());
