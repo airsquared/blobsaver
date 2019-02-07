@@ -98,7 +98,7 @@ import static com.airsquared.blobsaver.Shared.textToIdentifier;
 public class Controller {
 
 
-    @FXML private MenuBar menuBar;
+    @FXML public MenuBar menuBar;
 
     @FXML private ChoiceBox deviceTypeChoiceBox;
     @FXML private ChoiceBox deviceModelChoiceBox;
@@ -137,7 +137,7 @@ public class Controller {
     @FXML private Button preset10Button;
     private ArrayList<Button> presetButtons;
 
-    @FXML private VBox presetVBox;
+    @FXML public VBox presetVBox;
 
     @FXML private Button goButton;
 
@@ -234,15 +234,17 @@ public class Controller {
 
         // use macos menu bar or not
         if (PlatformUtil.isMac()) {
+            // use system menubar instead
+            menuBar.setUseSystemMenuBar(true);
+
+            // makes the app taller to compensate for the missing menu bar
+            ((VBox) menuBar.getParent()).setMinHeight(560.0);
+            ((VBox) menuBar.getParent()).setPrefHeight(560.0);
+            presetVBox.setMinHeight(560.0);
+            presetVBox.setPrefHeight(560.0);
             primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
-                    // makes the app taller to compensate for the missing menu bar
-                    ((VBox) menuBar.getParent()).setMinHeight(560.0);
-                    ((VBox) menuBar.getParent()).setPrefHeight(560.0);
-                    presetVBox.setMinHeight(560.0);
-                    presetVBox.setPrefHeight(560.0);
-
                     Platform.runLater(() -> useMacOSMenuBar());
                     log("using macOS menu bar");
                     primaryStage.removeEventHandler(event.getEventType(), this);
@@ -859,8 +861,6 @@ public class Controller {
 
     //sets up mac OS menu bar and returns it
     private MenuBar getMacOSMenuBar() {
-
-        menuBar.setUseSystemMenuBar(true);
         macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
