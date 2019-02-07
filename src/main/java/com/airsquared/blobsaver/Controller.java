@@ -37,12 +37,10 @@ import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -253,7 +251,7 @@ public class Controller {
         File locationToSaveBlobs = new File(pathField.getText());
         //noinspection ResultOfMethodCallIgnored
         locationToSaveBlobs.mkdirs();
-        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
+        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "--nocache", "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
         if (getBoardConfig) {
             Collections.addAll(args, "--boardconfig", boardConfigField.getText());
         }
@@ -297,36 +295,17 @@ public class Controller {
         } else {
             Collections.addAll(args, "-i", versionField.getText());
         }
-        Process proc;
+        String tsscheckerLog;
         try {
             log("Running: " + args.toString());
-            proc = new ProcessBuilder(args).start();
+            tsscheckerLog = executeProgram(args.toArray(new String[0]));
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();
             deleteTempFiles(tsschecker, buildManifestPlist);
             return;
         }
-        String tsscheckerLog;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
-            StringBuilder logBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                log(line + "\n");
-                logBuilder.append(line).append("\n");
-            }
-            tsscheckerLog = logBuilder.toString();
-        } catch (IOException e) {
-            newReportableError("There was an error getting the tsschecker result", e.toString());
-            e.printStackTrace();
-            deleteTempFiles(tsschecker, buildManifestPlist);
-            return;
-        }
-        try {
-            proc.waitFor();
-        } catch (InterruptedException e) {
-            newReportableError("The tsschecker process was interrupted.", e.toString());
-        }
+
         if (tsscheckerLog.contains("Saved shsh blobs")) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + pathField.getText(), ButtonType.OK);
             alert.setHeaderText("Success!");
@@ -1267,6 +1246,7 @@ public class Controller {
     private static boolean isTextFieldValid(CheckBox checkBox, TextField textField) {
         return isTextFieldValid(checkBox.isSelected(), textField);
     }
+
     private static boolean isTextFieldValid(boolean isTextFieldRequired, TextField textField) {
         if (isTextFieldRequired && "".equals(textField.getText())) {
             textField.setEffect(errorBorder);
