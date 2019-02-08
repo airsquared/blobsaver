@@ -155,6 +155,9 @@ class Shared {
         if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
             return tsschecker;
         } else {
+            if (tsschecker.exists()) {
+                tsschecker.delete();
+            }
             InputStream input;
             if (PlatformUtil.isMac()) {
                 input = Shared.class.getResourceAsStream("tsschecker_macos");

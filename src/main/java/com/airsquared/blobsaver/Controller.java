@@ -121,7 +121,7 @@ public class Controller {
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
-        // create effectd
+        // create effects
         borderGlow.setOffsetY(0f);
         borderGlow.setOffsetX(0f);
         borderGlow.setColor(Color.DARKCYAN);
@@ -230,9 +230,7 @@ public class Controller {
         }
     }
 
-    public void checkForUpdatesHandler() {
-        checkForUpdates(true);
-    }
+    public void checkForUpdatesHandler() { checkForUpdates(true); }
 
     private void run(String device) {
         if ("".equals(device)) {
@@ -246,7 +244,6 @@ public class Controller {
             newReportableError("There was an error creating tsschecker.", e.getMessage());
             return;
         }
-        tsschecker.deleteOnExit();
 
         File locationToSaveBlobs = new File(pathField.getText());
         //noinspection ResultOfMethodCallIgnored
@@ -264,7 +261,6 @@ public class Controller {
             try {
                 if (!ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
                     newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles(tsschecker, null);
                     return;
                 }
                 buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
@@ -274,7 +270,7 @@ public class Controller {
                     zin = new ZipInputStream(url.openStream());
                 } catch (IOException e) {
                     newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles(tsschecker, buildManifestPlist);
+                    deleteTempFiles(buildManifestPlist);
                     return;
                 }
                 ZipEntry ze;
@@ -288,7 +284,7 @@ public class Controller {
             } catch (IOException e) {
                 newReportableError("Unable to get BuildManifest from .ipsw.", e.getMessage());
                 e.printStackTrace();
-                deleteTempFiles(tsschecker, buildManifestPlist);
+                deleteTempFiles(buildManifestPlist);
                 return;
             }
             Collections.addAll(args, "-i", versionField.getText(), "--beta", "--buildid", buildIDField.getText(), "-m", buildManifestPlist.toString());
@@ -302,7 +298,7 @@ public class Controller {
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();
-            deleteTempFiles(tsschecker, buildManifestPlist);
+            deleteTempFiles(buildManifestPlist);
             return;
         }
 
@@ -367,20 +363,13 @@ public class Controller {
         } else {
             newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         }
-
-        deleteTempFiles(tsschecker, buildManifestPlist);
+        deleteTempFiles(buildManifestPlist);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void deleteTempFiles(File tsschecker, File buildManifestPlist) {
-        try {
-            if (tsschecker.exists()) {
-                tsschecker.delete();
-            }
-            if (buildManifestPlist != null && buildManifestPlist.exists()) {
-                buildManifestPlist.delete();
-            }
-        } catch (NullPointerException ignored) {
+    private static void deleteTempFiles(File buildManifestPlist) {
+        if (buildManifestPlist != null && buildManifestPlist.exists()) {
+            buildManifestPlist.delete();
         }
     }
 
@@ -606,9 +595,7 @@ public class Controller {
         }
     }
 
-    public void checkBlobs() {
-        openURL("https://tsssaver.1conan.com/check.php");
-    }
+    public void checkBlobs() { openURL("https://tsssaver.1conan.com/check.php"); }
 
     public void helpLabelHandler(MouseEvent evt) {
         String labelID;
