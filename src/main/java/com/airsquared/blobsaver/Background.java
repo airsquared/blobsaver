@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -223,6 +224,7 @@ class Background {
         String ecid = presetPrefs.get("ECID", "");
         String path = presetPrefs.get("Path", "");
         String boardConfig = presetPrefs.get("Board Config", "");
+        String apnonce = presetPrefs.get("Apnonce", "");
         for (String version : versionsToSave) {
             File tsschecker;
             try {
@@ -249,13 +251,16 @@ class Background {
             new File(path).mkdirs();
             String tsscheckerLog;
             try {
+                ArrayList<String> args = new ArrayList<>();
+                Collections.addAll(args, tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", identifier, "-s", "-e", ecid,
+                        "--save-path", path, "-i", version);
                 if (!"none".equals(boardConfig) && !"".equals(boardConfig)) { // needs board config
-                    tsscheckerLog = executeProgram(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", identifier, "-s", "-e", ecid,
-                            "--save-path", path, "-i", version, "--boardconfig", boardConfig);
-                } else {
-                    tsscheckerLog = executeProgram(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", identifier, "-s", "-e", ecid,
-                            "--save-path", path, "-i", version);
+                    Collections.addAll(args, "--boardconfig", boardConfig);
                 }
+                if (!"".equals(apnonce)) {
+                    Collections.addAll(args, "--apnonce", apnonce);
+                }
+                tsscheckerLog = executeProgram(args.toArray(new String[0]));
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));

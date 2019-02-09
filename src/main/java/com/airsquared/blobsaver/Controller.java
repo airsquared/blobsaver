@@ -478,6 +478,16 @@ public class Controller {
         if (!"none".equals(prefs.get("Board Config", ""))) {
             boardConfigField.setText(prefs.get("Board Config", ""));
         }
+        if (!"".equals(prefs.get("Apnonce", ""))) {
+            if (!apnonceCheckBox.isSelected()) {
+                apnonceCheckBox.fire();
+            }
+            apnonceField.setText(prefs.get("Apnonce", ""));
+        } else {
+            if (apnonceCheckBox.isSelected()) {
+                apnonceCheckBox.fire();
+            }
+        }
     }
 
     private void presetButtonHandler(ActionEvent evt) {
@@ -520,22 +530,14 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     private void savePreset(int preset) {
         boolean doReturn = false;
-        if ("".equals(ecidField.getText())) {
-            ecidField.setEffect(errorBorder);
-            doReturn = true;
-        }
         if (!identifierCheckBox.isSelected() && "".equals(deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (identifierCheckBox.isSelected() && "".equals(identifierField.getText())) {
-            identifierField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (getBoardConfig && "".equals(boardConfigField.getText())) {
-            boardConfigField.setEffect(errorBorder);
-            doReturn = true;
-        }
+        doReturn = doReturn || isTextFieldInvalid(true, ecidField);
+        doReturn = doReturn || isTextFieldInvalid(identifierCheckBox, identifierField);
+        doReturn = doReturn || isTextFieldInvalid(getBoardConfig, boardConfigField);
+        doReturn = doReturn || isTextFieldInvalid(apnonceCheckBox, apnonceField);
         if (doReturn) {
             return;
         }
@@ -569,6 +571,9 @@ public class Controller {
             presetPrefs.put("Board Config", boardConfigField.getText());
         } else {
             presetPrefs.put("Board Config", "none");
+        }
+        if (apnonceCheckBox.isSelected()) {
+            presetPrefs.put("Apnonce", apnonceField.getText());
         }
     }
 
@@ -1201,14 +1206,14 @@ public class Controller {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        doReturn = doReturn || isTextFieldValid(true, ecidField);
-        doReturn = doReturn || isTextFieldValid(identifierCheckBox, identifierField);
-        doReturn = doReturn || isTextFieldValid(getBoardConfig, boardConfigField);
-        doReturn = doReturn || isTextFieldValid(apnonceCheckBox, apnonceField);
-        doReturn = doReturn || isTextFieldValid(true, pathField);
-        doReturn = doReturn || isTextFieldValid(!versionCheckBox.isSelected(), versionField);
-        doReturn = doReturn || isTextFieldValid(betaCheckBox, buildIDField);
-        doReturn = doReturn || isTextFieldValid(betaCheckBox, ipswField);
+        doReturn = doReturn || isTextFieldInvalid(true, ecidField);
+        doReturn = doReturn || isTextFieldInvalid(identifierCheckBox, identifierField);
+        doReturn = doReturn || isTextFieldInvalid(getBoardConfig, boardConfigField);
+        doReturn = doReturn || isTextFieldInvalid(apnonceCheckBox, apnonceField);
+        doReturn = doReturn || isTextFieldInvalid(true, pathField);
+        doReturn = doReturn || isTextFieldInvalid(!versionCheckBox.isSelected(), versionField);
+        doReturn = doReturn || isTextFieldInvalid(betaCheckBox, buildIDField);
+        doReturn = doReturn || isTextFieldInvalid(betaCheckBox, ipswField);
         if (doReturn) {
             return;
         }
@@ -1230,11 +1235,11 @@ public class Controller {
         }
     }
 
-    private static boolean isTextFieldValid(CheckBox checkBox, TextField textField) {
-        return isTextFieldValid(checkBox.isSelected(), textField);
+    private static boolean isTextFieldInvalid(CheckBox checkBox, TextField textField) {
+        return isTextFieldInvalid(checkBox.isSelected(), textField);
     }
 
-    private static boolean isTextFieldValid(boolean isTextFieldRequired, TextField textField) {
+    private static boolean isTextFieldInvalid(boolean isTextFieldRequired, TextField textField) {
         if (isTextFieldRequired && "".equals(textField.getText())) {
             textField.setEffect(errorBorder);
             return true;
