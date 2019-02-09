@@ -248,7 +248,7 @@ public class Controller {
         File locationToSaveBlobs = new File(pathField.getText());
         //noinspection ResultOfMethodCallIgnored
         locationToSaveBlobs.mkdirs();
-        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "--nocache", "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
+        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
         if (getBoardConfig) {
             Collections.addAll(args, "--boardconfig", boardConfigField.getText());
         }

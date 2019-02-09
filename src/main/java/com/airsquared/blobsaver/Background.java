@@ -250,10 +250,10 @@ class Background {
             String tsscheckerLog;
             try {
                 if (!"none".equals(boardConfig) && !"".equals(boardConfig)) { // needs board config
-                    tsscheckerLog = executeProgram(tsschecker.getPath(), "--nocache", "-d", identifier, "-s", "-e", ecid,
+                    tsscheckerLog = executeProgram(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", identifier, "-s", "-e", ecid,
                             "--save-path", path, "-i", version, "--boardconfig", boardConfig);
                 } else {
-                    tsscheckerLog = executeProgram(tsschecker.getPath(), "--nocache", "-d", identifier, "-s", "-e", ecid,
+                    tsscheckerLog = executeProgram(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", identifier, "-s", "-e", ecid,
                             "--save-path", path, "-i", version);
                 }
             } catch (IOException e) {
