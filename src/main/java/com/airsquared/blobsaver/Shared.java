@@ -175,46 +175,7 @@ class Shared {
         }
     }
 
-    static File getidevicepair() throws IOException {
-        File idevicepair = new File(getlibimobiledeviceFolder(), "idevicepair");
-        if (idevicepair.exists()) {
-            return idevicepair;
-        } else if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
-            String executablePath = new BufferedReader(new InputStreamReader(new ProcessBuilder("which", "idevicepair").redirectErrorStream(true).start().getInputStream())).readLine();
-            if (executablePath == null) {
-                // Calling function must catch FileNotFoundException and show error message to user saying that "idevicepair" is not in the $PATH or is not installed
-                throw new FileNotFoundException("idevicepair is not in $PATH");
-            }
-            return new File(executablePath);
-        }
-        if (PlatformUtil.isMac()) {
-            return new File(getlibimobiledeviceFolder(), "idevicepair");
-        } else {
-            return new File(getlibimobiledeviceFolder(), "idevicepair.exe");
-        }
-    }
-
-    static File getideviceinfo() throws IOException {
-        File ideviceinfo = new File(getlibimobiledeviceFolder(), "ideviceinfo");
-        if (ideviceinfo.exists()) {
-            return ideviceinfo;
-        } else if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
-            String executablePath = new BufferedReader(new InputStreamReader(new ProcessBuilder("which", "ideviceinfo").redirectErrorStream(true).start().getInputStream())).readLine();
-            if (executablePath == null) {
-                // Calling function must catch FileNotFoundException and show error message to user saying that "ideviceinfo" is not in the $PATH or is not installed
-                throw new FileNotFoundException("ideviceinfo is not in $PATH");
-            }
-            return new File(executablePath);
-        }
-        // need to create ideviceinfo for macOS or Windows
-        if (PlatformUtil.isMac()) {
-            return new File(getlibimobiledeviceFolder(), "ideviceinfo");
-        } else {
-            return new File(getlibimobiledeviceFolder(), "ideviceinfo.exe");
-        }
-    }
-
-    private static File getlibimobiledeviceFolder() throws IOException {
+    static File getlibimobiledeviceFolder() throws IOException {
         File libimobiledeviceFolder;
         if (PlatformUtil.isMac()) {
             libimobiledeviceFolder = new File(getExecutablesFolder(), "libimobiledevice_mac/");
@@ -425,5 +386,13 @@ class Shared {
         alert.getDialogPane().getButtonTypes().stream()
                 .map(alert.getDialogPane()::lookupButton)
                 .forEach(node -> ButtonBar.setButtonUniformSize(node, false));
+    }
+
+    static void runSafe(Runnable runnable) {
+        if (Platform.isFxApplicationThread()) {
+            runnable.run();
+        } else {
+            Platform.runLater(runnable);
+        }
     }
 }

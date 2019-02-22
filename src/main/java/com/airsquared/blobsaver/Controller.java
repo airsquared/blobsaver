@@ -38,7 +38,6 @@ import org.json.JSONArray;
 
 import java.awt.Desktop;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -199,10 +198,6 @@ public class Controller {
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
             });
-        }
-
-        if (!PlatformUtil.isMac()) {
-            readFromConnectedDeviceButton.setText("Read from connected device(beta)");
         }
     }
 
@@ -1014,181 +1009,47 @@ public class Controller {
         openURL(url);
     }
 
-    @SuppressWarnings({"unchecked", "UnnecessaryReturnStatement"})
+    @SuppressWarnings("unchecked")
     public void readInfo() {
-        if (!PlatformUtil.isMac()) {
-            String alertText;
-            if (PlatformUtil.isWindows()) {
-                alertText = "This feature will most likely not work, but you can give it a try. If this feature doesn't work, please don't report this bug to me, I already know and am trying to fix it.";
-            } else {
-                alertText = "IMPORTANT: make sure to install libimobiledevice before running it and `ideviceinfo` and `idevicepair` are in your $PATH\n\nThis feature is in beta, and may or may not work. Please report any bugs with this feature to me using the help menu.";
-            }
-            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, alertText);
-            confirmationAlert.showAndWait();
-            if (confirmationAlert.getResult().equals(ButtonType.CANCEL)) {
+        readFromConnectedDeviceButton.setText("Reading...");
+        readFromConnectedDeviceButton.setDisable(true);
+        if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setContentText("IMPORTANT: make sure to install libimobiledevice and have it in your path before running this.");
+            alert.showAndWait();
+            if (alert.getResult().equals(ButtonType.CANCEL)) {
                 return;
             }
         }
-        String idevicepairPath;
         try {
-            idevicepairPath = getidevicepair().getPath();
-        } catch (FileNotFoundException e) {
-            if ("idevicepair is not in $PATH".equals(e.getMessage())) {
-                newUnreportableError("Either idevicepair is not in the $PATH, or libimobiledevice is not installed. Please install it before continuing");
-            } else {
-                e.printStackTrace();
-            }
-            return;
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            return;
-        }
-        // validate pairing status
-        try {
-            String idevicepairResult = executeProgram(idevicepairPath, "pair").trim();
-            log("idevicepair: " + idevicepairResult);
-            //noinspection StatementWithEmptyBody
-            if (idevicepairResult.contains("Paired with device")) {
-                // continue
-            } else if (idevicepairResult.contains("dyld: Library not loaded:")) {
-                deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
-                newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
-                Platform.exit();
-                System.exit(-1);
-                return;
-            } else if (idevicepairResult.contains("Please accept the trust dialog")) {
-                newUnreportableError("Please accept the trust dialog on the device");
-                return;
-            } else if (idevicepairResult.contains("No device found")) {
-                newUnreportableError("No device found, is it plugged in?");
-                return;
-            } else if (idevicepairResult.contains("ERROR") && idevicepairResult.contains("a passcode is set")) {
-                newUnreportableError("Please unlock your device.");
-                return;
-            } else if (idevicepairResult.contains("Device") && idevicepairResult.contains("returned unhandled error code -13")) {
-                newUnreportableError("Please disconnect your device, unlock it, plug it back in, and try again. If this doesn't work, please create a new Github issue or PM me on Reddit via the help menu.");
-                return;
-            } else if (idevicepairResult.contains("ERROR")) {
-                newReportableError("idevicepair error.", idevicepairResult);
-                return;
-            } else {
-                newReportableError("Unknown idevicepair result: " + idevicepairResult, idevicepairResult);
-                return;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            newReportableError("Unable to validate pairing.", e.getMessage());
-        }
-        String ideviceinfoPath;
-        try {
-            ideviceinfoPath = getideviceinfo().getPath();
-        } catch (FileNotFoundException e) {
-            if ("ideviceinfo is not in $PATH".equals(e.getMessage())) {
-                newUnreportableError("Either ideviceinfo is not in the $PATH, or libimobiledevice is not installed. Please install it or add it to the path before continuing");
-            } else {
-                e.printStackTrace();
-            }
-            return;
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            return;
-        }
-        // read ECID
-        try {
-            String ideviceinfoResult = executeProgram(ideviceinfoPath, "-k", "UniqueChipID").trim();
-            log("ideviceinfo -k UniqueChipID:" + ideviceinfoResult);
-            if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
-                newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
-                return;
-            } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
-                version2dot2libimobiledeviceError();
-                return;
-            } else if (ideviceinfoResult.contains("No device found")) {
-                newUnreportableError("No device found, is it plugged in?");
-                return;
-            } else if (ideviceinfoResult.contains("ERROR")) {
-                newReportableError("ideviceinfo error.", ideviceinfoResult);
-                return;
-            } else {
-                try {
-                    ecidField.setText(Long.toHexString(Long.valueOf(ideviceinfoResult)).toUpperCase());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    newReportableError("Unknown ideviceinfo(ecid) result: " + ideviceinfoResult, ideviceinfoResult);
-                    return;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            newReportableError("Unable to get ECID.", e.getMessage());
-        }
-        // read device model
-        try {
-            String ideviceinfoResult = executeProgram(ideviceinfoPath, "-k", "ProductType").trim();
-            log("ideviceinfo -k ProductType: " + ideviceinfoResult);
-            if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
-                newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
-                return;
-            } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
-                version2dot2libimobiledeviceError();
-                return;
-            } else if (ideviceinfoResult.contains("No device found")) {
-                newUnreportableError("No device found, is it plugged in?");
-                return;
-            } else if (ideviceinfoResult.contains("ERROR")) {
-                newReportableError("ideviceinfo error.", ideviceinfoResult);
-            } else if (ideviceinfoResult.startsWith("iPhone")) {
+            // read ECID
+            ecidField.setText(Long.toHexString(Libimobiledevice.getEcid(true)).toUpperCase());
+            // read device model
+            String deviceModel = Libimobiledevice.getDeviceModelIdentifier(true);
+            if (deviceModel.startsWith("iPhone")) {
                 deviceTypeChoiceBox.setValue("iPhone");
-                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().getOrDefault(ideviceinfoResult, null));
-            } else if (ideviceinfoResult.startsWith("iPod")) {
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(deviceModel));
+            } else if (deviceModel.startsWith("iPod")) {
                 deviceTypeChoiceBox.setValue("iPod");
-                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(ideviceinfoResult));
-            } else if (ideviceinfoResult.startsWith("iPad")) {
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(deviceModel));
+            } else if (deviceModel.startsWith("iPad")) {
                 deviceTypeChoiceBox.setValue("iPad");
-                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(ideviceinfoResult));
-            } else if (ideviceinfoResult.startsWith("AppleTV")) {
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(deviceModel));
+            } else if (deviceModel.startsWith("AppleTV")) {
                 deviceTypeChoiceBox.setValue("Apple TV");
-                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(ideviceinfoResult));
+                deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(deviceModel));
             } else {
-                newReportableError("Unknown ideviceinfo(device model) result: " + ideviceinfoResult, ideviceinfoResult);
+                newReportableError("Unknown model: " + deviceModel);
                 return;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            newReportableError("Unable to get device model.", e.getMessage());
-        }
-        // read board config
-        if (!boardConfigField.isDisabled()) {
-            try {
-                String ideviceinfoResult = executeProgram(ideviceinfoPath, "-k", "HardwareModel").trim();
-                log("ideviceinfo -k HardwareModel: " + ideviceinfoResult);
-                if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
-                    newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
-                    return;
-                } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
-                    version2dot2libimobiledeviceError();
-                    return;
-                } else if (ideviceinfoResult.contains("No device found")) {
-                    newUnreportableError("No device found, is it plugged in?");
-                    return;
-                } else if (ideviceinfoResult.contains("ERROR")) {
-                    newReportableError("ideviceinfo error.", ideviceinfoResult);
-                    return;
-                } else {
-                    boardConfigField.setText(ideviceinfoResult);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                newReportableError("Unable to get board config.", e.getMessage());
+            // read board config
+            if (!boardConfigField.isDisabled()) {
+                boardConfigField.setText(Libimobiledevice.getBoardConfig(true));
             }
+        } finally {
+            readFromConnectedDeviceButton.setDisable(false);
+            readFromConnectedDeviceButton.setText("Read from connected device");
         }
-    }
-
-    private void version2dot2libimobiledeviceError() {
-        deleteFolder(new File(System.getProperty("user.home", ".blobsaver_bin")));
-        newUnreportableError("This error will happen if you have used version v2.2 before. This error will automatically be fixed after restarting the application.");
-        Platform.exit();
-        System.exit(-1);
     }
 
     public void donate() { openURL("https://www.paypal.me/airsqrd"); }
