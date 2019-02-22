@@ -59,12 +59,10 @@ import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -164,7 +162,7 @@ public class Controller {
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
-        // create effect
+        // create effects
         borderGlow.setOffsetY(0f);
         borderGlow.setOffsetX(0f);
         borderGlow.setColor(Color.DARKCYAN);
@@ -279,9 +277,7 @@ public class Controller {
         }
     }
 
-    public void checkForUpdatesHandler() {
-        checkForUpdates(true);
-    }
+    public void checkForUpdatesHandler() { checkForUpdates(true); }
 
     private void run(String device) {
         if ("".equals(device)) {
@@ -295,12 +291,11 @@ public class Controller {
             newReportableError("There was an error creating tsschecker.", e.getMessage());
             return;
         }
-        tsschecker.deleteOnExit();
 
         File locationToSaveBlobs = new File(pathField.getText());
         //noinspection ResultOfMethodCallIgnored
         locationToSaveBlobs.mkdirs();
-        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
+        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
         if (getBoardConfig) {
             Collections.addAll(args, "--boardconfig", boardConfigField.getText());
         }
@@ -313,7 +308,6 @@ public class Controller {
             try {
                 if (!ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
                     newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles(tsschecker, null);
                     return;
                 }
                 buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
@@ -323,7 +317,7 @@ public class Controller {
                     zin = new ZipInputStream(url.openStream());
                 } catch (IOException e) {
                     newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles(tsschecker, buildManifestPlist);
+                    deleteTempFiles(buildManifestPlist);
                     return;
                 }
                 ZipEntry ze;
@@ -337,43 +331,24 @@ public class Controller {
             } catch (IOException e) {
                 newReportableError("Unable to get BuildManifest from .ipsw.", e.getMessage());
                 e.printStackTrace();
-                deleteTempFiles(tsschecker, buildManifestPlist);
+                deleteTempFiles(buildManifestPlist);
                 return;
             }
             Collections.addAll(args, "-i", versionField.getText(), "--beta", "--buildid", buildIDField.getText(), "-m", buildManifestPlist.toString());
         } else {
             Collections.addAll(args, "-i", versionField.getText());
         }
-        Process proc;
+        String tsscheckerLog;
         try {
             log("Running: " + args.toString());
-            proc = new ProcessBuilder(args).start();
+            tsscheckerLog = executeProgram(args.toArray(new String[0]));
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();
-            deleteTempFiles(tsschecker, buildManifestPlist);
+            deleteTempFiles(buildManifestPlist);
             return;
         }
-        String tsscheckerLog;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
-            StringBuilder logBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                log(line + "\n");
-                logBuilder.append(line).append("\n");
-            }
-            tsscheckerLog = logBuilder.toString();
-        } catch (IOException e) {
-            newReportableError("There was an error getting the tsschecker result", e.toString());
-            e.printStackTrace();
-            deleteTempFiles(tsschecker, buildManifestPlist);
-            return;
-        }
-        try {
-            proc.waitFor();
-        } catch (InterruptedException e) {
-            newReportableError("The tsschecker process was interrupted.", e.toString());
-        }
+
         if (tsscheckerLog.contains("Saved shsh blobs")) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + pathField.getText(), ButtonType.OK);
             alert.setHeaderText("Success!");
@@ -435,20 +410,13 @@ public class Controller {
         } else {
             newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         }
-
-        deleteTempFiles(tsschecker, buildManifestPlist);
+        deleteTempFiles(buildManifestPlist);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void deleteTempFiles(File tsschecker, File buildManifestPlist) {
-        try {
-            if (tsschecker.exists()) {
-                tsschecker.delete();
-            }
-            if (buildManifestPlist != null && buildManifestPlist.exists()) {
-                buildManifestPlist.delete();
-            }
-        } catch (NullPointerException ignored) {
+    private static void deleteTempFiles(File buildManifestPlist) {
+        if (buildManifestPlist != null && buildManifestPlist.exists()) {
+            buildManifestPlist.delete();
         }
     }
 
@@ -557,6 +525,16 @@ public class Controller {
         if (!"none".equals(prefs.get("Board Config", ""))) {
             boardConfigField.setText(prefs.get("Board Config", ""));
         }
+        if (!"".equals(prefs.get("Apnonce", ""))) {
+            if (!apnonceCheckBox.isSelected()) {
+                apnonceCheckBox.fire();
+            }
+            apnonceField.setText(prefs.get("Apnonce", ""));
+        } else {
+            if (apnonceCheckBox.isSelected()) {
+                apnonceCheckBox.fire();
+            }
+        }
     }
 
     private void presetButtonHandler(ActionEvent evt) {
@@ -599,22 +577,14 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     private void savePreset(int preset) {
         boolean doReturn = false;
-        if ("".equals(ecidField.getText())) {
-            ecidField.setEffect(errorBorder);
-            doReturn = true;
-        }
         if (!identifierCheckBox.isSelected() && "".equals(deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (identifierCheckBox.isSelected() && "".equals(identifierField.getText())) {
-            identifierField.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (getBoardConfig && "".equals(boardConfigField.getText())) {
-            boardConfigField.setEffect(errorBorder);
-            doReturn = true;
-        }
+        doReturn = doReturn || isTextFieldInvalid(true, ecidField);
+        doReturn = doReturn || isTextFieldInvalid(identifierCheckBox, identifierField);
+        doReturn = doReturn || isTextFieldInvalid(getBoardConfig, boardConfigField);
+        doReturn = doReturn || isTextFieldInvalid(apnonceCheckBox, apnonceField);
         if (doReturn) {
             return;
         }
@@ -649,6 +619,9 @@ public class Controller {
         } else {
             presetPrefs.put("Board Config", "none");
         }
+        if (apnonceCheckBox.isSelected()) {
+            presetPrefs.put("Apnonce", apnonceField.getText());
+        }
     }
 
     public void savePresetHandler() {
@@ -674,9 +647,7 @@ public class Controller {
         }
     }
 
-    public void checkBlobs() {
-        openURL("https://tsssaver.1conan.com/check.php");
-    }
+    public void checkBlobs() { openURL("https://tsssaver.1conan.com/check.php"); }
 
     public void helpLabelHandler(MouseEvent evt) {
         if (Main.DEBUG_MODE) return; //click on the question mark and add this method as a breakpoint
@@ -1261,7 +1232,7 @@ public class Controller {
             String ideviceinfoResult = executeProgram(ideviceinfoPath, "-k", "ProductType").trim();
             log("ideviceinfo -k ProductType: " + ideviceinfoResult);
             if (ideviceinfoResult.contains("ERROR: Could not connect to lockdownd")) {
-                newReportableError("ideviceinfo:" + ideviceinfoResult, ideviceinfoResult);
+                newReportableError("ideviceinfo: " + ideviceinfoResult, ideviceinfoResult);
                 return;
             } else if (ideviceinfoResult.contains("dyld: Library not loaded:")) {
                 version2dot2libimobiledeviceError();
@@ -1340,14 +1311,14 @@ public class Controller {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        doReturn = doReturn || isTextFieldValid(true, ecidField);
-        doReturn = doReturn || isTextFieldValid(identifierCheckBox, identifierField);
-        doReturn = doReturn || isTextFieldValid(getBoardConfig, boardConfigField);
-        doReturn = doReturn || isTextFieldValid(apnonceCheckBox, apnonceField);
-        doReturn = doReturn || isTextFieldValid(true, pathField);
-        doReturn = doReturn || isTextFieldValid(!versionCheckBox.isSelected(), versionField);
-        doReturn = doReturn || isTextFieldValid(betaCheckBox, buildIDField);
-        doReturn = doReturn || isTextFieldValid(betaCheckBox, ipswField);
+        doReturn = doReturn || isTextFieldInvalid(true, ecidField);
+        doReturn = doReturn || isTextFieldInvalid(identifierCheckBox, identifierField);
+        doReturn = doReturn || isTextFieldInvalid(getBoardConfig, boardConfigField);
+        doReturn = doReturn || isTextFieldInvalid(apnonceCheckBox, apnonceField);
+        doReturn = doReturn || isTextFieldInvalid(true, pathField);
+        doReturn = doReturn || isTextFieldInvalid(!versionCheckBox.isSelected(), versionField);
+        doReturn = doReturn || isTextFieldInvalid(betaCheckBox, buildIDField);
+        doReturn = doReturn || isTextFieldInvalid(betaCheckBox, ipswField);
         if (doReturn) {
             return;
         }
@@ -1369,10 +1340,11 @@ public class Controller {
         }
     }
 
-    private static boolean isTextFieldValid(CheckBox checkBox, TextField textField) {
-        return isTextFieldValid(checkBox.isSelected(), textField);
+    private static boolean isTextFieldInvalid(CheckBox checkBox, TextField textField) {
+        return isTextFieldInvalid(checkBox.isSelected(), textField);
     }
-    private static boolean isTextFieldValid(boolean isTextFieldRequired, TextField textField) {
+
+    private static boolean isTextFieldInvalid(boolean isTextFieldRequired, TextField textField) {
         if (isTextFieldRequired && "".equals(textField.getText())) {
             textField.setEffect(errorBorder);
             return true;
