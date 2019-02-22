@@ -95,12 +95,14 @@ class Shared {
                         String response;
                         try {
                             response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
-                        } catch (FileNotFoundException ignored) {
-                            newUnreportableError("Could not check for updates. " +
-                                    "Looks like either blobsaver has been abandoned " +
-                                    "or the GitHub project has been moved elsewhere");
+                        } catch (FileNotFoundException e) {
+                            System.err.println("https://api.github.com/repos/airsquared/blobsaver/releases/latest " +
+                                    "doesn't exist??");
+                            e.printStackTrace();
                             return null;
                         } catch (IOException e) {
+                            System.err.println("unknown IOException while checking for updates :( " +
+                                    "Are you connected to the internet?");
                             e.printStackTrace();
                             return null;
                         }

@@ -62,20 +62,9 @@ import static com.airsquared.blobsaver.Shared.textToIdentifier;
 
 class Background {
 
-//    private static KeyCombination quitShortcut = new KeyCodeCombination(KeyCode.Q, KeyCombination.META_DOWN);
-
     static boolean inBackground = false;
     static ScheduledExecutorService executor;
     private static TrayIcon trayIcon;
-
-    /*private static void enableQuitShortcut() {
-        // TODO: Replace System.exit(0) with a cleaner stop
-        Main.primaryStage.getScene().getAccelerators().put(quitShortcut, () -> System.exit(0));
-    }
-
-    private static void disableQuitShortcut() {
-        Main.primaryStage.getScene().getAccelerators().remove(quitShortcut);
-    }*/
 
     static ArrayList<String> getPresetsToSaveFor() {
         ArrayList<String> presetsToSaveFor = new ArrayList<>();
@@ -106,9 +95,6 @@ class Background {
                     + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
         }
         if (!runOnlyOnce) {
-            /*if (PlatformUtil.isMac()) {
-                enableQuitShortcut();
-            }*/
             inBackground = true;
             executor = Executors.newScheduledThreadPool(1);
             SystemTray tray = SystemTray.getSystemTray();
@@ -363,9 +349,6 @@ class Background {
 
     static void stopBackground(boolean showAlert) {
         inBackground = false;
-        /*if (PlatformUtil.isMac()) {
-            disableQuitShortcut();
-        }*/
         executor.shutdownNow();
         SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
         if (showAlert && Platform.isFxApplicationThread()) {

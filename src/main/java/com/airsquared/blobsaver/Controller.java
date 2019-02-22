@@ -21,9 +21,6 @@ package com.airsquared.blobsaver;
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
 import de.codecentric.centerdevice.MenuToolkit;
-import de.codecentric.centerdevice.dialogs.about.AboutStageBuilder;
-import de.codecentric.centerdevice.icns.IcnsParser;
-import de.codecentric.centerdevice.icns.IcnsType;
 import de.codecentric.centerdevice.labels.LabelMaker;
 import de.codecentric.centerdevice.labels.LabelName;
 import javafx.application.Platform;
@@ -31,21 +28,8 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -66,7 +50,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.prefs.BackingStoreException;
@@ -77,21 +60,7 @@ import java.util.zip.ZipInputStream;
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
 import static com.airsquared.blobsaver.Main.primaryStage;
-import static com.airsquared.blobsaver.Shared.checkForUpdates;
-import static com.airsquared.blobsaver.Shared.copyStreamToFile;
-import static com.airsquared.blobsaver.Shared.executeProgram;
-import static com.airsquared.blobsaver.Shared.getJarLocation;
-import static com.airsquared.blobsaver.Shared.getTsschecker;
-import static com.airsquared.blobsaver.Shared.getideviceinfo;
-import static com.airsquared.blobsaver.Shared.getidevicepair;
-import static com.airsquared.blobsaver.Shared.githubIssue;
-import static com.airsquared.blobsaver.Shared.newReportableError;
-import static com.airsquared.blobsaver.Shared.newUnreportableError;
-import static com.airsquared.blobsaver.Shared.openURL;
-import static com.airsquared.blobsaver.Shared.redditPM;
-import static com.airsquared.blobsaver.Shared.reportError;
-import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
-import static com.airsquared.blobsaver.Shared.textToIdentifier;
+import static com.airsquared.blobsaver.Shared.*;
 
 public class Controller {
 
@@ -795,35 +764,7 @@ public class Controller {
         }
     }
 
-    private Stage createDefaultAboutStage() {
-        AboutStageBuilder stageBuilder = AboutStageBuilder.start(
-                labelMaker.getLabel(LabelName.ABOUT, "blobsaver"))
-                .withAppName("blobsaver").withCloseOnFocusLoss().withCopyright("Copyright \u00A9 " + Calendar
-                        .getInstance().get(Calendar.YEAR));
-
-        try {
-            IcnsParser parser = IcnsParser.forFile(AboutStageBuilder.DEFAULT_APP_ICON);
-            stageBuilder = stageBuilder.withImage(new Image(parser.getIconStream(IcnsType.ic08)));
-        } catch (IOException e) {
-            newUnreportableError("Failed to load about stage dummy image");
-            e.printStackTrace();
-        }
-
-        return stageBuilder.build();
-    }
-
-    // so that there's no crash on cmd + q
-    private Menu createCustomApplicationMenu(MenuToolkit tk) {
-        return new Menu("Apple", null, tk.createAboutMenuItem("blobsaver", createDefaultAboutStage()),
-                new SeparatorMenuItem(),
-                tk.createHideMenuItem("blobsaver"),
-                tk.createHideOthersMenuItem(),
-                tk.createUnhideAllMenuItem(),
-                new SeparatorMenuItem(),
-                createCustomQuitMenuItem());
-    }
-
-    private MenuItem createCustomQuitMenuItem() {
+    private MenuItem customQuitMenuItem() {
         MenuItem quit = new MenuItem(labelMaker.getLabel(LabelName.QUIT, "blobsaver"));
         quit.setOnAction(event -> Main.quit());
         quit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.META_DOWN));
@@ -835,7 +776,7 @@ public class Controller {
         macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
-        Menu applicationMenu = createCustomApplicationMenu(tk);
+        Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver");
 
         MenuItem aboutMenuItem = new MenuItem("About blobsaver");
         aboutMenuItem.setOnAction(event2 -> aboutMenuHandler());
@@ -850,6 +791,7 @@ public class Controller {
         clearAllDataMenuItem.setOnAction(event1 -> resetAppHandler());
         applicationMenu.getItems().add(3, new SeparatorMenuItem());
         applicationMenu.getItems().add(4, clearAllDataMenuItem);
+        applicationMenu.getItems().set(10, customQuitMenuItem());
 
         macOSMenuBar.getMenus().add(0, applicationMenu);
 
@@ -995,40 +937,16 @@ public class Controller {
 
     public void startBackgroundHandler() {
         if (Background.inBackground) { //stops background if already in background
-            /*if (PlatformUtil.isMac()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                        "You will need to restart the application for changes to take effect.", ButtonType.OK);
-                alert.showAndWait();
-                appPrefs.putBoolean("Show background startup message", true);
-                appPrefs.putBoolean("Start background immediately", false);
-                Platform.exit();
-                Background.stopBackground(false);
-                System.exit(0);
-            } else {*/
             Background.stopBackground(true);
             appPrefs.putBoolean("Show background startup message", true);
             appPrefs.putBoolean("Start background immediately", false);
             startBackgroundButton.setText("Start background");
         } else if (appPrefs.getBoolean("Show background startup message", true)) {
-//            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-//                    "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
-//                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
-//            alert.showAndWait();
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
-//            Platform.exit();
-//            System.exit(0);
             startBackgroundButton.setText("Stop background");
             Background.startBackground(false);
-        } /*else if (appPrefs.getBoolean("Show background startup message", true)) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
-                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
-            alert.showAndWait();
-            appPrefs.putBoolean("Show background startup message", false);
-            appPrefs.putBoolean("Start background immediately", true);
-            Background.startBackground(false);
-        }*/ else {
+        } else {
             Background.startBackground(false);
             startBackgroundButton.setText("Cancel Background");
         }
