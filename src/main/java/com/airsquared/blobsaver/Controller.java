@@ -1019,7 +1019,6 @@ public class Controller {
         }
     }
 
-    //TODO: fix that weird error sound when about screen is open and the DebugLog is opened
     public void debugLogHandler() {
         if (DebugWindow.isShowing()) {
             DebugWindow.getFocus();
