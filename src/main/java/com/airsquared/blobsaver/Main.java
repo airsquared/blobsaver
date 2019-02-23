@@ -110,14 +110,28 @@ public class Main {
                 System.out.println("showing dock icon");
                 DockVisibility.INSTANCE.show();
             }
+
+            primaryStage.show();
         }
 
-        primaryStage.show();
-        primaryStage.toFront();
-        primaryStage.requestFocus();
+        //if DebugWindow was previously open, show it
+        if (DebugWindow.wasIndirectlyClosed()) {
+            DebugWindow.show();
+        }
+
+        if (DebugWindow.wasDirectlyClosed() || !DebugWindow.willRetainFocus()) {
+            primaryStage.toFront();
+            primaryStage.requestFocus();
+        }
     }
 
-    static void hideStage() { //TODO: check if this works if debugWindow is open but not mainWindow
+    static void hideStage() {
+
+        //if DebugWindow is showing, hide it but tell it to show on next open
+        if (DebugWindow.isShowing()) {
+            DebugWindow.indirectlyClose();
+        }
+
         primaryStage.hide();
         if (PlatformUtil.isMac()) {
             System.out.println("hiding dock icon");

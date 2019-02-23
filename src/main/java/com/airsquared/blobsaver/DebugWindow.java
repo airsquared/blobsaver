@@ -18,6 +18,7 @@
 
 package com.airsquared.blobsaver;
 
+import de.codecentric.centerdevice.util.StageUtils;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
@@ -31,8 +32,12 @@ import java.io.PrintStream;
 class DebugWindow {
 
     private static final PrintStream sysOut = System.out;
+
     private static Stage debugStage = new Stage();
     private static PrintStream myPrintStream;
+
+    private static boolean mWasDirectlyClosed = true;
+    private static boolean retainFocus = true;
 
     static {
         VBox vBox = new VBox();
@@ -46,8 +51,12 @@ class DebugWindow {
         debugStage.setTitle("Debug Log");
         debugStage.setScene(new Scene(vBox));
         debugStage.setOnCloseRequest(event -> {
-            hide();
+            directlyClose();
             event.consume();
+        });
+        debugStage.setOnShown((e) -> {
+            debugStage.setX(debugStage.getX());
+            debugStage.setY(debugStage.getY());
         });
 
         myPrintStream = new PrintStream(new OutputStream() {
@@ -69,22 +78,69 @@ class DebugWindow {
 
     static void show() {
         debugStage.show();
+        if (retainFocus) {
+            getFocus();
+        }
         System.setOut(myPrintStream);
         System.setErr(myPrintStream);
     }
 
-    static void hide() {
+    // this will make it reopen when the primaryStage is re-shown
+    // supposed to be called when something else made the DebugWindow close,
+    // so the user expects it to be reopened when the primaryStage is opened again
+    static void indirectlyClose() {
+        hide(false);
+    }
+
+    static void directlyClose() {
+        hide(true);
+    }
+
+    // this should not be called directly, but rather indirectly from directlyClose() or indirectlyClose()
+    // (pun not intended) ;)
+    private static void hide(boolean wasDirectlyClosed) {
+        setRetainFocus();
+        setWasDirectlyClosed(wasDirectlyClosed);
         debugStage.hide();
         System.setOut(sysOut);
         System.setErr(sysOut);
     }
 
+    private static void setRetainFocus() {
+        retainFocus = StageUtils.getFocusedStage().isPresent() &&
+            StageUtils.getFocusedStage().get().equals(getDebugStage());
+    }
+
+    static boolean willRetainFocus() {
+        return retainFocus;
+    }
+
+    static boolean wasDirectlyClosed() {
+        return mWasDirectlyClosed;
+    }
+
+    static boolean wasIndirectlyClosed() {
+        return !mWasDirectlyClosed;
+    }
+
+    private static void setWasDirectlyClosed(boolean wasDirectlyClosed) {
+        mWasDirectlyClosed = wasDirectlyClosed;
+    }
+
+
     static Stage getDebugStage() {
         return debugStage;
+    }
+
+    static void getFocus() {
+        //only get focus when about stage doesn't exist, since about stage is always on top
+        if (Main.getStage("About") == null) {
+            debugStage.requestFocus();
+            debugStage.toFront();
+        }
     }
 
     static boolean isShowing() {
         return debugStage.isShowing();
     }
-
 }

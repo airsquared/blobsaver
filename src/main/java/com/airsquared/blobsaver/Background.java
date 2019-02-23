@@ -23,6 +23,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.util.Duration;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -35,6 +36,7 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -50,15 +52,7 @@ import java.util.stream.Collectors;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
-import static com.airsquared.blobsaver.Shared.checkForUpdates;
-import static com.airsquared.blobsaver.Shared.executeProgram;
-import static com.airsquared.blobsaver.Shared.getTsschecker;
-import static com.airsquared.blobsaver.Shared.githubIssue;
-import static com.airsquared.blobsaver.Shared.makeRequest;
-import static com.airsquared.blobsaver.Shared.redditPM;
-import static com.airsquared.blobsaver.Shared.reportError;
-import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
-import static com.airsquared.blobsaver.Shared.textToIdentifier;
+import static com.airsquared.blobsaver.Shared.*;
 
 class Background {
 
@@ -110,8 +104,9 @@ class Background {
             trayIcon = new TrayIcon(image, "blobsaver " + appVersion);
             trayIcon.setImageAutoSize(true);
 
+            ActionListener showListener = event -> Platform.runLater(Main::showStage);
             MenuItem openItem = new MenuItem("Open window");
-            openItem.addActionListener(event -> Platform.runLater(Main::showStage));
+            openItem.addActionListener(showListener);
             openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
@@ -130,6 +125,7 @@ class Background {
             }
             popup.add(exitItem);
             trayIcon.setPopupMenu(popup);
+            trayIcon.addActionListener(showListener);
 
             // add the application tray icon to the system tray.
             try {
@@ -292,7 +288,7 @@ class Background {
             } else {
                 presetName = appPrefs.get("Name Preset" + preset, "");
             }
-            if (tsscheckerLog.contains("Saved shsh blobs")) {
+            if (StringUtils.containsIgnoreCase(tsscheckerLog, "Saved")) {
                 Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
@@ -309,7 +305,7 @@ class Background {
 
                 log("displayed message");
 
-            } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
+            } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] ERROR: TSS request failed: Could not resolve host:")) {
                 Notification notification = new Notification("Saving blobs failed", "Check your internet connection. If it is working, click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
@@ -324,7 +320,7 @@ class Background {
                     reportError(alert, tsscheckerLog);
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-            } else if (tsscheckerLog.contains("iOS " + version + " for device " + identifier + " IS NOT being signed")) {
+            } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + identifier + " IS NOT being signed")) {
                 continue;
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);

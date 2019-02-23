@@ -23,6 +23,7 @@ import com.sun.javafx.scene.control.skin.LabeledText;
 import de.codecentric.centerdevice.MenuToolkit;
 import de.codecentric.centerdevice.labels.LabelMaker;
 import de.codecentric.centerdevice.labels.LabelName;
+import de.codecentric.centerdevice.util.StageUtils;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -40,6 +41,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
@@ -318,63 +320,65 @@ public class Controller {
             return;
         }
 
-        if (tsscheckerLog.contains("Saved shsh blobs")) {
+        if (StringUtils.containsIgnoreCase(tsscheckerLog, "Saved")) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + pathField.getText(), ButtonType.OK);
             alert.setHeaderText("Success!");
             alert.showAndWait();
-        } else if (tsscheckerLog.contains("[Error] [TSSC] manually specified ecid=" + ecidField.getText() + ", but parsing failed")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ecid=" + ecidField.getText() + ", but parsing failed")) {
             newUnreportableError("\"" + ecidField.getText() + "\"" + " is not a valid ECID. Try getting it from iTunes.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             ecidField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] device " + device + " could not be found in devicelist")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] device " + device + " could not be found in devicelist")) {
             Alert alert = new Alert(Alert.AlertType.ERROR, "tsschecker could not find device: \"" + device +
                     "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", githubIssue, redditPM, ButtonType.CANCEL);
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + versionField.getText())) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + versionField.getText())) {
             newUnreportableError("Could not find device \"" + device + "\" on iOS/tvOS " + versionField.getText() +
                     "\n\nThe version doesn't exist or isn't compatible with the device");
             versionField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] manually specified apnonce=" + apnonceField.getText() + ", but parsing failed")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified apnonce=" + apnonceField.getText() + ", but parsing failed")) {
             newUnreportableError("\"" + apnonceField.getText() + "\" is not a valid apnonce");
             apnonceField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("[WARNING] [TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually")
-                && tsscheckerLog.contains("[Error] [TSSR] Error: could not get id0 for installType=Update")
-                && tsscheckerLog.contains("[Error] [TSSR] faild to build tssrequest")
-                && tsscheckerLog.contains("Error] [TSSC] checking tss status failed!")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[WARNING] [TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually")
+                && StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] Error: could not get id0 for installType=Update")
+                && (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] faild to build tssrequest")
+                || StringUtils.containsIgnoreCase(tsscheckerLog, "[TSSR] faild to build TSS request"))
+                && StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] checking tss status failed!")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
                     githubIssue, redditPM, ButtonType.OK);
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
-        } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] ERROR: TSS request failed: Could not resolve host:")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
                     githubIssue, redditPM, ButtonType.OK);
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
-        } else if (tsscheckerLog.contains("[Error] [Error] can't save shsh at " + pathField.getText())) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] can't save shsh at ")
+                || StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] can't save signing tickets at ")) {
             newUnreportableError("\'" + pathField.getText() + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             pathField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("iOS " + versionField.getText() + " for device " + device + " IS NOT being signed!") || tsscheckerLog.contains("Build " + buildIDField.getText() + " for device iPhone9,2 IS NOT being signed!")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "iOS " + versionField.getText() + " for device " + device + " IS NOT being signed!") || StringUtils.containsIgnoreCase(tsscheckerLog, "Build " + buildIDField.getText() + " for device iPhone9,2 IS NOT being signed!")) {
             newUnreportableError("iOS/tvOS " + versionField.getText() + " is not being signed for device " + device);
             versionField.setEffect(errorBorder);
             if (betaCheckBox.isSelected()) {
                 buildIDField.setEffect(errorBorder);
                 ipswField.setEffect(errorBorder);
             }
-        } else if (tsscheckerLog.contains("[Error] [TSSC] failed to load manifest")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] failed to load manifest")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Failed to load manifest.\n\n \"" + ipswField.getText() + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
                     githubIssue, redditPM, ButtonType.OK);
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] selected device can't be used with that buildmanifest")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] selected device can't be used with that buildmanifest")) {
             newUnreportableError("Device and build manifest don't match.");
-        } else if (tsscheckerLog.contains("[Error]")) {
+        } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error]")) {
             newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         } else {
             newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
@@ -771,6 +775,23 @@ public class Controller {
         return quit;
     }
 
+    //so that when close main app, all the other windows are closed too
+    private MenuItem createCloseWindowMenuItem() {
+        MenuItem menuItem = new MenuItem(labelMaker.getLabel(LabelName.CLOSE_WINDOW));
+        menuItem.setAccelerator(new KeyCodeCombination(KeyCode.W, KeyCombination.META_DOWN));
+        menuItem.setOnAction(event -> {
+            if (StageUtils.getFocusedStage().isPresent() &&
+                    StageUtils.getFocusedStage().get().equals(primaryStage)) {
+                System.out.println("looks like main stage was focused, hiding app...");
+                Main.hideStage();
+            } else {
+                System.out.println("looks like debug window or something else is focused, closing...");
+                StageUtils.closeCurrentStage();
+            }
+        });
+        return menuItem;
+    }
+
     //sets up mac OS menu bar and returns it
     private MenuBar getMacOSMenuBar() {
         macOSMenuBar = new MenuBar();
@@ -800,12 +821,12 @@ public class Controller {
 
         windowMenu.getItems().add(new SeparatorMenuItem());
         windowMenu.getItems().add(tk.createMinimizeMenuItem());
-        windowMenu.getItems().add(tk.createCloseWindowMenuItem()); //TODO: add windows/linux equivalent [ctrl + w]
+        windowMenu.getItems().add(createCloseWindowMenuItem()); //TODO: add windows/linux equivalent [ctrl + w]
         windowMenu.getItems().add(tk.createCycleWindowsItem());
 
         windowMenu.getItems().add(new SeparatorMenuItem());
 
-        MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug Log");
+        MenuItem debugLogMenuItem = new MenuItem("Open Debug Log");
         debugLogMenuItem.setOnAction(event -> {
             debugLogHandler();
             tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
@@ -1001,9 +1022,10 @@ public class Controller {
         }
     }
 
+    //TODO: fix that weird error sound when about screen is open and the DebugLog is opened
     public void debugLogHandler() {
         if (DebugWindow.isShowing()) {
-            DebugWindow.hide();
+            DebugWindow.getFocus();
         } else {
             DebugWindow.show();
         }
