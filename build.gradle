@@ -75,6 +75,7 @@ macAppBundle {
     appName = 'blobsaver'
     dmgName = 'blobsaver-macos'
     volumeName = 'blobsaver-macos'
+    bundleExtras.put("LSUIElement", "YES")
 }
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
