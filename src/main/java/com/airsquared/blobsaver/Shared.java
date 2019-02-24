@@ -26,6 +26,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,7 +47,10 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
@@ -394,5 +398,12 @@ class Shared {
         } else {
             Platform.runLater(runnable);
         }
+    }
+
+    static List<String> getAllSignedVersions(String deviceIdentifier) throws IOException {
+        String response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + deviceIdentifier));
+        JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
+        @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
+        return firmwareList.stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).map(map -> map.get("version").toString()).collect(Collectors.toList());
     }
 }

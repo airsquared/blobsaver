@@ -40,14 +40,10 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
@@ -62,19 +58,19 @@ public class Controller {
     @FXML private ChoiceBox deviceTypeChoiceBox;
     @FXML private ChoiceBox deviceModelChoiceBox;
 
-    @FXML private TextField ecidField;
-    @FXML private TextField boardConfigField;
-    @FXML private TextField apnonceField;
-    @FXML private TextField versionField;
-    @FXML private TextField identifierField;
-    @FXML private TextField pathField;
-    @FXML private TextField ipswField;
-    @FXML private TextField buildIDField;
+    @FXML TextField ecidField;
+    @FXML TextField boardConfigField;
+    @FXML TextField apnonceField;
+    @FXML TextField versionField;
+    @FXML TextField identifierField;
+    @FXML TextField pathField;
+    @FXML TextField ipswField;
+    @FXML TextField buildIDField;
 
-    @FXML private CheckBox apnonceCheckBox;
-    @FXML private CheckBox versionCheckBox;
-    @FXML private CheckBox identifierCheckBox;
-    @FXML private CheckBox betaCheckBox;
+    @FXML CheckBox apnonceCheckBox;
+    @FXML CheckBox versionCheckBox;
+    @FXML CheckBox identifierCheckBox;
+    @FXML CheckBox betaCheckBox;
 
     @FXML private Label versionLabel;
 
@@ -100,12 +96,14 @@ public class Controller {
 
     @FXML private Button goButton;
 
-    private boolean getBoardConfig = false;
+    boolean getBoardConfig = false;
     private boolean editingPresets = false;
     private boolean choosingRunInBackground = false;
 
-    private static DropShadow errorBorder = new DropShadow();
+    static DropShadow errorBorder = new DropShadow();
     private static DropShadow borderGlow = new DropShadow();
+
+    static Controller INSTANCE;
 
     static void afterStageShowing() {
         for (int i = 1; i < 11; i++) { // sets the names for the presets
@@ -120,6 +118,7 @@ public class Controller {
     @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
+        INSTANCE = this;
         // create effects
         borderGlow.setOffsetY(0f);
         borderGlow.setOffsetX(0f);
@@ -226,147 +225,6 @@ public class Controller {
     }
 
     public void checkForUpdatesHandler() { checkForUpdates(true); }
-
-    private void run(String device) {
-        if ("".equals(device)) {
-            return;
-        }
-        File tsschecker;
-        File buildManifestPlist = null;
-        try {
-            tsschecker = getTsschecker();
-        } catch (IOException e) {
-            newReportableError("There was an error creating tsschecker.", e.getMessage());
-            return;
-        }
-
-        File locationToSaveBlobs = new File(pathField.getText());
-        //noinspection ResultOfMethodCallIgnored
-        locationToSaveBlobs.mkdirs();
-        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", device, "-s", "-e", ecidField.getText(), "--save-path", pathField.getText()));
-        if (getBoardConfig) {
-            Collections.addAll(args, "--boardconfig", boardConfigField.getText());
-        }
-        if (apnonceCheckBox.isSelected()) {
-            Collections.addAll(args, "--apnonce", apnonceField.getText());
-        }
-        if (versionCheckBox.isSelected()) {
-            args.add("-l");
-        } else if (betaCheckBox.isSelected()) {
-            try {
-                if (!ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
-                    newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    return;
-                }
-                buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
-                ZipInputStream zin;
-                try {
-                    URL url = new URL(ipswField.getText());
-                    zin = new ZipInputStream(url.openStream());
-                } catch (IOException e) {
-                    newUnreportableError("\"" + ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles(buildManifestPlist);
-                    return;
-                }
-                ZipEntry ze;
-                while ((ze = zin.getNextEntry()) != null) {
-                    if ("BuildManifest.plist".equals(ze.getName())) {
-                        copyStreamToFile(zin, buildManifestPlist);
-                        break;
-                    }
-                }
-                buildManifestPlist.deleteOnExit();
-            } catch (IOException e) {
-                newReportableError("Unable to get BuildManifest from .ipsw.", e.getMessage());
-                e.printStackTrace();
-                deleteTempFiles(buildManifestPlist);
-                return;
-            }
-            Collections.addAll(args, "-i", versionField.getText(), "--beta", "--buildid", buildIDField.getText(), "-m", buildManifestPlist.toString());
-        } else {
-            Collections.addAll(args, "-i", versionField.getText());
-        }
-        String tsscheckerLog;
-        try {
-            log("Running: " + args.toString());
-            tsscheckerLog = executeProgram(args.toArray(new String[0]));
-        } catch (IOException e) {
-            newReportableError("There was an error starting tsschecker.", e.toString());
-            e.printStackTrace();
-            deleteTempFiles(buildManifestPlist);
-            return;
-        }
-
-        if (tsscheckerLog.contains("Saved shsh blobs")) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + pathField.getText(), ButtonType.OK);
-            alert.setHeaderText("Success!");
-            alert.showAndWait();
-        } else if (tsscheckerLog.contains("[Error] [TSSC] manually specified ecid=" + ecidField.getText() + ", but parsing failed")) {
-            newUnreportableError("\"" + ecidField.getText() + "\"" + " is not a valid ECID. Try getting it from iTunes.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
-            ecidField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] device " + device + " could not be found in devicelist")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "tsschecker could not find device: \"" + device +
-                    "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", githubIssue, redditPM, ButtonType.CANCEL);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + versionField.getText())) {
-            newUnreportableError("Could not find device \"" + device + "\" on iOS/tvOS " + versionField.getText() +
-                    "\n\nThe version doesn't exist or isn't compatible with the device");
-            versionField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] manually specified apnonce=" + apnonceField.getText() + ", but parsing failed")) {
-            newUnreportableError("\"" + apnonceField.getText() + "\" is not a valid apnonce");
-            apnonceField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("[WARNING] [TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually")
-                && tsscheckerLog.contains("[Error] [TSSR] Error: could not get id0 for installType=Update")
-                && tsscheckerLog.contains("[Error] [TSSR] faild to build tssrequest")
-                && tsscheckerLog.contains("Error] [TSSC] checking tss status failed!")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
-                    githubIssue, redditPM, ButtonType.OK);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert, tsscheckerLog);
-        } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
-                    githubIssue, redditPM, ButtonType.OK);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert, tsscheckerLog);
-        } else if (tsscheckerLog.contains("[Error] [Error] can't save shsh at " + pathField.getText())) {
-            newUnreportableError("\'" + pathField.getText() + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
-            pathField.setEffect(errorBorder);
-        } else if (tsscheckerLog.contains("iOS " + versionField.getText() + " for device " + device + " IS NOT being signed!") || tsscheckerLog.contains("Build " + buildIDField.getText() + " for device iPhone9,2 IS NOT being signed!")) {
-            newUnreportableError("iOS/tvOS " + versionField.getText() + " is not being signed for device " + device);
-            versionField.setEffect(errorBorder);
-            if (betaCheckBox.isSelected()) {
-                buildIDField.setEffect(errorBorder);
-                ipswField.setEffect(errorBorder);
-            }
-        } else if (tsscheckerLog.contains("[Error] [TSSC] failed to load manifest")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Failed to load manifest.\n\n \"" + ipswField.getText() + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
-                    githubIssue, redditPM, ButtonType.OK);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert, tsscheckerLog);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] selected device can't be used with that buildmanifest")) {
-            newUnreportableError("Device and build manifest don't match.");
-        } else if (tsscheckerLog.contains("[Error]")) {
-            newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
-        } else {
-            newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
-        }
-        deleteTempFiles(buildManifestPlist);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void deleteTempFiles(File buildManifestPlist) {
-        if (buildManifestPlist != null && buildManifestPlist.exists()) {
-            buildManifestPlist.delete();
-        }
-    }
 
     public void apnonceCheckBoxHandler() {
         if (apnonceCheckBox.isSelected()) {
@@ -1083,7 +941,7 @@ public class Controller {
             String identifierText = identifierField.getText();
             try {
                 if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
-                    run(identifierField.getText());
+                    TSSChecker.run(identifierField.getText());
                 } else {
                     identifierField.setEffect(errorBorder);
                     newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
@@ -1092,7 +950,7 @@ public class Controller {
                 newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
             }
         } else {
-            run(textToIdentifier(deviceModel));
+            TSSChecker.run(textToIdentifier(deviceModel));
         }
     }
 
