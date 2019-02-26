@@ -190,7 +190,7 @@ class Shared {
         }
     }
 
-    static File getlibimobiledeviceFolder() throws IOException {
+    static File getLibimobiledeviceFolder() throws IOException {
         File libimobiledeviceFolder;
         if (PlatformUtil.isMac()) {
             libimobiledeviceFolder = new File(getExecutablesFolder(), "libimobiledevice_mac/");
