@@ -27,6 +27,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -54,7 +55,10 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
@@ -411,6 +415,13 @@ class Shared {
         }
     }
 
+    static List<String> getAllSignedVersions(String deviceIdentifier) throws IOException {
+        String response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + deviceIdentifier));
+        JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
+        @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
+        return firmwareList.stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).map(map -> map.get("version").toString()).collect(Collectors.toList());
+    }
+
     // temporary until ProGuard is implemented
     static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
         if (str == null || searchStr == null) {
@@ -428,7 +439,7 @@ class Shared {
 
     // temporary until ProGuard is implemented
     private static boolean regionMatches(final CharSequence cs, final int thisStart,
-                                         final CharSequence substring, final int length)    {
+                                         final CharSequence substring, final int length) {
         if (cs instanceof String && substring instanceof String) {
             return ((String) cs).regionMatches(true, thisStart, (String) substring, 0, length);
         }
