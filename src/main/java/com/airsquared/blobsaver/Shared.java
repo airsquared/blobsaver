@@ -410,4 +410,61 @@ class Shared {
             Platform.runLater(runnable);
         }
     }
+
+    // temporary until ProGuard is implemented
+    static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+        if (str == null || searchStr == null) {
+            return false;
+        }
+        final int len = searchStr.length();
+        final int max = str.length() - len;
+        for (int i = 0; i <= max; i++) {
+            if (regionMatches(str, i, searchStr, len)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // temporary until ProGuard is implemented
+    private static boolean regionMatches(final CharSequence cs, final int thisStart,
+                                         final CharSequence substring, final int length)    {
+        if (cs instanceof String && substring instanceof String) {
+            return ((String) cs).regionMatches(true, thisStart, (String) substring, 0, length);
+        }
+        int index1 = thisStart;
+        int index2 = 0;
+        int tmpLen = length;
+
+        // Extract these first so we detect NPEs the same as the java.lang.String version
+        final int srcLen = cs.length() - thisStart;
+        final int otherLen = substring.length();
+
+        // Check for invalid parameters
+        if (thisStart < 0 || length < 0) {
+            return false;
+        }
+
+        // Check that the regions are long enough
+        if (srcLen < length || otherLen < length) {
+            return false;
+        }
+
+        while (tmpLen-- > 0) {
+            final char c1 = cs.charAt(index1++);
+            final char c2 = substring.charAt(index2++);
+
+            if (c1 == c2) {
+                continue;
+            }
+
+            // The same check as in String.regionMatches():
+            if (Character.toUpperCase(c1) != Character.toUpperCase(c2)
+                    && Character.toLowerCase(c1) != Character.toLowerCase(c2)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
