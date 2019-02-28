@@ -108,7 +108,7 @@ public class Main {
 
             if (PlatformUtil.isMac()) { //show the dock icon
                 System.out.println("showing dock icon");
-                DockVisibility.INSTANCE.show();
+                DockVisibility.show();
             }
 
             primaryStage.show();
@@ -135,7 +135,7 @@ public class Main {
         primaryStage.hide();
         if (PlatformUtil.isMac()) {
             System.out.println("hiding dock icon");
-            DockVisibility.INSTANCE.hide();
+            DockVisibility.hide();
         }
     }
 
