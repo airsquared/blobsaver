@@ -99,7 +99,7 @@ public class Main {
                 if (Background.inBackground) {
                     primaryStage.hide();
                 } else {
-                    stop();
+                    Platform.exit();
                 }
             });
             appPrefs.put("App version", appVersion);
@@ -110,6 +110,7 @@ public class Main {
             if (Background.inBackground) {
                 Background.stopBackground(false);
             }
+            System.exit(0);
         }
     }
 }

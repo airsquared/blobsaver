@@ -24,7 +24,6 @@ import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -34,7 +33,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
@@ -113,6 +111,9 @@ public class Controller {
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
         }
+        if (PlatformUtil.isMac()) {
+            INSTANCE.useMacOSMenuBar();
+        }
         checkForUpdates(false);
     }
 
@@ -187,18 +188,6 @@ public class Controller {
             path = path + System.getProperty("file.separator") + "Blobs";
         }
         pathField.setText(path);
-
-        // use macos menu bar or not
-        if (PlatformUtil.isMac()) {
-            primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
-                @Override
-                public void handle(WindowEvent event) {
-                    useMacOSMenuBar();
-                    log("using macOS menu bar");
-                    primaryStage.removeEventHandler(event.getEventType(), this);
-                }
-            });
-        }
     }
 
     private static void addListenerToSetNullEffect(TextField... textFields) {
@@ -663,6 +652,7 @@ public class Controller {
 
         // needs to be run with Platform.runLater(), otherwise the application menu doesn't show up
         Platform.runLater(() -> tk.setGlobalMenuBar(macOSMenuBar));
+        log("using macOS menu bar");
     }
 
     public void backgroundSettingsHandler() {
