@@ -75,7 +75,7 @@ public class Main {
 
     static void showStage() {
         //show dock icon again or center on screen if actually hidden (as opposed to just being out of focus)
-        if (!Main.primaryStage.isShowing()) {
+        if (!primaryStage.isShowing()) {
             // centers on screen if it's not the first time it's opened and it's actually hidden
             System.out.println("attempting to center primaryStage");
             Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
@@ -105,10 +105,8 @@ public class Main {
     static void quit() {
         if (Background.inBackground) {
             Background.executor.shutdownNow();
-            Platform.runLater(Platform::exit);
-        } else {
-            Platform.exit();
         }
+        Platform.runLater(Platform::exit);
         System.exit(0);
     }
 
