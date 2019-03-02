@@ -24,11 +24,9 @@ import it.sauronsoftware.junique.JUnique;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import me.matetoes.libdockvisibility.DockVisibility;
 
@@ -77,10 +75,7 @@ public class Main {
         //show dock icon again or center on screen if actually hidden (as opposed to just being out of focus)
         if (!primaryStage.isShowing()) {
             // centers on screen if it's not the first time it's opened and it's actually hidden
-            System.out.println("attempting to center primaryStage");
-            Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-            primaryStage.setX((screenBounds.getWidth() - primaryStage.getWidth()) / 2);
-            primaryStage.setY((screenBounds.getHeight() - primaryStage.getHeight()) / 2);
+            primaryStage.centerOnScreen();
 
             if (PlatformUtil.isMac()) { // show the dock icon
                 System.out.println("showing dock icon");

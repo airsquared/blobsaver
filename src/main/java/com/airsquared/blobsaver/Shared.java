@@ -33,7 +33,13 @@ import org.json.JSONObject;
 import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -91,14 +97,8 @@ class Shared {
                         String response;
                         try {
                             response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
-                        } catch (FileNotFoundException e) {
-                            System.err.println("https://api.github.com/repos/airsquared/blobsaver/releases/latest " +
-                                    "doesn't exist??");
-                            e.printStackTrace();
-                            return null;
                         } catch (IOException e) {
-                            System.err.println("unknown IOException while checking for updates :( " +
-                                    "Are you connected to the internet?");
+                            Platform.runLater(() -> newReportableError("Unable to check for updates.", e.toString()));
                             e.printStackTrace();
                             return null;
                         }
