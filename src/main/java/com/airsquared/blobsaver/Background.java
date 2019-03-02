@@ -106,20 +106,18 @@ class Background {
             openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
-            exitItem.addActionListener(event -> Platform.exit());
+            exitItem.addActionListener(event -> Platform.runLater(Platform::exit));
 
             // setup the popup menu for the application.
             final PopupMenu popup = new PopupMenu();
             popup.add(openItem);
             popup.addSeparator();
-            if (Main.RUNNING_FROM_IDE) {
-                MenuItem debugItem = new MenuItem("Debug");
-                debugItem.addActionListener(
-                        event -> System.out.println("Add a breakpoint here!")); //add a breakpoint here to execute arbitrary code
-                popup.add(debugItem);
-                popup.addSeparator();
-            }
             popup.add(exitItem);
+            if (Main.SHOW_BREAKPOINT) {
+                MenuItem breakpointItem = new MenuItem("Breakpoint");
+                breakpointItem.addActionListener(e -> System.out.println("breakpoint"));
+                popup.add(breakpointItem);
+            }
             trayIcon.setPopupMenu(popup);
             trayIcon.addActionListener(showListener);
 

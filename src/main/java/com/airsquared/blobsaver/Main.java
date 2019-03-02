@@ -35,14 +35,17 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    //enables debug menu icon in tray icon and to create a breakpoint.
-    //You can also create a breakpoint on the helpLabelHandler() function and click the question marks to debug
-    static final boolean RUNNING_FROM_IDE = true;
-
     static final Version appVersion = new Version("2.2.4");
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;
+
+    /**
+     * Enables a menu item in the system tray to activate a breakpoint when in background and
+     * replaces the question mark help labels with activating a breakpoint instead.
+     * Remember to add a breakpoint in the correct methods to use this.
+     */
+    static final boolean SHOW_BREAKPOINT = false;
 
     public static void main(String[] args) {
         try {
