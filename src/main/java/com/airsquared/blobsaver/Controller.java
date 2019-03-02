@@ -21,9 +21,6 @@ package com.airsquared.blobsaver;
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
 import de.codecentric.centerdevice.MenuToolkit;
-import de.codecentric.centerdevice.labels.LabelMaker;
-import de.codecentric.centerdevice.labels.LabelName;
-import de.codecentric.centerdevice.util.StageUtils;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -31,9 +28,6 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -49,7 +43,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -103,11 +96,6 @@ public class Controller {
     @FXML private VBox presetVBox;
 
     @FXML private Button goButton;
-
-    //in order to make default about stage and quit menu item
-    private final LabelMaker labelMaker = new LabelMaker(Locale.ENGLISH);
-
-    private Stage aboutStage = null;
 
     boolean getBoardConfig = false;
     private boolean editingPresets = false;
@@ -202,18 +190,10 @@ public class Controller {
 
         // use macos menu bar or not
         if (PlatformUtil.isMac()) {
-            // use system menubar instead
-            menuBar.setUseSystemMenuBar(true);
-
-            // makes the app taller to compensate for the missing menu bar
-            ((VBox) menuBar.getParent()).setMinHeight(560.0);
-            ((VBox) menuBar.getParent()).setPrefHeight(560.0);
-            presetVBox.setMinHeight(560.0);
-            presetVBox.setPrefHeight(560.0);
             primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
                 @Override
                 public void handle(WindowEvent event) {
-                    Platform.runLater(() -> useMacOSMenuBar());
+                    useMacOSMenuBar();
                     log("using macOS menu bar");
                     primaryStage.removeEventHandler(event.getEventType(), this);
                 }
@@ -538,14 +518,15 @@ public class Controller {
         }
     }
 
+    private Stage aboutStage = null;
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void aboutMenuHandler() {
-        if (aboutStage != null) { //if about menu already opened
+        if (aboutStage != null) { // prevent opening multiple "About" windows
             aboutStage.toFront();
             aboutStage.requestFocus();
             return;
         }
-
         ButtonType githubRepo = new ButtonType("Github Repo");
         ButtonType viewLicense = new ButtonType("View License");
         ButtonType librariesUsed = new ButtonType("Libraries Used");
@@ -553,6 +534,7 @@ public class Controller {
         ButtonType customOK = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here",
                 librariesUsed, viewLicense, donate, githubRepo, customOK);
+
         alert.setTitle("About");
 
         //Deactivate default behavior for librariesUsed Button:
@@ -617,31 +599,15 @@ public class Controller {
         aboutStage = null;
     }
 
-    private MenuItem customQuitMenuItem() {
-        MenuItem quit = new MenuItem(labelMaker.getLabel(LabelName.QUIT, "blobsaver"));
-        quit.setOnAction(event -> Main.quit());
-        quit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.META_DOWN));
-        return quit;
-    }
-
-    //so that when close main app, all the other windows are closed too
-    private MenuItem createCloseWindowMenuItem() {
-        MenuItem menuItem = new MenuItem(labelMaker.getLabel(LabelName.CLOSE_WINDOW));
-        menuItem.setAccelerator(new KeyCodeCombination(KeyCode.W, KeyCombination.META_DOWN));
-        menuItem.setOnAction(event -> {
-            if (StageUtils.getFocusedStage().isPresent() &&
-                    StageUtils.getFocusedStage().get().equals(primaryStage)) {
-                System.out.println("looks like main stage was focused, hiding app...");
-                Main.hideStage();
-            } else {
-                System.out.println("looks like debug window or something else is focused, closing...");
-                StageUtils.closeCurrentStage();
-            }
-        });
-        return menuItem;
-    }
-
     private void useMacOSMenuBar() {
+        // resize stage to account for removed menu bar
+        ((VBox) menuBar.getParent()).setMinHeight(560.0);
+        ((VBox) menuBar.getParent()).setPrefHeight(560.0);
+        presetVBox.setMinHeight(560.0);
+        presetVBox.setPrefHeight(560.0);
+
+        ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
+
         MenuBar macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
@@ -660,7 +626,6 @@ public class Controller {
         clearAllDataMenuItem.setOnAction(event1 -> resetAppHandler());
         applicationMenu.getItems().add(3, new SeparatorMenuItem());
         applicationMenu.getItems().add(4, clearAllDataMenuItem);
-        applicationMenu.getItems().set(10, customQuitMenuItem());
 
         macOSMenuBar.getMenus().add(0, applicationMenu);
 
@@ -669,14 +634,13 @@ public class Controller {
 
         windowMenu.getItems().add(new SeparatorMenuItem());
         windowMenu.getItems().add(tk.createMinimizeMenuItem());
-        windowMenu.getItems().add(createCloseWindowMenuItem()); //TODO: add windows/linux equivalent [ctrl + w]
         windowMenu.getItems().add(tk.createCycleWindowsItem());
-
         windowMenu.getItems().add(new SeparatorMenuItem());
 
-        MenuItem debugLogMenuItem = new MenuItem("Open Debug Log");
+        MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug Log");
         debugLogMenuItem.setOnAction(event -> {
             debugLogHandler();
+            tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
         });
         windowMenu.getItems().add(debugLogMenuItem);
 
@@ -697,9 +661,11 @@ public class Controller {
         checkForValidBlobsMenuItem.setOnAction(event -> checkBlobs());
         helpMenu.getItems().set(5, checkForValidBlobsMenuItem);
         helpMenu.getItems().add(6, new SeparatorMenuItem());
+
         macOSMenuBar.getMenus().add(helpMenu);
 
-        tk.setGlobalMenuBar(macOSMenuBar);
+        // needs to be run with Platform.runLater(), otherwise the application menu doesn't show up
+        Platform.runLater(() -> tk.setGlobalMenuBar(macOSMenuBar));
     }
 
     public void backgroundSettingsHandler() {
@@ -836,7 +802,7 @@ public class Controller {
             deleteFolder(blobsaver_bin);
             Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall .exe. Otherwise, you can just delete the .app or .jar file.\nThe application will now exit.", ButtonType.OK);
             applicationCloseAlert.showAndWait();
-            Main.quit();
+            Platform.exit();
         } catch (BackingStoreException e) {
             newReportableError("There was an error resetting the application.", e.getMessage());
         }

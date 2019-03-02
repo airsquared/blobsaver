@@ -142,8 +142,14 @@ public class Main {
                     quit();
                 }
             });
+            appPrefs.put("App version", appVersion.toString());
+        }
 
-            appPrefs.put("App version", appVersion.toString()); //No uses for now; maybe needed later
+        @Override
+        public void stop() {
+            if (Background.inBackground) {
+                Background.stopBackground(false);
+            }
         }
     }
 }
