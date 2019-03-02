@@ -23,9 +23,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.util.Duration;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
@@ -39,16 +37,13 @@ import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
@@ -176,7 +171,6 @@ class Background {
     private static void saveBackgroundBlobs(int preset) {
         log("attempting to save for " + preset);
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
-//        presetPrefs.put("Saved Versions", "[]");                                                        // for testing
         String identifier;
         if ("none".equals(presetPrefs.get("Device model", ""))) {
             identifier = presetPrefs.get("Device Identifier", "");
@@ -184,9 +178,9 @@ class Background {
             identifier = textToIdentifier(presetPrefs.get("Device model", ""));
         }
         log("identifier:" + identifier);
-        String response;
+        List<String> signedVersions;
         try {
-            response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + identifier));
+            signedVersions = getAllSignedVersions(identifier);
         } catch (IOException e) {
             Notification notification = new Notification("Saving blobs failed", "Check your internet connection.\nIf it is working, click here to report this error.", Notification.ERROR_ICON);
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -204,32 +198,12 @@ class Background {
             Notification.Notifier.INSTANCE.notify(notification);
             return;
         }
-        log("made request");
-        JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
-        @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
-        List<String> signedVersions = firmwareList.stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).map(map -> map.get("version").toString()).collect(Collectors.toList());
         log("signed versions:" + signedVersions);
-        ArrayList<String> savedVersions = new ArrayList<>();
-        JSONArray savedVersionsJson = new JSONArray(presetPrefs.get("Saved Versions", "[]"));
-        for (int i = 0; i < savedVersionsJson.length(); i++) {
-            savedVersions.add(savedVersionsJson.getString(i));
-        }
-        log("saved versions:" + savedVersions);
-        ArrayList<String> versionsToSave = new ArrayList<>();
-        signedVersions.forEach(version -> {
-            if (!savedVersions.contains(version)) {
-                versionsToSave.add(version);
-            }
-        });
-        log("versions to save:" + versionsToSave);
-        if (versionsToSave.isEmpty()) {
-            return;
-        }
         String ecid = presetPrefs.get("ECID", "");
         String path = presetPrefs.get("Path", "");
         String boardConfig = presetPrefs.get("Board Config", "");
         String apnonce = presetPrefs.get("Apnonce", "");
-        for (String version : versionsToSave) {
+        for (String version : signedVersions) {
             File tsschecker;
             try {
                 tsschecker = getTsschecker();
@@ -288,7 +262,7 @@ class Background {
             } else {
                 presetName = appPrefs.get("Name Preset" + preset, "");
             }
-            if (StringUtils.containsIgnoreCase(tsscheckerLog, "Saved")) {
+            if (containsIgnoreCase(tsscheckerLog, "Saved")) {
                 Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
@@ -305,7 +279,7 @@ class Background {
 
                 log("displayed message");
 
-            } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "[Error] ERROR: TSS request failed: Could not resolve host:")) {
+            } else if (containsIgnoreCase(tsscheckerLog, "[Error] ERROR: TSS request failed: Could not resolve host:")) {
                 Notification notification = new Notification("Saving blobs failed", "Check your internet connection. If it is working, click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
@@ -320,7 +294,7 @@ class Background {
                     reportError(alert, tsscheckerLog);
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-            } else if (StringUtils.containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + identifier + " IS NOT being signed")) {
+            } else if (containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + identifier + " IS NOT being signed")) {
                 continue;
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);
@@ -337,8 +311,6 @@ class Background {
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
             }
-            savedVersions.add(version);
-            presetPrefs.put("Saved Versions", new JSONArray(savedVersions).toString());
             log("it worked");
         }
     }

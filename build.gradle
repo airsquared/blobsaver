@@ -42,7 +42,7 @@ dependencies {
     compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6" //for macOS menu bar
     compile 'net.java.dev.jna:jna:5.2.0' //for dock visibility
     testCompile 'junit:junit:4.12'
-    implementation 'org.apache.commons:commons-lang3:3.8.1'
+//    implementation 'org.apache.commons:commons-lang3:3.8.1' //waiting for ProGuard implementation
 }
 
 build {
@@ -75,6 +75,7 @@ macAppBundle {
     appName = 'blobsaver'
     dmgName = 'blobsaver-macos'
     volumeName = 'blobsaver-macos'
+    bundleExtras.put("LSUIElement", "YES")
 }
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller

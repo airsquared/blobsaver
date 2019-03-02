@@ -27,6 +27,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -54,7 +55,10 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
@@ -190,7 +194,7 @@ class Shared {
         }
     }
 
-    static File getlibimobiledeviceFolder() throws IOException {
+    static File getLibimobiledeviceFolder() throws IOException {
         File libimobiledeviceFolder;
         if (PlatformUtil.isMac()) {
             libimobiledeviceFolder = new File(getExecutablesFolder(), "libimobiledevice_mac/");
@@ -409,5 +413,69 @@ class Shared {
         } else {
             Platform.runLater(runnable);
         }
+    }
+
+    static List<String> getAllSignedVersions(String deviceIdentifier) throws IOException {
+        String response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + deviceIdentifier));
+        JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
+        @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
+        return firmwareList.stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).map(map -> map.get("version").toString()).collect(Collectors.toList());
+    }
+
+    // temporary until ProGuard is implemented
+    static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+        if (str == null || searchStr == null) {
+            return false;
+        }
+        final int len = searchStr.length();
+        final int max = str.length() - len;
+        for (int i = 0; i <= max; i++) {
+            if (regionMatches(str, i, searchStr, len)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // temporary until ProGuard is implemented
+    private static boolean regionMatches(final CharSequence cs, final int thisStart,
+                                         final CharSequence substring, final int length) {
+        if (cs instanceof String && substring instanceof String) {
+            return ((String) cs).regionMatches(true, thisStart, (String) substring, 0, length);
+        }
+        int index1 = thisStart;
+        int index2 = 0;
+        int tmpLen = length;
+
+        // Extract these first so we detect NPEs the same as the java.lang.String version
+        final int srcLen = cs.length() - thisStart;
+        final int otherLen = substring.length();
+
+        // Check for invalid parameters
+        if (thisStart < 0 || length < 0) {
+            return false;
+        }
+
+        // Check that the regions are long enough
+        if (srcLen < length || otherLen < length) {
+            return false;
+        }
+
+        while (tmpLen-- > 0) {
+            final char c1 = cs.charAt(index1++);
+            final char c2 = substring.charAt(index2++);
+
+            if (c1 == c2) {
+                continue;
+            }
+
+            // The same check as in String.regionMatches():
+            if (Character.toUpperCase(c1) != Character.toUpperCase(c2)
+                    && Character.toLowerCase(c1) != Character.toLowerCase(c2)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

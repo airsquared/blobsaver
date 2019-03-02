@@ -45,7 +45,7 @@ public class Main {
     //You can also create a breakpoint on the helpLabelHandler() function and click the question marks to debug
     static final boolean DEBUG_MODE = true;
 
-    static final Version appVersion = new Version("2.2.3");
+    static final Version appVersion = new Version("2.2.4");
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     private static boolean firstTimeShown = true; //whether it is the first time that primaryStage is shown
@@ -108,7 +108,7 @@ public class Main {
 
             if (PlatformUtil.isMac()) { //show the dock icon
                 System.out.println("showing dock icon");
-                DockVisibility.INSTANCE.show();
+                DockVisibility.show();
             }
 
             primaryStage.show();
@@ -135,7 +135,7 @@ public class Main {
         primaryStage.hide();
         if (PlatformUtil.isMac()) {
             System.out.println("hiding dock icon");
-            DockVisibility.INSTANCE.hide();
+            DockVisibility.hide();
         }
     }
 
