@@ -53,7 +53,7 @@ class Background {
 
     static boolean inBackground = false;
 
-    private static ScheduledExecutorService executor;
+    static ScheduledExecutorService executor;
     private static TrayIcon trayIcon;
 
     static ArrayList<String> getPresetsToSaveFor() {
