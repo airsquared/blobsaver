@@ -108,6 +108,9 @@ public class Controller {
     private final LabelMaker labelMaker = new LabelMaker(Locale.ENGLISH);
 
     private MenuBar macOSMenuBar;
+
+    private Stage aboutStage = null;
+
     boolean getBoardConfig = false;
     private boolean editingPresets = false;
     private boolean choosingRunInBackground = false;
@@ -476,7 +479,9 @@ public class Controller {
     public void checkBlobs() { openURL("https://tsssaver.1conan.com/check.php"); }
 
     public void helpLabelHandler(MouseEvent evt) {
-        if (Main.DEBUG_MODE) return; //click on the question mark and add this method as a breakpoint
+        if (Main.DEBUG_MODE) {
+            return; //click on the question mark and add this method as a breakpoint
+        }
         String labelID;
         // if user clicks on question mark instead of padding, evt.getTarget() returns LabeledText instead of Label
         if (evt.getTarget() instanceof LabeledText) {
@@ -536,9 +541,8 @@ public class Controller {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void aboutMenuHandler() { //handles the "About Blobsaver" menu
-        Stage aboutStage;
-        if ((aboutStage = Main.getStage("About")) != null) { //if about menu already opened
+    public void aboutMenuHandler() {
+        if (aboutStage != null) { //if about menu already opened
             aboutStage.toFront();
             aboutStage.requestFocus();
             return;
@@ -567,14 +571,7 @@ public class Controller {
 
         resizeAlertButtons(alert);
 
-        Platform.runLater(() -> { //run this later so that alert.showAndWait() makes the stage first
-            Stage aboutStage2; //aboutStage is already used in this scope
-            if ((aboutStage2 = Main.getStage("About")) != null) {
-                aboutStage2.setAlwaysOnTop(true);
-            } else {
-                System.out.println("bad news: About stage hasn't been initialized yet");
-            }
-        });
+        aboutStage = (Stage) alert.getDialogPane().getScene().getWindow();
 
         alert.showAndWait();
         switch (alert.getResult().getText()) {
@@ -877,7 +874,7 @@ public class Controller {
 
     public void debugLogHandler() {
         if (DebugWindow.isShowing()) {
-            DebugWindow.getFocus();
+            DebugWindow.hide();
         } else {
             DebugWindow.show();
         }
