@@ -112,7 +112,7 @@ class Background {
             final PopupMenu popup = new PopupMenu();
             popup.add(openItem);
             popup.addSeparator();
-            if (Main.DEBUG_MODE) {
+            if (Main.RUNNING_FROM_IDE) {
                 MenuItem debugItem = new MenuItem("Debug");
                 debugItem.addActionListener(
                         event -> System.out.println("Add a breakpoint here!")); //add a breakpoint here to execute arbitrary code

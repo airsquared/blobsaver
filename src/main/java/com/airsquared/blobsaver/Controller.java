@@ -479,7 +479,7 @@ public class Controller {
     public void checkBlobs() { openURL("https://tsssaver.1conan.com/check.php"); }
 
     public void helpLabelHandler(MouseEvent evt) {
-        if (Main.DEBUG_MODE) {
+        if (Main.RUNNING_FROM_IDE) {
             return; //click on the question mark and add this method as a breakpoint
         }
         String labelID;

@@ -39,7 +39,7 @@ public class Main {
 
     //enables debug menu icon in tray icon and to create a breakpoint.
     //You can also create a breakpoint on the helpLabelHandler() function and click the question marks to debug
-    static final boolean DEBUG_MODE = true;
+    static final boolean RUNNING_FROM_IDE = true;
 
     static final Version appVersion = new Version("2.2.4");
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
