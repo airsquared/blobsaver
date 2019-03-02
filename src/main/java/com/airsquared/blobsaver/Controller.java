@@ -107,8 +107,6 @@ public class Controller {
     //in order to make default about stage and quit menu item
     private final LabelMaker labelMaker = new LabelMaker(Locale.ENGLISH);
 
-    private MenuBar macOSMenuBar;
-
     private Stage aboutStage = null;
 
     boolean getBoardConfig = false;
@@ -642,9 +640,8 @@ public class Controller {
         return menuItem;
     }
 
-    //sets up mac OS menu bar and returns it
-    private MenuBar getMacOSMenuBar() {
-        macOSMenuBar = new MenuBar();
+    private void useMacOSMenuBar() {
+        MenuBar macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
         Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver");
@@ -679,7 +676,6 @@ public class Controller {
         MenuItem debugLogMenuItem = new MenuItem("Open Debug Log");
         debugLogMenuItem.setOnAction(event -> {
             debugLogHandler();
-            tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
         });
         windowMenu.getItems().add(debugLogMenuItem);
 
@@ -701,19 +697,8 @@ public class Controller {
         helpMenu.getItems().set(5, checkForValidBlobsMenuItem);
         helpMenu.getItems().add(6, new SeparatorMenuItem());
         macOSMenuBar.getMenus().add(helpMenu);
-
-        return macOSMenuBar;
-    }
-
-    private void useMacOSMenuBar() {
-        if (macOSMenuBar == null) {
-            macOSMenuBar = getMacOSMenuBar();
-        }
-        MenuToolkit.toolkit().setGlobalMenuBar(macOSMenuBar);
-        System.out.println("setting macos menu bar as global menu bar");
-        if (macOSMenuBar.getMenus().get(0).getItems().size() != 11) {
-            System.out.println("bad news: not right size: " + macOSMenuBar.getMenus().get(0).getItems().toString());
-        }
+        
+        tk.setGlobalMenuBar(macOSMenuBar);
     }
 
     public void backgroundSettingsHandler() {
