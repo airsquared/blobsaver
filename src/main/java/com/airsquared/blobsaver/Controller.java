@@ -29,19 +29,7 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -73,7 +61,7 @@ import static com.airsquared.blobsaver.Shared.*;
 public class Controller {
 
 
-    @FXML public MenuBar menuBar;
+    @FXML private MenuBar menuBar;
 
     @FXML private ChoiceBox deviceTypeChoiceBox;
     @FXML private ChoiceBox deviceModelChoiceBox;
@@ -112,7 +100,7 @@ public class Controller {
     @FXML private Button preset10Button;
     private ArrayList<Button> presetButtons;
 
-    @FXML public VBox presetVBox;
+    @FXML private VBox presetVBox;
 
     @FXML private Button goButton;
 
@@ -350,7 +338,7 @@ public class Controller {
         if (!"".equals(prefs.get("Path", ""))) {
             pathField.setText(prefs.get("Path", ""));
         }
-        if ("none".equals(prefs.get("Device model", ""))) {
+        if ("none".equals(prefs.get("Device Model", ""))) {
             identifierCheckBox.setSelected(true);
             identifierCheckBoxHandler();
             identifierField.setText(prefs.get("Device Identifier", ""));
@@ -358,7 +346,7 @@ public class Controller {
             identifierCheckBox.setSelected(false);
             identifierCheckBoxHandler();
             deviceTypeChoiceBox.setValue(prefs.get("Device Type", ""));
-            deviceModelChoiceBox.setValue(prefs.get("Device model", ""));
+            deviceModelChoiceBox.setValue(prefs.get("Device Model", ""));
         }
         if (!"none".equals(prefs.get("Board Config", ""))) {
             boardConfigField.setText(prefs.get("Board Config", ""));
@@ -446,11 +434,11 @@ public class Controller {
         presetPrefs.put("Path", pathField.getText());
         if (identifierCheckBox.isSelected()) {
             presetPrefs.put("Device Type", "none");
-            presetPrefs.put("Device model", "none");
+            presetPrefs.put("Device Model", "none");
             presetPrefs.put("Device Identifier", identifierField.getText());
         } else {
             presetPrefs.put("Device Type", (String) deviceTypeChoiceBox.getValue());
-            presetPrefs.put("Device model", (String) deviceModelChoiceBox.getValue());
+            presetPrefs.put("Device Model", (String) deviceModelChoiceBox.getValue());
         }
         if (getBoardConfig) {
             presetPrefs.put("Board Config", boardConfigField.getText());
