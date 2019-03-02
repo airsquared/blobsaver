@@ -614,6 +614,7 @@ public class Controller {
                 donate();
                 break;
         }
+        aboutStage = null;
     }
 
     private MenuItem customQuitMenuItem() {
@@ -697,7 +698,7 @@ public class Controller {
         helpMenu.getItems().set(5, checkForValidBlobsMenuItem);
         helpMenu.getItems().add(6, new SeparatorMenuItem());
         macOSMenuBar.getMenus().add(helpMenu);
-        
+
         tk.setGlobalMenuBar(macOSMenuBar);
     }
 
