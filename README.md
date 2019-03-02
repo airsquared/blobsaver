@@ -1,6 +1,6 @@
 Help support this project by ⭐️'ing it! [Donations](https://www.paypal.me/airsqrd) also appreciated!
 
-# blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases/latest) 
+# blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases/latest) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/21c7f52476c948c9adc0439c0b6841ad)](https://app.codacy.com/app/airsquared/blobsaver?utm_source=github.com&utm_medium=referral&utm_content=airsquared/blobsaver&utm_campaign=Badge_Grade_Dashboard)
 A GUI for saving SHSH blobs using s0uthwest's fork of tsschecker. Supports Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
 
 **Tip:** if you want blobs you save to automatically be uploaded to the cloud, see [this](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud\(Dropbox,-Google-Drive,-iCloud\))
