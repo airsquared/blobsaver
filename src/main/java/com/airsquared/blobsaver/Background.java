@@ -52,7 +52,8 @@ import static com.airsquared.blobsaver.Shared.*;
 class Background {
 
     static boolean inBackground = false;
-    static ScheduledExecutorService executor;
+
+    private static ScheduledExecutorService executor;
     private static TrayIcon trayIcon;
 
     static ArrayList<String> getPresetsToSaveFor() {
@@ -172,10 +173,10 @@ class Background {
         log("attempting to save for " + preset);
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
         String identifier;
-        if ("none".equals(presetPrefs.get("Device model", ""))) {
+        if ("none".equals(presetPrefs.get("Device Model", ""))) {
             identifier = presetPrefs.get("Device Identifier", "");
         } else {
-            identifier = textToIdentifier(presetPrefs.get("Device model", ""));
+            identifier = textToIdentifier(presetPrefs.get("Device Model", ""));
         }
         log("identifier:" + identifier);
         List<String> signedVersions;
