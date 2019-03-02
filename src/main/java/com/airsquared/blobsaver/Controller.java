@@ -33,6 +33,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
@@ -514,8 +515,15 @@ public class Controller {
         }
     }
 
+    private Stage aboutStage = null;
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void aboutMenuHandler() {
+        if (aboutStage != null) { // prevent opening multiple "About" windows
+            aboutStage.toFront();
+            aboutStage.requestFocus();
+            return;
+        }
         ButtonType githubRepo = new ButtonType("Github Repo");
         ButtonType viewLicense = new ButtonType("View License");
         ButtonType librariesUsed = new ButtonType("Libraries Used");
@@ -523,6 +531,7 @@ public class Controller {
         ButtonType customOK = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "About text here",
                 librariesUsed, viewLicense, donate, githubRepo, customOK);
+
         alert.setTitle("About");
 
         //Deactivate default behavior for librariesUsed Button:
@@ -538,6 +547,9 @@ public class Controller {
                 "This program is licensed under GNU GPL v3.0-only");
 
         resizeAlertButtons(alert);
+
+        aboutStage = (Stage) alert.getDialogPane().getScene().getWindow();
+
         alert.showAndWait();
         switch (alert.getResult().getText()) {
             case "Github Repo":
@@ -581,6 +593,7 @@ public class Controller {
                 donate();
                 break;
         }
+        aboutStage = null;
     }
 
     private void useMacOSMenuBar() {
