@@ -584,13 +584,14 @@ public class Controller {
     }
 
     private void useMacOSMenuBar() {
-
+        // resize stage to account for removed menu bar
         ((VBox) menuBar.getParent()).setMinHeight(560.0);
         ((VBox) menuBar.getParent()).setPrefHeight(560.0);
         presetVBox.setMinHeight(560.0);
         presetVBox.setPrefHeight(560.0);
 
-        menuBar.setUseSystemMenuBar(true);
+        ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
+
         MenuBar macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
@@ -618,13 +619,13 @@ public class Controller {
         windowMenu.getItems().add(new SeparatorMenuItem());
         windowMenu.getItems().add(tk.createMinimizeMenuItem());
         windowMenu.getItems().add(tk.createCycleWindowsItem());
+        windowMenu.getItems().add(new SeparatorMenuItem());
 
         MenuItem debugLogMenuItem = new MenuItem("Open/Close Debug Log");
         debugLogMenuItem.setOnAction(event -> {
             debugLogHandler();
             tk.setMenuBar(DebugWindow.getDebugStage(), macOSMenuBar);
         });
-        windowMenu.getItems().add(new SeparatorMenuItem());
         windowMenu.getItems().add(debugLogMenuItem);
 
         windowMenu.getItems().add(new SeparatorMenuItem());
@@ -647,8 +648,8 @@ public class Controller {
 
         macOSMenuBar.getMenus().add(helpMenu);
 
-
-        tk.setMenuBar(primaryStage, macOSMenuBar);
+        // needs to be run with Platform.runLater(), otherwise the application menu doesn't show up
+        Platform.runLater(() -> tk.setGlobalMenuBar(macOSMenuBar));
     }
 
     public void backgroundSettingsHandler() {
