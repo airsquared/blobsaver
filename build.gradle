@@ -34,8 +34,8 @@ repositories {
 dependencies {
     compile group: 'org.json', name: 'json', version: '20180813'
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile group: 'it.sauronsoftware', name: 'junique', version: '1.0.4' //for only one copy of blobsaver at a time
-    compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6" //for macOS menu bar
+    compile group: 'it.sauronsoftware', name: 'junique', version: '1.0.4'
+    compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6" // macOS menu bar
     compile 'net.java.dev.jna:jna:5.2.0'
 
     testCompile 'junit:junit:4.12'
