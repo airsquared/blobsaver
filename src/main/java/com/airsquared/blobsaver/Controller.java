@@ -446,6 +446,8 @@ public class Controller {
     public void checkBlobs() { openURL("https://tsssaver.1conan.com/check.php"); }
 
     public void helpLabelHandler(MouseEvent evt) {
+        if (Main.SHOW_BREAKPOINT) return; // remember to put a breakpoint here
+
         String labelID;
         // if user clicks on question mark instead of padding, evt.getTarget() returns LabeledText instead of Label
         if (evt.getTarget() instanceof LabeledText) {

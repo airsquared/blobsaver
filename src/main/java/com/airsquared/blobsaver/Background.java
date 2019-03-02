@@ -112,6 +112,11 @@ class Background {
             popup.add(openItem);
             popup.addSeparator();
             popup.add(exitItem);
+            if (Main.SHOW_BREAKPOINT) {
+                MenuItem breakpointItem = new MenuItem("Breakpoint");
+                breakpointItem.addActionListener(e -> System.out.println("breakpoint"));
+                popup.add(breakpointItem);
+            }
             trayIcon.setPopupMenu(popup);
 
             // add the application tray icon to the system tray.

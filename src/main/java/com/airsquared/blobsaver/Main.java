@@ -40,6 +40,13 @@ public class Main {
     private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;
 
+    /**
+     * Enables a menu item in the system tray to activate a breakpoint when in background and
+     * replaces the question mark help labels with activating a breakpoint instead.
+     * Remember to add a breakpoint in the correct methods to use this.
+     */
+    static final boolean SHOW_BREAKPOINT = false;
+
     public static void main(String[] args) {
         try {
             JUnique.acquireLock(appID);
