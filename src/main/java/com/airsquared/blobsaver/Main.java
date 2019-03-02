@@ -33,7 +33,6 @@ import javafx.stage.Stage;
 import me.matetoes.libdockvisibility.DockVisibility;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.prefs.Preferences;
 
 public class Main {
@@ -119,35 +118,21 @@ public class Main {
             launch(args);
         }
 
-        private static void setupStage(URL fxml, String css) throws IOException {
-            Parent root = FXMLLoader.load(fxml);
-            primaryStage.setTitle("blobsaver " + Main.appVersion);
-            primaryStage.setScene(new Scene(root));
-            primaryStage.getScene().getStylesheets().add(css);
-            primaryStage.setResizable(false);
-        }
-
         @Override
         public void start(Stage primaryStage) throws IOException {
             Main.primaryStage = primaryStage;
-
-            //setup stage
-            setupStage(getClass().getResource("blobsaver.fxml"),
-                    getClass().getResource("app.css").toExternalForm());
-
-            //sets up the dock icon
-            if (PlatformUtil.isMac()) {
+            Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
+            primaryStage.setTitle("blobsaver " + Main.appVersion);
+            primaryStage.setScene(new Scene(root));
+            primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
+            if (PlatformUtil.isMac()) { // setup the dock icon
                 com.apple.eawt.Application.getApplication().setDockIconImage(javax.imageio.ImageIO.read(getClass().getResourceAsStream("blob_emoji.png")));
             } else {
                 primaryStage.getIcons().clear();
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
             }
-
-            //sets up preset and checks for updates
+            primaryStage.setResizable(false);
             Controller.afterStageShowing();
-
-
-            //starts background
             Platform.setImplicitExit(false);
             if (appPrefs.getBoolean("Start background immediately", false)) {
                 Background.startBackground(false);
