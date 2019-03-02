@@ -97,14 +97,6 @@ public class Main {
         }
     }
 
-    static void quit() {
-        if (Background.inBackground) {
-            Background.executor.shutdownNow();
-        }
-        Platform.runLater(Platform::exit);
-        System.exit(0);
-    }
-
     public static class JavaFxApplication extends Application {
 
         static void launchIt(String[] args) {
@@ -139,7 +131,7 @@ public class Main {
                 if (Background.inBackground) {
                     hideStage();
                 } else {
-                    quit();
+                    Platform.exit();
                 }
             });
             appPrefs.put("App version", appVersion.toString());
@@ -150,6 +142,7 @@ public class Main {
             if (Background.inBackground) {
                 Background.stopBackground(false);
             }
+            System.exit(0);
         }
     }
 }

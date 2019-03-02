@@ -106,7 +106,7 @@ class Background {
             openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
-            exitItem.addActionListener(event -> Main.quit());
+            exitItem.addActionListener(event -> Platform.exit());
 
             // setup the popup menu for the application.
             final PopupMenu popup = new PopupMenu();
