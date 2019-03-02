@@ -534,7 +534,7 @@ public class Controller {
         OkButton.setDefaultButton(true);
 
         alert.setHeaderText("blobsaver " + appVersion);
-        alert.setContentText("blobsaver Copyright (c) 2018  airsquared\n\n" +
+        alert.setContentText("blobsaver Copyright (c) 2019  airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
 
         resizeAlertButtons(alert);

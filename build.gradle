@@ -72,11 +72,12 @@ macAppBundle {
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
     mainClassName = "com.airsquared.blobsaver.Main"
-    copyright = "Copyright (c) 2018  airsquared"
+    copyright = "Copyright (c) 2019  airsquared"
     downloadUrl = "https://java.com/inc/BrowserRedirect1.jsp"
     icon = "${projectDir}/icons/blob_emoji.ico"
 }
 
+// if your platform isn't Windows, "wine" is required to run this task
 task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
     // IMPORTANT: first make sure you have installed Inno Setup
     //            Install Inno Setup Preprocessor (ISPP) along with Inno Setup
@@ -94,21 +95,23 @@ task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
     }
 }
 
-void buildEverything() {
-    println "creating fat/uber jar with shadowJar:"
-    shadowJar.execute()
-    println "creating mac app bundle:"
-    if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
-        println "  creating full .dmg"
-        createDmg.execute()
-    } else {
-        println "  creating .zip with .app inside"
-        createAppZip.execute()
+task buildEverything() {
+    doLast {
+        println "creating fat/uber jar with shadowJar:"
+        shadowJar.execute()
+        println "creating mac app bundle:"
+        if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
+            println "  creating full .dmg"
+            createDmg.execute()
+        } else {
+            println "  creating .zip with .app inside"
+            createAppZip.execute()
+        }
+        println "creating windows installer with inno setup:"
+        println "         **IMPORTANT:** (for creating windows installer)"
+        println "  first make sure you have installed Inno Setup first"
+        println "  and make sure you have wine in your path if you are not on windows"
+        println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
+        createWindowsInstaller.execute()
     }
-    println "creating windows installer with inno setup:"
-    println "         **IMPORTANT:** (for creating windows installer)"
-    println "  first make sure you have installed Inno Setup first"
-    println "  and make sure you have wine in your path if you are not on windows"
-    println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
-    createWindowsInstaller.execute()
 }
