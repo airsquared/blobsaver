@@ -766,6 +766,10 @@ public class Controller {
             appPrefs.putBoolean("Start background immediately", false);
             startBackgroundButton.setText("Start background");
         } else if (appPrefs.getBoolean("Show background startup message", true)) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
+                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
+            alert.showAndWait();
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
             startBackgroundButton.setText("Stop background");
