@@ -19,7 +19,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="Gradle: org.json:json:20180130" level="project" />
+    <orderEntry type="library" name="Gradle: org.json:json:20180813" level="project" />
     <orderEntry type="library" name="Gradle: it.sauronsoftware:junique:1.0.4" level="project" />
     <orderEntry type="library" name="Gradle: de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6" level="project" />
     <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:5.2.0" level="project" />
