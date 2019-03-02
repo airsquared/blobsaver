@@ -24,6 +24,7 @@ import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -33,6 +34,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
@@ -111,9 +113,6 @@ public class Controller {
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
         }
-        if (PlatformUtil.isMac()) {
-            INSTANCE.useMacOSMenuBar();
-        }
         checkForUpdates(false);
     }
 
@@ -188,6 +187,25 @@ public class Controller {
             path = path + System.getProperty("file.separator") + "Blobs";
         }
         pathField.setText(path);
+
+
+        if (PlatformUtil.isMac()) {
+            // resize stage to account for removed menu bar
+            ((VBox) menuBar.getParent()).setMinHeight(560.0);
+            ((VBox) menuBar.getParent()).setPrefHeight(560.0);
+            presetVBox.setMinHeight(560.0);
+            presetVBox.setPrefHeight(560.0);
+
+            ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
+
+            primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
+                @Override
+                public void handle(WindowEvent event) {
+                    useMacOSMenuBar();
+                    primaryStage.removeEventHandler(event.getEventType(), this);
+                }
+            });
+        }
     }
 
     private static void addListenerToSetNullEffect(TextField... textFields) {
@@ -590,14 +608,6 @@ public class Controller {
     }
 
     private void useMacOSMenuBar() {
-        // resize stage to account for removed menu bar
-        ((VBox) menuBar.getParent()).setMinHeight(560.0);
-        ((VBox) menuBar.getParent()).setPrefHeight(560.0);
-        presetVBox.setMinHeight(560.0);
-        presetVBox.setPrefHeight(560.0);
-
-        ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
-
         MenuBar macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 

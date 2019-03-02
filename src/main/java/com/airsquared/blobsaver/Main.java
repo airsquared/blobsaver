@@ -75,27 +75,17 @@ public class Main {
     }
 
     static void showStage() {
-        //show dock icon again or center on screen if actually hidden (as opposed to just being out of focus)
-        if (!primaryStage.isShowing()) {
-            // centers on screen if it's not the first time it's opened and it's actually hidden
-            primaryStage.centerOnScreen();
-
-            if (PlatformUtil.isMac()) { // show the dock icon
-                System.out.println("showing dock icon");
-                DockVisibility.show();
-            }
-
-            primaryStage.show();
+        if (PlatformUtil.isMac()) {
+            DockVisibility.show();
         }
-
-        primaryStage.toFront();
+        primaryStage.show();
+        primaryStage.centerOnScreen();
         primaryStage.requestFocus();
     }
 
     static void hideStage() {
         primaryStage.hide();
         if (PlatformUtil.isMac()) {
-            System.out.println("hiding dock icon");
             DockVisibility.hide();
         }
     }

@@ -53,7 +53,7 @@ class Background {
 
     static boolean inBackground = false;
 
-    static ScheduledExecutorService executor;
+    private static ScheduledExecutorService executor;
     private static TrayIcon trayIcon;
 
     static ArrayList<String> getPresetsToSaveFor() {
@@ -317,14 +317,13 @@ class Background {
     static void stopBackground(boolean showAlert) {
         inBackground = false;
         executor.shutdownNow();
-        SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
-        if (showAlert && Platform.isFxApplicationThread()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "The background process has been cancelled",
-                    ButtonType.OK);
-            alert.showAndWait();
-        } else if (showAlert) {
-            Platform.runLater(() -> {
+        if (SwingUtilities.isEventDispatchThread()) {
+            SystemTray.getSystemTray().remove(trayIcon);
+        } else {
+            SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
+        }
+        if (showAlert) {
+            Shared.runSafe(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
                         "The background process has been cancelled",
                         ButtonType.OK);
