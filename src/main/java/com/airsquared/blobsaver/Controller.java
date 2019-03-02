@@ -750,8 +750,6 @@ public class Controller {
                 appPrefs.putBoolean("Show background startup message", true);
                 appPrefs.putBoolean("Start background immediately", false);
                 Platform.exit();
-                Background.stopBackground(false);
-                System.exit(0);
             } else {
                 Background.stopBackground(true);
                 appPrefs.putBoolean("Show background startup message", true);
@@ -766,7 +764,6 @@ public class Controller {
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
             Platform.exit();
-            System.exit(0);
         } else if (appPrefs.getBoolean("Show background startup message", true)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
@@ -809,7 +806,6 @@ public class Controller {
             Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall .exe. Otherwise, you can just delete the .app or .jar file.\nThe application will now exit.", ButtonType.OK);
             applicationCloseAlert.showAndWait();
             Platform.exit();
-            System.exit(0);
         } catch (BackingStoreException e) {
             newReportableError("There was an error resetting the application.", e.getMessage());
         }

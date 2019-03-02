@@ -105,12 +105,7 @@ class Background {
             openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
-            exitItem.addActionListener(event -> {
-                executor.shutdownNow();
-                Platform.runLater(Platform::exit);
-                tray.remove(trayIcon);
-                System.exit(0);
-            });
+            exitItem.addActionListener(event -> Platform.runLater(Platform::exit));
 
             // setup the popup menu for the application.
             final PopupMenu popup = new PopupMenu();
@@ -321,14 +316,13 @@ class Background {
     static void stopBackground(boolean showAlert) {
         inBackground = false;
         executor.shutdownNow();
-        SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
-        if (showAlert && Platform.isFxApplicationThread()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "The background process has been cancelled",
-                    ButtonType.OK);
-            alert.showAndWait();
-        } else if (showAlert) {
-            Platform.runLater(() -> {
+        if (SwingUtilities.isEventDispatchThread()) {
+            SystemTray.getSystemTray().remove(trayIcon);
+        } else {
+            SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
+        }
+        if (showAlert) {
+            Shared.runSafe(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
                         "The background process has been cancelled",
                         ButtonType.OK);

@@ -99,11 +99,17 @@ public class Main {
                 if (Background.inBackground) {
                     primaryStage.hide();
                 } else {
-                    Platform.exit();
-                    System.exit(0);
+                    stop();
                 }
             });
             appPrefs.put("App version", appVersion);
+        }
+
+        @Override
+        public void stop() {
+            if (Background.inBackground) {
+                Background.stopBackground(false);
+            }
         }
     }
 }
