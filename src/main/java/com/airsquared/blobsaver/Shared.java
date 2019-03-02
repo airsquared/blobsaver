@@ -18,7 +18,6 @@
 
 package com.airsquared.blobsaver;
 
-import com.airsquared.blobsaver.model.Version;
 import com.sun.javafx.PlatformUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
@@ -34,14 +33,7 @@ import org.json.JSONObject;
 import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;

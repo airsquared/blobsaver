@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver.model;
+package com.airsquared.blobsaver;
 
 public class Version implements Comparable<Version> {
 
@@ -27,10 +27,12 @@ public class Version implements Comparable<Version> {
     }
 
     public Version(String version) {
-        if (version == null)
+        if (version == null) {
             throw new IllegalArgumentException("Version can not be null");
-        if (!version.matches("[0-9]+(\\.[0-9]+)*"))
+        }
+        if (!version.matches("[0-9]+(\\.[0-9]+)*")) {
             throw new IllegalArgumentException("Invalid version format");
+        }
         this.version = version;
     }
 
@@ -59,12 +61,9 @@ public class Version implements Comparable<Version> {
 
     @Override
     public boolean equals(Object that) {
-        if (this == that)
-            return true;
-        if (that == null)
+        if (!(that instanceof Version)) {
             return false;
-        if (this.getClass() != that.getClass())
-            return false;
+        }
         return this.compareTo((Version) that) == 0;
     }
 
