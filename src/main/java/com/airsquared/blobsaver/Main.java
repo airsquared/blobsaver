@@ -45,7 +45,6 @@ public class Main {
     static final Version appVersion = new Version("2.2.4");
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
-    private static boolean firstTimeShown = true; //whether it is the first time that primaryStage is shown
     static Stage primaryStage;
 
     public static void main(String[] args) {
@@ -90,7 +89,6 @@ public class Main {
             }
 
             primaryStage.show();
-            firstTimeShown = false;
         }
 
         primaryStage.toFront();
