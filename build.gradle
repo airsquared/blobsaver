@@ -20,7 +20,6 @@ plugins {
     id 'edu.sc.seis.launch4j' version '2.4.4' // for bundling into .exe
     id "edu.sc.seis.macAppBundle" version "2.3.0" // for bundling into .app
     id 'com.github.johnrengelman.shadow' version '4.0.4' // for fat jar
-    id 'se.patrikerdes.use-latest-versions' version '0.2.8' // for updating Gradle plugins
     id 'com.github.ben-manes.versions' version '0.20.0'
     id 'java'
 }
@@ -30,9 +29,6 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    maven {
-        url "http://repo.spring.io/plugins-release/" // for junique
-    }
 }
 
 dependencies {
@@ -40,14 +36,9 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile group: 'it.sauronsoftware', name: 'junique', version: '1.0.4' //for only one copy of blobsaver at a time
     compile "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.6" //for macOS menu bar
-    compile 'net.java.dev.jna:jna:5.2.0' //for dock visibility
-    testCompile 'junit:junit:4.12'
-//    implementation 'org.apache.commons:commons-lang3:3.8.1' //waiting for ProGuard implementation
-}
+    compile 'net.java.dev.jna:jna:5.2.0'
 
-build {
-//    minifyEnabled = true //probably only works for android. Would've been a good alternative to ProGuard, though
-//    buildConfigField "boolean", "debugMode", false //maybe only works for android?
+    testCompile 'junit:junit:4.12'
 }
 
 compileJava {
@@ -85,7 +76,7 @@ launch4j { // Windows only, don't use this, use createWindowsInstaller
     icon = "${projectDir}/icons/blob_emoji.ico"
 }
 
-//you need to be on Windows or have 'wine' in your CLASSPATH
+// if your platform isn't Windows, "wine" is required to run this task
 task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
     // IMPORTANT: first make sure you have installed Inno Setup
     //            Install Inno Setup Preprocessor (ISPP) along with Inno Setup
@@ -103,27 +94,23 @@ task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
     }
 }
 
-task buildEverything {
+task buildEverything() {
     doLast {
         println "creating fat/uber jar with shadowJar:"
+        shadowJar.execute()
         println "creating mac app bundle:"
         if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
-            println "creating full .dmg"
+            println "  creating full .dmg"
+            createDmg.execute()
         } else {
-            println "creating .zip with .app inside"
+            println "  creating .zip with .app inside"
+            createAppZip.execute()
         }
         println "creating windows installer with inno setup:"
-        println "  **IMPORTANT:** (for creating windows installer)"
+        println "         **IMPORTANT:** (for creating windows installer)"
         println "  first make sure you have installed Inno Setup first"
         println "  and make sure you have wine in your path if you are not on windows"
         println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
+        createWindowsInstaller.execute()
     }
 }
-
-buildEverything.finalizedBy shadowJar
-if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
-    buildEverything.finalizedBy createDmg
-} else {
-    buildEverything.finalizedBy createAppZip
-}
-buildEverything.finalizedBy createWindowsInstaller
