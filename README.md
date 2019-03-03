@@ -3,20 +3,20 @@ Help support this project by ⭐️'ing it! [Donations](https://www.paypal.me/ai
 # blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases/latest) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/21c7f52476c948c9adc0439c0b6841ad)](https://app.codacy.com/app/airsquared/blobsaver?utm_source=github.com&utm_medium=referral&utm_content=airsquared/blobsaver&utm_campaign=Badge_Grade_Dashboard)
 A GUI for saving SHSH blobs using s0uthwest's fork of tsschecker. Supports Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
 
-**Tip:** if you want blobs you save to automatically be uploaded to the cloud, see [this](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud\(Dropbox,-Google-Drive,-iCloud\))
+**Tip:** if you want blobs you save to automatically be uploaded to the cloud, see [this](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud)
 
 [Download here](https://github.com/airsquared/blobsaver/releases/latest)
 
 If you have an antivirus or firewall, you may need to disable some other settings or disable the firewall completely for automatically saving blobs in the background to work. If you use Norton, go to Settings -> Firewall -> Advanced Program Control and set the option "Low Risk Applications" to "Allow".
 
-![Mac Screenshot](https://i.imgur.com/2UvuaCZ.png)
-![Windows Screenshot](https://i.imgur.com/ENSX4E5.png)
+![Mac Screenshot](.github/screenshots/screenshot-macos.png)
+![Windows Screenshot](.github/screenshots/screenshot-windows.png)
 
 ## Features
 - **Automatically save blobs in the background**
 - Store up to ten devices with presets
 - Save blobs for beta versions
-- Read ECID and other info from device so you don't have to get it manually (currently broken on Windows)
+- Read ECID and other info from device so you don't have to get it manually
 - No need to download entire .ipsw for beta versions(just specify link)
 - Choose where to save blobs with file picker
 - Explains how to get ECID, Board Config(if needed), and information necessary for beta versions
@@ -26,9 +26,6 @@ If you have an antivirus or firewall, you may need to disable some other setting
 
 ## Feedback
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
-
-## TODO
-See Github issues tagged [enhancement](https://github.com/airsquared/blobsaver/labels/enhancement)
 
 ## Built With
 - JDK 8
