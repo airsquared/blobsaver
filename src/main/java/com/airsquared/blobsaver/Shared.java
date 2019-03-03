@@ -33,7 +33,13 @@ import org.json.JSONObject;
 import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -91,31 +97,32 @@ class Shared {
                         String response;
                         try {
                             response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
-                        } catch (FileNotFoundException ignored) {
-                            return null;
                         } catch (IOException e) {
+                            Platform.runLater(() -> newReportableError("Unable to check for updates.", e.toString()));
                             e.printStackTrace();
                             return null;
                         }
-                        String newVersion;
+                        Version newVersion;
                         String changelog;
                         try {
-                            newVersion = new JSONObject(response).getString("tag_name");
+                            newVersion = new Version(new JSONObject(response).getString("tag_name"));
                             changelog = new JSONObject(response).getString("body");
                             changelog = changelog.substring(changelog.indexOf("Changelog"));
                         } catch (JSONException e) {
                             newVersion = appVersion;
                             changelog = "";
                         }
-                        if (!newVersion.equals(appVersion) && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
+                        if (newVersion.compareTo(appVersion) < 0 //check if this is >= latest version
+                                && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion.toString()))) {
                             final CountDownLatch latch = new CountDownLatch(1);
-                            final String finalNewVersion = newVersion;
+                            final String finalNewVersion = newVersion.toString(); //so that the lambda works
                             final String finalChangelog = changelog;
                             Platform.runLater(() -> {
                                 try {
                                     ButtonType downloadNow = new ButtonType("Download");
                                     ButtonType ignore = new ButtonType("Ignore this update");
-                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version " + appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
+                                            + appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
                                     alert.setHeaderText("New Update Available: " + finalNewVersion);
                                     alert.setTitle("New Update Available for blobsaver");
                                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
@@ -179,7 +186,7 @@ class Shared {
         }
     }
 
-    static File getlibimobiledeviceFolder() throws IOException {
+    static File getLibimobiledeviceFolder() throws IOException {
         File libimobiledeviceFolder;
         if (PlatformUtil.isMac()) {
             libimobiledeviceFolder = new File(getExecutablesFolder(), "libimobiledevice_mac/");
@@ -405,5 +412,62 @@ class Shared {
         JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
         @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
         return firmwareList.stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).map(map -> map.get("version").toString()).collect(Collectors.toList());
+    }
+
+    // temporary until ProGuard is implemented
+    static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+        if (str == null || searchStr == null) {
+            return false;
+        }
+        final int len = searchStr.length();
+        final int max = str.length() - len;
+        for (int i = 0; i <= max; i++) {
+            if (regionMatches(str, i, searchStr, len)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // temporary until ProGuard is implemented
+    private static boolean regionMatches(final CharSequence cs, final int thisStart,
+                                         final CharSequence substring, final int length) {
+        if (cs instanceof String && substring instanceof String) {
+            return ((String) cs).regionMatches(true, thisStart, (String) substring, 0, length);
+        }
+        int index1 = thisStart;
+        int index2 = 0;
+        int tmpLen = length;
+
+        // Extract these first so we detect NPEs the same as the java.lang.String version
+        final int srcLen = cs.length() - thisStart;
+        final int otherLen = substring.length();
+
+        // Check for invalid parameters
+        if (thisStart < 0 || length < 0) {
+            return false;
+        }
+
+        // Check that the regions are long enough
+        if (srcLen < length || otherLen < length) {
+            return false;
+        }
+
+        while (tmpLen-- > 0) {
+            final char c1 = cs.charAt(index1++);
+            final char c2 = substring.charAt(index2++);
+
+            if (c1 == c2) {
+                continue;
+            }
+
+            // The same check as in String.regionMatches():
+            if (Character.toUpperCase(c1) != Character.toUpperCase(c2)
+                    && Character.toLowerCase(c1) != Character.toLowerCase(c2)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

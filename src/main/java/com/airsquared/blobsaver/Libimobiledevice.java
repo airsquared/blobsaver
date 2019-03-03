@@ -205,7 +205,7 @@ public class Libimobiledevice {
     static {
         try {
             //noinspection ConstantConditions
-            System.setProperty("jna.library.path", Shared.getlibimobiledeviceFolder().getPath());
+            System.setProperty("jna.library.path", Shared.getLibimobiledeviceFolder().getPath());
         } catch (IOException e) {
             newReportableError("Error: unable to get libimobiledevice folder", e.getMessage());
         }

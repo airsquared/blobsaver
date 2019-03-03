@@ -27,7 +27,7 @@
         <MenuBar fx:id="menuBar">
             <Menu mnemonicParsing="false" text="Options">
                 <MenuItem mnemonicParsing="false" onAction="#debugLogHandler" text="Debug Log"/>
-                <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for valid blobs..."/>
+                <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for Valid Blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#checkForUpdatesHandler"
                           text="Check for Updates..."/>
                 <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Uninstall..."/>

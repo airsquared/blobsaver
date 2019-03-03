@@ -19,7 +19,6 @@
 package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
-import com.sun.javafx.application.PlatformImpl;
 import it.sauronsoftware.junique.AlreadyLockedException;
 import it.sauronsoftware.junique.JUnique;
 import javafx.application.Application;
@@ -29,13 +28,14 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import me.matetoes.libdockvisibility.DockVisibility;
 
 import java.io.IOException;
 import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.2.3";
+    static final Version appVersion = new Version("2.2.4");
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;
@@ -57,27 +57,42 @@ public class Main {
         try {
             Class.forName("javafx.application.Application");
             if (PlatformUtil.isMac() || PlatformUtil.isWindows() || PlatformUtil.isLinux()) {
-                if (appPrefs.getBoolean("Start background immediately", false) && PlatformUtil.isMac()) {
-                    PlatformImpl.setTaskbarApplication(false);
-                }
-                JavaFxApplication.launchit(args);
+                JavaFxApplication.launchIt(args);
             } else {
                 int result = javax.swing.JOptionPane.showOptionDialog(null, "Cannot detect the OS. Assuming it is Linux. Continue?",
                         "Warning", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null, null, null);
                 if (result == javax.swing.JOptionPane.CANCEL_OPTION) {
                     System.exit(0);
                 }
-                JavaFxApplication.launchit(args);
+                JavaFxApplication.launchIt(args);
             }
         } catch (ClassNotFoundException e) {
-            javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx.\nOn Linux, use sudo apt-get install openjfx", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. " +
+                    "Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx." +
+                    "\nOn Linux, use sudo apt-get install openjfx", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
+        }
+    }
+
+    static void showStage() {
+        if (PlatformUtil.isMac()) {
+            DockVisibility.show();
+        }
+        primaryStage.show();
+        primaryStage.centerOnScreen();
+        primaryStage.requestFocus();
+    }
+
+    static void hideStage() {
+        primaryStage.hide();
+        if (PlatformUtil.isMac()) {
+            DockVisibility.hide();
         }
     }
 
     public static class JavaFxApplication extends Application {
 
-        static void launchit(String[] args) {
+        static void launchIt(String[] args) {
             launch(args);
         }
 
@@ -88,28 +103,31 @@ public class Main {
             primaryStage.setTitle("blobsaver " + Main.appVersion);
             primaryStage.setScene(new Scene(root));
             primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
-            if (PlatformUtil.isMac()) {
+            if (PlatformUtil.isMac()) { // setup the dock icon
                 com.apple.eawt.Application.getApplication().setDockIconImage(javax.imageio.ImageIO.read(getClass().getResourceAsStream("blob_emoji.png")));
             } else {
                 primaryStage.getIcons().clear();
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
             }
-            primaryStage.show();
             primaryStage.setResizable(false);
             Controller.afterStageShowing();
             Platform.setImplicitExit(false);
             if (appPrefs.getBoolean("Start background immediately", false)) {
                 Background.startBackground(false);
+            } else {
+                showStage();
             }
+
+            //if in background, hide; else quit
             primaryStage.setOnCloseRequest(event -> {
                 event.consume();
                 if (Background.inBackground) {
-                    primaryStage.hide();
+                    hideStage();
                 } else {
                     Platform.exit();
                 }
             });
-            appPrefs.put("App version", appVersion);
+            appPrefs.put("App version", appVersion.toString());
         }
 
         @Override

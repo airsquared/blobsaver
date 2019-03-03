@@ -34,6 +34,7 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +47,6 @@ import java.util.prefs.Preferences;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
-import static com.airsquared.blobsaver.Main.primaryStage;
 import static com.airsquared.blobsaver.Shared.*;
 
 class Background {
@@ -73,13 +73,13 @@ class Background {
         }
         ArrayList<String> presetsToSaveNames = new ArrayList<>();
         if (!presetsToSave.isEmpty()) {
-            presetsToSave.forEach((preset) -> presetsToSaveNames.add(appPrefs.get("Name Preset" + preset, "")));
+            presetsToSave.forEach(preset -> presetsToSaveNames.add(appPrefs.get("Name Preset" + preset, "")));
         } else {
             inBackground = false;
             return;
         }
         if (!runOnlyOnce && Platform.isFxApplicationThread()) {
-            primaryStage.hide();
+            Main.hideStage();
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
             Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for\nthe icon."
                     + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
@@ -100,8 +100,9 @@ class Background {
             trayIcon = new TrayIcon(image, "blobsaver " + appVersion);
             trayIcon.setImageAutoSize(true);
 
+            ActionListener showListener = event -> Platform.runLater(Main::showStage);
             MenuItem openItem = new MenuItem("Open window");
-            openItem.addActionListener((evt) -> Platform.runLater(Background::showStage));
+            openItem.addActionListener(showListener);
             openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
 
             MenuItem exitItem = new MenuItem("Quit");
@@ -118,6 +119,7 @@ class Background {
                 popup.add(breakpointItem);
             }
             trayIcon.setPopupMenu(popup);
+            trayIcon.addActionListener(showListener);
 
             // add the application tray icon to the system tray.
             try {
@@ -181,9 +183,9 @@ class Background {
         } catch (IOException e) {
             Notification notification = new Notification("Saving blobs failed", "Check your internet connection.\nIf it is working, click here to report this error.", Notification.ERROR_ICON);
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-            Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+            Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                 Notification.Notifier.INSTANCE.stop();
-                showStage();
+                Main.showStage();
                 Alert alert = new Alert(Alert.AlertType.ERROR,
                         "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                         githubIssue, redditPM, ButtonType.OK);
@@ -207,9 +209,9 @@ class Background {
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error creating tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "There was an error creating tsschecker.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -239,9 +241,9 @@ class Background {
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "There was an error getting the tsschecker result.\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -259,12 +261,12 @@ class Background {
             } else {
                 presetName = appPrefs.get("Name Preset" + preset, "");
             }
-            if (tsscheckerLog.contains("Saved shsh blobs")) {
+            if (containsIgnoreCase(tsscheckerLog, "Saved")) {
                 Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + path, ButtonType.OK);
                     alert.setTitle("Success");
                     alert.setHeaderText("Success!");
@@ -276,12 +278,12 @@ class Background {
 
                 log("displayed message");
 
-            } else if (tsscheckerLog.contains("[Error] ERROR: TSS request failed: Could not resolve host:")) {
+            } else if (containsIgnoreCase(tsscheckerLog, "[Error] ERROR: TSS request failed: Could not resolve host:")) {
                 Notification notification = new Notification("Saving blobs failed", "Check your internet connection. If it is working, click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR,
                             "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.OK);
@@ -291,14 +293,14 @@ class Background {
                     reportError(alert, tsscheckerLog);
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-            } else if (tsscheckerLog.contains("iOS " + version + " for device " + identifier + " IS NOT being signed")) {
+            } else if (containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + identifier + " IS NOT being signed")) {
                 continue;
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
+                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
                     Notification.Notifier.INSTANCE.stop();
-                    showStage();
+                    Main.showStage();
                     Alert alert = new Alert(Alert.AlertType.ERROR, "Saving blobs failed." + "\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
                             githubIssue, redditPM, ButtonType.CANCEL);
                     resizeAlertButtons(alert);
@@ -310,12 +312,6 @@ class Background {
             }
             log("it worked");
         }
-    }
-
-    private static void showStage() {
-        primaryStage.show();
-        primaryStage.toFront();
-        primaryStage.requestFocus();
     }
 
     static void stopBackground(boolean showAlert) {

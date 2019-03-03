@@ -24,6 +24,7 @@ import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -33,6 +34,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.awt.Desktop;
@@ -111,9 +113,6 @@ public class Controller {
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
         }
-        if (PlatformUtil.isMac()) {
-            INSTANCE.useMacOSMenuBar();
-        }
         checkForUpdates(false);
     }
 
@@ -188,6 +187,25 @@ public class Controller {
             path = path + System.getProperty("file.separator") + "Blobs";
         }
         pathField.setText(path);
+
+
+        if (PlatformUtil.isMac()) {
+            // resize stage to account for removed menu bar
+            ((VBox) menuBar.getParent()).setMinHeight(560.0);
+            ((VBox) menuBar.getParent()).setPrefHeight(560.0);
+            presetVBox.setMinHeight(560.0);
+            presetVBox.setPrefHeight(560.0);
+
+            ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
+
+            primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
+                @Override
+                public void handle(WindowEvent event) {
+                    useMacOSMenuBar();
+                    primaryStage.removeEventHandler(event.getEventType(), this);
+                }
+            });
+        }
     }
 
     private static void addListenerToSetNullEffect(TextField... textFields) {
@@ -266,8 +284,8 @@ public class Controller {
             ipswField.setEffect(borderGlow);
             buildIDField.setDisable(false);
             buildIDField.setEffect(borderGlow);
-            if (versionCheckBox.isSelected()) {
-                versionCheckBox.fire();
+            if (versionCheckBox.isSelected()) { //cannot use latest versions + beta blobs in conjunction
+                versionCheckBox.fire(); //turns latest version off
             }
             versionCheckBox.setDisable(true);
         } else {
@@ -588,14 +606,6 @@ public class Controller {
     }
 
     private void useMacOSMenuBar() {
-        // resize stage to account for removed menu bar
-        ((VBox) menuBar.getParent()).setMinHeight(560.0);
-        ((VBox) menuBar.getParent()).setPrefHeight(560.0);
-        presetVBox.setMinHeight(560.0);
-        presetVBox.setPrefHeight(560.0);
-
-        ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
-
         MenuBar macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
@@ -735,7 +745,7 @@ public class Controller {
             appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
             log("alert menu canceled");
-            backgroundSettingsButton.fire();
+            backgroundSettingsButton.fire(); //goes back to main menu
             return;
         }
         if (Background.inBackground) {
@@ -748,28 +758,11 @@ public class Controller {
     }
 
     public void startBackgroundHandler() {
-        if (Background.inBackground) {
-            if (PlatformUtil.isMac()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                        "You will need to restart the application for changes to take effect.", ButtonType.OK);
-                alert.showAndWait();
-                appPrefs.putBoolean("Show background startup message", true);
-                appPrefs.putBoolean("Start background immediately", false);
-                Platform.exit();
-            } else {
-                Background.stopBackground(true);
-                appPrefs.putBoolean("Show background startup message", true);
-                appPrefs.putBoolean("Start background immediately", false);
-                startBackgroundButton.setText("Start background");
-            }
-        } else if (appPrefs.getBoolean("Show background startup message", true) && PlatformUtil.isMac()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "You will need to restart the application for changes to take effect. By default, when you launch this application, it will start up in the background. "
-                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
-            alert.showAndWait();
-            appPrefs.putBoolean("Show background startup message", false);
-            appPrefs.putBoolean("Start background immediately", true);
-            Platform.exit();
+        if (Background.inBackground) { //stops background if already in background
+            Background.stopBackground(true);
+            appPrefs.putBoolean("Show background startup message", true);
+            appPrefs.putBoolean("Start background immediately", false);
+            startBackgroundButton.setText("Start background");
         } else if (appPrefs.getBoolean("Show background startup message", true)) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
@@ -777,10 +770,11 @@ public class Controller {
             alert.showAndWait();
             appPrefs.putBoolean("Show background startup message", false);
             appPrefs.putBoolean("Start background immediately", true);
+            startBackgroundButton.setText("Stop background");
             Background.startBackground(false);
         } else {
             Background.startBackground(false);
-            startBackgroundButton.setText("Cancel Background");
+            startBackgroundButton.setText("Stop Background");
         }
     }
 
