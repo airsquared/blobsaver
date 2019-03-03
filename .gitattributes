@@ -3,3 +3,5 @@ gpl-3.0.txt text eol=lf
 gpl-3.0_windows.txt text eol=crlf
 libraries_used.txt text eol=lf
 libraries_used_windows.txt text eol=crlf
+gradlew.bat text eol=crlf
+gradlew text eol=lf
