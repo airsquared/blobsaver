@@ -9,14 +9,14 @@ A GUI for saving SHSH blobs using s0uthwest's fork of tsschecker. Supports Mac, 
 
 If you have an antivirus or firewall, you may need to disable some other settings or disable the firewall completely for automatically saving blobs in the background to work. If you use Norton, go to Settings -> Firewall -> Advanced Program Control and set the option "Low Risk Applications" to "Allow".
 
-![Mac Screenshot](https://i.imgur.com/2UvuaCZ.png)
-![Windows Screenshot](https://i.imgur.com/ENSX4E5.png)
+![Mac Screenshot](.github/screenshots/screenshot-macos.png)
+![Windows Screenshot](.github/screenshots/screenshot-windows.png)
 
 ## Features
 - **Automatically save blobs in the background**
 - Store up to ten devices with presets
 - Save blobs for beta versions
-- Read ECID and other info from device so you don't have to get it manually (currently broken on Windows)
+- Read ECID and other info from device so you don't have to get it manually
 - No need to download entire .ipsw for beta versions(just specify link)
 - Choose where to save blobs with file picker
 - Explains how to get ECID, Board Config(if needed), and information necessary for beta versions
@@ -26,9 +26,6 @@ If you have an antivirus or firewall, you may need to disable some other setting
 
 ## Feedback
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
-
-## TODO
-See Github issues tagged [enhancement](https://github.com/airsquared/blobsaver/labels/enhancement)
 
 ## Built With
 - JDK 8
