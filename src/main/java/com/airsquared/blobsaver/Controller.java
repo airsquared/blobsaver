@@ -774,7 +774,7 @@ public class Controller {
             Background.startBackground(false);
         } else {
             Background.startBackground(false);
-            startBackgroundButton.setText("Cancel Background");
+            startBackgroundButton.setText("Stop Background");
         }
     }
 
