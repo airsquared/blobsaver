@@ -79,7 +79,9 @@ class Background {
             return;
         }
         if (!runOnlyOnce && Platform.isFxApplicationThread()) {
-            Main.hideStage();
+            if (Main.primaryStage.isShowing()) {
+                Main.hideStage();
+            }
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
             Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for\nthe icon."
                     + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));

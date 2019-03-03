@@ -112,10 +112,16 @@ public class Main {
             primaryStage.setResizable(false);
             Controller.afterStageShowing();
             Platform.setImplicitExit(false);
+            showStage();
             if (appPrefs.getBoolean("Start background immediately", false)) {
-                Background.startBackground(false);
-            } else {
-                showStage();
+                /* I have to show the stage then hide it again in Platform.runLater() otherwise
+                 * the needed initialization code won't run at the right time when starting the background
+                 * (for example, the macOS menu bar won't work properly if I don't do this)
+                 */
+                Platform.runLater(() -> {
+                    hideStage();
+                    Background.startBackground(false);
+                });
             }
 
             //if in background, hide; else quit
