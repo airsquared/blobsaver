@@ -35,7 +35,7 @@ class Devices {
             "iPhone 7+ (Global)(iPhone9,2)", "iPhone 7 (GSM)(iPhone9,3)", "iPhone 7+ (GSM)(iPhone9,4)",
             "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
             "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "iPhone XS (Global) (iPhone11,2)",
-            "iPhone XS Max (iPhone11,4)", "iPhone XS Max (China) (iPhone11,6)", "iPhone XR (iPhone11,8)");
+            "iPhone XS Max (China) (iPhone11,4)", "iPhone XS Max (iPhone11,6)", "iPhone XR (iPhone11,8)");
 
     private static final ObservableList<String> iPods =
             FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6");
@@ -72,8 +72,8 @@ class Devices {
         requiresBoardConfig.put("iPad 6 (WiFi)(iPad 7,5)", "J71bAP");
         requiresBoardConfig.put("iPad 6 (Cellular)(iPad7,6)", "J72bAP");
         requiresBoardConfig.put("iPhone XS (Global) (iPhone11,2)", "D321AP");
-        requiresBoardConfig.put("iPhone XS Max (iPhone11,4)", "D331AP");
-        requiresBoardConfig.put("iPhone XS Max (China) (iPhone11,6)", "D331pAP");
+        requiresBoardConfig.put("iPhone XS Max (China) (iPhone11,4)", "D331AP");
+        requiresBoardConfig.put("iPhone XS Max (iPhone11,6)", "D331pAP");
         requiresBoardConfig.put("iPhone XR (iPhone11,8)", "N841AP");
         requiresBoardConfig.put("iPad Pro 3 11' (WiFi)(iPad8,1)", "J317AP");
         requiresBoardConfig.put("iPad Pro 3 11' (WiFi)(iPad8,2)", "J317xAP");
