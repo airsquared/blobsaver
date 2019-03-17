@@ -170,7 +170,7 @@ class Background {
     }
 
     private static void saveBackgroundBlobs(int preset) {
-        log("attempting to save for " + preset);
+        log("attempting to save for preset " + preset);
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
         String identifier;
         if ("none".equals(presetPrefs.get("Device Model", ""))) {
