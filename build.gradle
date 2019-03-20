@@ -97,20 +97,24 @@ task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
 task buildEverything() {
     doLast {
         println "creating fat/uber jar with shadowJar:"
-        shadowJar.execute()
         println "creating mac app bundle:"
         if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
             println "  creating full .dmg"
-            createDmg.execute()
         } else {
             println "  creating .zip with .app inside"
-            createAppZip.execute()
         }
         println "creating windows installer with inno setup:"
-        println "         **IMPORTANT:** (for creating windows installer)"
-        println "  first make sure you have installed Inno Setup first"
-        println "  and make sure you have wine in your path if you are not on windows"
+        println "  **IMPORTANT:** (for creating windows installer)"
+        println "  first make sure you have installed Inno Setup"
+        println "  and make sure you have wine in your path if you are not on Windows"
         println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
-        createWindowsInstaller.execute()
     }
 }
+
+buildEverything.finalizedBy shadowJar
+if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
+    buildEverything.finalizedBy createDmg
+} else {
+    buildEverything.finalizedBy createAppZip
+}
+buildEverything.finalizedBy createWindowsInstaller
