@@ -149,7 +149,8 @@ class TSSChecker {
         String tsscheckerLog;
         try {
             System.out.println("Running: " + args.toString());
-            tsscheckerLog = executeProgram(args.toArray(new String[0]));
+            tsscheckerLog = executeProgram(args.toArray(new String[0]))
+                    .replaceAll(NON_PRINTABLE_NON_WHITESPACE, "");
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();

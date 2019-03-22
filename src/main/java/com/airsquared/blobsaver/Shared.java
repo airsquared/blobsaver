@@ -70,6 +70,10 @@ class Shared {
     static ButtonType redditPM = new ButtonType("PM on Reddit");
     static ButtonType githubIssue = new ButtonType("Create Issue on Github");
 
+    // to remove weird symbols from tsscheckerLog output
+    // Otherwise, pasting the output in some applications (like Sublime Text) won't work
+    public static final String NON_PRINTABLE_NON_WHITESPACE = "[^\\p{Print}\n\r]+";
+
     static String textToIdentifier(String deviceModel) {
         String toReturn = Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
         if ("".equals(toReturn)) { // this will never happen in background
