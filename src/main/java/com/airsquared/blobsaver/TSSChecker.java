@@ -157,7 +157,7 @@ class TSSChecker {
             return;
         }
 
-        if (tsscheckerLog.contains("Saved shsh blobs")) {
+        if (containsIgnoreCase(tsscheckerLog, "Saved")) {
             // if multiple versions are being saved at the same time, do not show success message multiple times
             // the success message will be shown after saving everything is completed
             if (!controller.versionCheckBox.isSelected()) {
@@ -176,7 +176,7 @@ class TSSChecker {
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert);
-        } else if (tsscheckerLog.contains("[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + version)) {
+        } else if (containsIgnoreCase(tsscheckerLog, "[TSSC] ERROR: could not get url for device " + device + " on iOS " + version)) {
             newUnreportableError("Could not find device \"" + device + "\" on iOS/tvOS " + version +
                     "\n\nThe version doesn't exist or isn't compatible with the device");
             controller.versionField.setEffect(errorBorder);
@@ -185,8 +185,9 @@ class TSSChecker {
             controller.apnonceField.setEffect(errorBorder);
         } else if (tsscheckerLog.contains("[WARNING] [TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually")
                 && tsscheckerLog.contains("[Error] [TSSR] Error: could not get id0 for installType=Update")
-                && tsscheckerLog.contains("[Error] [TSSR] faild to build tssrequest")
-                && tsscheckerLog.contains("Error] [TSSC] checking tss status failed!")) {
+                && (containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] faild to build tssrequest")
+                || containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] faild to build TSS request")) //switched tssrequest -> TSS request in the latest version
+                && containsIgnoreCase(tsscheckerLog, "Error] [TSSC] checking tss status failed!")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
                     githubIssue, redditPM, ButtonType.OK);
@@ -200,7 +201,11 @@ class TSSChecker {
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
-        } else if (tsscheckerLog.contains("[Error] [Error] can't save shsh at " + savePath)) {
+        }
+
+        //it can be "can't save signing tickets at [location]" or "can't save shsh blobs at [location]".
+        // This is the only place where the output "can't save" is present in tsschecker
+        else if (containsIgnoreCase(tsscheckerLog, "[Error] can't save")) {
             newUnreportableError("\'" + savePath + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             controller.pathField.setEffect(errorBorder);
         } else if (tsscheckerLog.contains("iOS " + version + " for device " + device + " IS NOT being signed!") || tsscheckerLog.contains("Build " + controller.buildIDField.getText() + " for device" + device + "IS NOT being signed!")) {
