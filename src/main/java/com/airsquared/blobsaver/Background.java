@@ -240,7 +240,7 @@ class Background {
                     Collections.addAll(args, "--apnonce", apnonce);
                 }
                 tsscheckerLog = executeProgram(args.toArray(new String[0]))
-                        .replace(NON_PRINTABLE_NON_WHITESPACE, "");
+                        .replaceAll(NON_PRINTABLE_NON_WHITESPACE, "");
             } catch (IOException e) {
                 Notification notification = new Notification("Saving blobs failed", "There was an error starting tsschecker. Click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
