@@ -47,7 +47,16 @@ import java.util.prefs.Preferences;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Shared.checkForUpdates;
+import static com.airsquared.blobsaver.Shared.containsIgnoreCase;
+import static com.airsquared.blobsaver.Shared.executeProgram;
+import static com.airsquared.blobsaver.Shared.getAllSignedVersions;
+import static com.airsquared.blobsaver.Shared.getTsschecker;
+import static com.airsquared.blobsaver.Shared.githubIssue;
+import static com.airsquared.blobsaver.Shared.redditPM;
+import static com.airsquared.blobsaver.Shared.reportError;
+import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
+import static com.airsquared.blobsaver.Shared.textToIdentifier;
 
 class Background {
 

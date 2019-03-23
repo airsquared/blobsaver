@@ -26,7 +26,19 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -49,7 +61,14 @@ import java.util.prefs.Preferences;
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
 import static com.airsquared.blobsaver.Main.primaryStage;
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Shared.checkForUpdates;
+import static com.airsquared.blobsaver.Shared.copyStreamToFile;
+import static com.airsquared.blobsaver.Shared.getJarLocation;
+import static com.airsquared.blobsaver.Shared.newReportableError;
+import static com.airsquared.blobsaver.Shared.newUnreportableError;
+import static com.airsquared.blobsaver.Shared.openURL;
+import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
+import static com.airsquared.blobsaver.Shared.textToIdentifier;
 
 public class Controller {
 

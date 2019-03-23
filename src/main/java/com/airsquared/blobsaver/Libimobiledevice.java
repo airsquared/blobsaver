@@ -27,7 +27,10 @@ import javafx.scene.control.ButtonType;
 
 import java.io.IOException;
 
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Shared.newReportableError;
+import static com.airsquared.blobsaver.Shared.newUnreportableError;
+import static com.airsquared.blobsaver.Shared.openURL;
+import static com.airsquared.blobsaver.Shared.runSafe;
 
 /**
  * This class provides access to functions in the native library libimobiledevice.

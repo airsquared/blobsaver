@@ -32,7 +32,16 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Shared.copyStreamToFile;
+import static com.airsquared.blobsaver.Shared.executeProgram;
+import static com.airsquared.blobsaver.Shared.getAllSignedVersions;
+import static com.airsquared.blobsaver.Shared.getTsschecker;
+import static com.airsquared.blobsaver.Shared.githubIssue;
+import static com.airsquared.blobsaver.Shared.newReportableError;
+import static com.airsquared.blobsaver.Shared.newUnreportableError;
+import static com.airsquared.blobsaver.Shared.redditPM;
+import static com.airsquared.blobsaver.Shared.reportError;
+import static com.airsquared.blobsaver.Shared.resizeAlertButtons;
 
 /**
  * For executing the tsschecker program(currently only used in {@link Controller}).
