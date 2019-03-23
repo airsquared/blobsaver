@@ -73,7 +73,7 @@ class Shared {
     static String textToIdentifier(String deviceModel) {
         String toReturn = Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
         if ("".equals(toReturn)) { // this will never happen in background
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Could not find: \"" + deviceModel + "\"" + "\n\nPlease create a new issue on Github or PM me on Reddit.", new ButtonType("Create Issue on Github"), new ButtonType("PM on Reddit"), ButtonType.CANCEL);
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Could not find identifier: \"" + deviceModel + "\"" + "\n\nPlease create a new issue on Github or PM me on Reddit.", new ButtonType("Create Issue on Github"), new ButtonType("PM on Reddit"), ButtonType.CANCEL);
             resizeAlertButtons(alert);
             alert.showAndWait();
             if (alert.getResult().equals(new ButtonType("Create Issue on Github"))) {

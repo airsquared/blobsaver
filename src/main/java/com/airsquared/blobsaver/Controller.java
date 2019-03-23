@@ -939,7 +939,7 @@ public class Controller {
             String identifierText = identifierField.getText();
             try {
                 if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
-                    TSSChecker.run(identifierField.getText());
+                    TSSChecker.run(identifierText);
                 } else {
                     identifierField.setEffect(errorBorder);
                     newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
