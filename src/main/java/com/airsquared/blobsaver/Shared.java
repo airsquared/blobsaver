@@ -163,7 +163,7 @@ class Shared {
     static File getTsschecker() throws IOException {
         File executablesFolder = getExecutablesFolder();
         File tsschecker = new File(executablesFolder, "tsschecker");
-        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
+        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.3.1", false)) {
             return tsschecker;
         } else {
             if (tsschecker.exists()) {
