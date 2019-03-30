@@ -915,11 +915,11 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     public void goButtonHandler() {
         boolean doReturn = false;
-        if (!identifierCheckBox.isSelected() && "".equals(deviceTypeChoiceBox.getValue())) {
+        if (!identifierCheckBox.isSelected() && (deviceTypeChoiceBox.getValue() == null || "".equals(deviceTypeChoiceBox.getValue()))) {
             deviceTypeChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (!identifierCheckBox.isSelected() && "".equals(deviceModelChoiceBox.getValue())) {
+        if (!identifierCheckBox.isSelected() && ("".equals(deviceModelChoiceBox.getValue()))) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
@@ -957,7 +957,7 @@ public class Controller {
     }
 
     private static boolean isTextFieldInvalid(boolean isTextFieldRequired, TextField textField) {
-        if (isTextFieldRequired && "".equals(textField.getText())) {
+        if (isTextFieldRequired && (textField.getText() == null || "".equals(textField.getText()))) {
             textField.setEffect(errorBorder);
             return true;
         }
