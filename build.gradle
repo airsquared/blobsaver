@@ -74,6 +74,8 @@ launch4j { // Windows only, don't use this, use createWindowsInstaller
     copyright = "Copyright (c) 2019  airsquared"
     downloadUrl = "https://java.com/inc/BrowserRedirect1.jsp"
     icon = "${projectDir}/icons/blob_emoji.ico"
+    jreMinVersion = "1.8.0"
+    jreMaxVersion = "1.8.0_999"
 }
 
 // if your platform isn't Windows, "wine" is required to run this task

@@ -106,20 +106,20 @@ class Shared {
                             e.printStackTrace();
                             return null;
                         }
-                        Version newVersion;
+                        String newVersion;
                         String changelog;
                         try {
-                            newVersion = new Version(new JSONObject(response).getString("tag_name"));
+                            newVersion = new JSONObject(response).getString("tag_name");
                             changelog = new JSONObject(response).getString("body");
                             changelog = changelog.substring(changelog.indexOf("Changelog"));
                         } catch (JSONException e) {
                             newVersion = appVersion;
                             changelog = "";
                         }
-                        if (newVersion.compareTo(appVersion) < 0 //check if this is >= latest version
-                                && (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion.toString()))) {
+                        if (!appVersion.equals(newVersion) &&
+                                (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
                             final CountDownLatch latch = new CountDownLatch(1);
-                            final String finalNewVersion = newVersion.toString(); //so that the lambda works
+                            final String finalNewVersion = newVersion; //so that the lambda works
                             final String finalChangelog = changelog;
                             Platform.runLater(() -> {
                                 try {
@@ -167,7 +167,7 @@ class Shared {
     static File getTsschecker() throws IOException {
         File executablesFolder = getExecutablesFolder();
         File tsschecker = new File(executablesFolder, "tsschecker");
-        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.2.3", false)) {
+        if (tsschecker.exists() && appPrefs.getBoolean("tsschecker last update v2.3.1", false)) {
             return tsschecker;
         } else {
             if (tsschecker.exists()) {
