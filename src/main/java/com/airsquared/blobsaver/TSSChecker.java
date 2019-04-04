@@ -65,9 +65,8 @@ class TSSChecker {
             }
             String signedVersionsString = signedVersions.toString().substring(1, signedVersions.toString().length() - 1);
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "Successfully saved blobs in\n" + controller.pathField.getText()
-                    + "\n\nFor " + (signedVersions.size() == 1 ? "version " : "versions ") + signedVersionsString,
-                    ButtonType.OK);
+                    "Successfully saved blobs in\n" + controller.pathField.getText() + "\n\nFor "
+                            + (signedVersions.size() == 1 ? "version " : "versions ") + signedVersionsString, ButtonType.OK);
             alert.setHeaderText("Success!");
             alert.showAndWait();
         } else {
