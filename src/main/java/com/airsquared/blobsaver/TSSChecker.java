@@ -64,8 +64,9 @@ class TSSChecker {
                 return; // the error alert should already be shown
             }
             String signedVersionsString = signedVersions.toString().substring(1, signedVersions.toString().length() - 1);
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs in\n" + controller.pathField.getText()
-                    + "\n\nFor versions " + signedVersionsString, ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    "Successfully saved blobs in\n" + controller.pathField.getText() + "\n\nFor "
+                            + (signedVersions.size() == 1 ? "version " : "versions ") + signedVersionsString, ButtonType.OK);
             alert.setHeaderText("Success!");
             alert.showAndWait();
         } else {
@@ -162,7 +163,7 @@ class TSSChecker {
             // if multiple versions are being saved at the same time, do not show success message multiple times
             // the success message will be shown after saving everything is completed
             if (!controller.versionCheckBox.isSelected()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs for version" + version + " in\n" + savePath, ButtonType.OK);
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs for version " + version + " in\n" + savePath, ButtonType.OK);
                 alert.setHeaderText("Success!");
                 alert.showAndWait();
             }
