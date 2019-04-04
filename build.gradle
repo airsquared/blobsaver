@@ -54,8 +54,9 @@ jar {
 }
 
 shadowJar {
-    classifier = null // remove '-all' suffix
+    archiveClassifier.set(null) // remove '-all' suffix
     from "LICENSE"
+    assemble.mustRunAfter shadowJar
 }
 
 macAppBundle {
@@ -94,25 +95,5 @@ task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
             commandLine 'wine', 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
         }
     }
-}
-
-task buildEverything() {
-    doLast {
-        println "creating fat/uber jar with shadowJar:"
-        shadowJar.execute()
-        println "creating mac app bundle:"
-        if (System.getProperty("os.name").toUpperCase().contains("MAC")) {
-            println "  creating full .dmg"
-            createDmg.execute()
-        } else {
-            println "  creating .zip with .app inside"
-            createAppZip.execute()
-        }
-        println "creating windows installer with inno setup:"
-        println "         **IMPORTANT:** (for creating windows installer)"
-        println "  first make sure you have installed Inno Setup first"
-        println "  and make sure you have wine in your path if you are not on windows"
-        println "  Inno Setup **MUST** be installed to C:\\Program Files (x86)\\Inno Setup 5\\"
-        createWindowsInstaller.execute()
-    }
+    assemble.dependsOn createWindowsInstaller
 }
