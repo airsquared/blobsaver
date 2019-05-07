@@ -40,7 +40,6 @@ import org.json.JSONArray;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.prefs.BackingStoreException;
@@ -174,7 +173,7 @@ public class Controller {
         presetButtons.forEach(btn -> btn.setOnAction(this::presetButtonHandler));
 
         // the following is to set the path to save blobs to the correct location
-        String path = new File(getJarLocation()).getParentFile().toString().replaceAll("%20", " ");
+        String path = Main.jarDirectory.getAbsolutePath();
         if (path.endsWith("blobsaver.app/Contents/Java")) {
             path = path.replaceAll("blobsaver\\.app/Contents/Java", "");
         }
@@ -567,37 +566,37 @@ public class Controller {
                 openURL("https://github.com/airsquared/blobsaver");
                 break;
             case "View License":
+                File licenseFile;
+                if (!Main.runningFromJar) {
+                    licenseFile = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(),
+                            PlatformUtil.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
+                } else if (PlatformUtil.isMac()) {
+                    licenseFile = new File(Main.jarDirectory.getParentFile(), "Resources/LICENSE");
+                } else { // if Linux or Windows
+                    licenseFile = new File(Main.jarDirectory, "LICENSE");
+                }
+                licenseFile.setReadOnly();
                 try {
-                    InputStream input;
-                    if (PlatformUtil.isWindows()) {
-                        input = Main.class.getResourceAsStream("gpl-3.0_windows.txt");
-                    } else {
-                        input = Main.class.getResourceAsStream("gpl-3.0.txt");
-                    }
-                    File licenseFile = File.createTempFile("gpl-3.0_", ".txt");
-                    copyStreamToFile(input, licenseFile);
-                    licenseFile.deleteOnExit();
-                    licenseFile.setReadOnly();
                     Desktop.getDesktop().edit(licenseFile);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    newReportableError("Unable to open the license file.", e.toString());
                 }
                 break;
             case "Libraries Used":
+                File librariesUsedFile;
+                if (!Main.runningFromJar) {
+                    librariesUsedFile = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(),
+                            PlatformUtil.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
+                } else if (PlatformUtil.isMac()) {
+                    librariesUsedFile = new File(Main.jarDirectory.getParentFile(), "Resources/libraries_used.txt");
+                } else { // if Linux or Windows
+                    librariesUsedFile = new File(Main.jarDirectory, "libraries_used.txt");
+                }
+                librariesUsedFile.setReadOnly();
                 try {
-                    InputStream input;
-                    if (PlatformUtil.isWindows()) {
-                        input = Main.class.getResourceAsStream("libraries_used_windows.txt");
-                    } else {
-                        input = Main.class.getResourceAsStream("libraries_used.txt");
-                    }
-                    File libsUsedFile = File.createTempFile("blobsaver-libraries_used_", ".txt");
-                    copyStreamToFile(input, libsUsedFile);
-                    libsUsedFile.deleteOnExit();
-                    libsUsedFile.setReadOnly();
-                    Desktop.getDesktop().edit(libsUsedFile);
+                    Desktop.getDesktop().edit(librariesUsedFile);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    newReportableError("Unable to open the libraries used file.", e.toString());
                 }
                 break;
             case "Donate!":
@@ -611,7 +610,8 @@ public class Controller {
         MenuBar macOSMenuBar = new MenuBar();
         MenuToolkit tk = MenuToolkit.toolkit();
 
-        Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver");
+
+        Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver", null);
 
         MenuItem aboutMenuItem = new MenuItem("About blobsaver");
         aboutMenuItem.setOnAction(event2 -> aboutMenuHandler());

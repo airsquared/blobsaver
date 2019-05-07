@@ -204,28 +204,8 @@ class Background {
         String path = presetPrefs.get("Path", "");
         String boardConfig = presetPrefs.get("Board Config", "");
         String apnonce = presetPrefs.get("Apnonce", "");
+        File tsschecker = getTsschecker();
         for (String version : signedVersions) {
-            File tsschecker;
-            try {
-                tsschecker = getTsschecker();
-            } catch (IOException e) {
-                Notification notification = new Notification("Saving blobs failed", "There was an error creating tsschecker. Click here to report this error.", Notification.ERROR_ICON);
-                Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-                Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
-                    Notification.Notifier.INSTANCE.stop();
-                    Main.showStage();
-                    Alert alert = new Alert(Alert.AlertType.ERROR,
-                            "There was an error creating tsschecker.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
-                            githubIssue, redditPM, ButtonType.OK);
-                    resizeAlertButtons(alert);
-                    alert.showAndWait();
-                    alert.getDialogPane().toFront();
-                    reportError(alert, e.getMessage());
-                });
-                Notification.Notifier.INSTANCE.notify(notification);
-                continue;
-            }
-
             //noinspection ResultOfMethodCallIgnored
             new File(path).mkdirs();
             String tsscheckerLog;

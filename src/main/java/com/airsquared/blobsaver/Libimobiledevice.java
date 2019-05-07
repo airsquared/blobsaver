@@ -25,8 +25,6 @@ import com.sun.jna.ptr.PointerByReference;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
-import java.io.IOException;
-
 import static com.airsquared.blobsaver.Shared.*;
 
 /**
@@ -203,12 +201,6 @@ public class Libimobiledevice {
     }
 
     static {
-        try {
-            //noinspection ConstantConditions
-            System.setProperty("jna.library.path", Shared.getLibimobiledeviceFolder().getPath());
-        } catch (IOException e) {
-            newReportableError("Error: unable to get libimobiledevice folder", e.getMessage());
-        }
         try {
             Native.register("imobiledevice");
         } catch (Exception e) {

@@ -51,23 +51,58 @@ jar {
     manifest {
         attributes 'Main-Class': 'com.airsquared.blobsaver.Main'
     }
+    jar.finalizedBy shadowJar // make shadowJar always overwrite the jar task
 }
 
 shadowJar {
     archiveClassifier.set(null) // remove '-all' suffix
-    from "LICENSE"
-    assemble.mustRunAfter shadowJar
+    // the jna libraries are bundled separately to reduce application size
+    exclude "about.fxml", "about.css",
+            "**/aix-ppc/*", "**/aix-ppc64/*", "**/linux-ppc/*", "**/linux-ppc64le/*", "**/linux-s390x/*", "**/linux-mips64el/*",
+            "**/darwin/*", "**/win32-x86/*", "**/win32-x86-64/*", "**/openbsd-x86/*", "**/openbsd-x86-64/*",
+            "**/freebsd-x86/*", "**/freebsd-x86-64/*", "**/sunos-sparc/*", "**/sunos-sparcv9/*", "**/sunos-x86/*", "**/sunos-x86-64/*"
+    includeEmptyDirs = false
+    jar.group = "other"
 }
 
 macAppBundle {
     mainClassName = "com.airsquared.blobsaver.Main"
-//    bundleJRE = true
     icon = "icons/blob_emoji.icns"
     backgroundImage = "icons/dmg_background.png"
     appName = 'blobsaver'
     dmgName = 'blobsaver-macos'
     volumeName = 'blobsaver-macos'
+    jarTask = "shadowJar"
     bundleExtras.put("LSUIElement", "YES")
+    createDmg.group = "build"
+}
+
+task copyFilesIntoMacApp(dependsOn: createApp) {
+    doFirst {
+        copy {
+            from "${projectDir}/dist/macos/Frameworks"
+            into "${buildDir}/macApp/blobsaver.app/Contents/Frameworks"
+        }
+        copy {
+            from "${projectDir}/dist/macos/tsschecker"
+            into "${buildDir}/macApp/blobsaver.app/Contents/MacOS"
+        }
+        copy {
+            from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
+            into "${buildDir}/macApp/blobsaver.app/Contents/Resources"
+        }
+    }
+    createApp.finalizedBy copyFilesIntoMacApp
+    group = "macappbundle"
+}
+
+task createLinuxTargz(type: Tar, dependsOn: shadowJar) {
+    archiveFileName = "blobsaver-linux.tar.gz"
+    destinationDirectory = file("${buildDir}/distributions/")
+    from "${buildDir}/libs/blobsaver.jar", "${projectDir}/dist/linux/"
+
+    assemble.dependsOn createLinuxTargz
+    group = "build"
 }
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
@@ -77,23 +112,35 @@ launch4j { // Windows only, don't use this, use createWindowsInstaller
     icon = "${projectDir}/icons/blob_emoji.ico"
     jreMinVersion = "1.8.0"
     jreMaxVersion = "1.8.0_999"
+    createExe.dependsOn shadowJar
 }
 
 // if your platform isn't Windows, "wine" is required to run this task
-task createWindowsInstaller(type: Exec, dependsOn: 'createExe') {
+task createWindowsInstaller(dependsOn: createExe) {
     // IMPORTANT: first make sure you have installed Inno Setup
     //            Install Inno Setup Preprocessor (ISPP) along with Inno Setup
     //            and make sure you have wine in your path if you are not on windows
     //            Inno Setup **MUST** be installed to C:\Program Files (x86)\Inno Setup 5\
     doFirst {
-        new File(projectDir, "build/innosetup/").mkdirs()
-        workingDir = projectDir
+        delete "${buildDir}/launch4j/lib"
+        copy {
+            from "${projectDir}/dist/windows/", "${buildDir}/launch4j/blobsaver.exe"
+            into "${buildDir}/tmp/innosetup/"
+
+            rename "LICENSE_windows", "LICENSE"
+            rename "libraries_used_windows.txt", "libraries_used.txt"
+        }
+        new File("${buildDir}/distributions/").mkdirs()
         println "running Inno Setup Compiler"
-        if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")) {
-            commandLine 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
-        } else {
-            commandLine 'wine', 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
+        exec {
+            workingDir = projectDir
+            if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")) {
+                commandLine 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
+            } else {
+                commandLine 'wine', 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
+            }
         }
     }
     assemble.dependsOn createWindowsInstaller
+    group = "build"
 }

@@ -30,15 +30,32 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import me.matetoes.libdockvisibility.DockVisibility;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Paths;
 import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.3.2";
+    static final String appVersion = "v2.3.3";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;
+    static final File jarDirectory;
+    static final boolean runningFromJar;
+
+    static { // set jarDirectory and runningFromJar variables
+        final String url = Shared.class.getResource("Shared.class").toString();
+        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Shared.class".length());
+        if (path.startsWith("jar:")) {
+            runningFromJar = true;
+            path = path.substring("jar:".length(), path.length() - 2);
+        } else {
+            runningFromJar = false;
+        }
+        jarDirectory = Paths.get(URI.create(path)).getParent().toFile();
+    }
 
     /**
      * Enables a menu item in the system tray to activate a breakpoint when in background and
@@ -78,9 +95,17 @@ public class Main {
         if (PlatformUtil.isMac()) {
             DockVisibility.show();
         }
-        primaryStage.show();
+        System.out.println(1);
+        try {
+            primaryStage.show();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        System.out.println(2);
         primaryStage.centerOnScreen();
+        System.out.println(3);
         primaryStage.requestFocus();
+        System.out.println(4);
     }
 
     static void hideStage() {
@@ -88,6 +113,27 @@ public class Main {
         if (PlatformUtil.isMac()) {
             DockVisibility.hide();
         }
+    }
+
+    private static void setJNALibraryPath() {
+        if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
+            return;
+        }
+        File path;
+        if (!runningFromJar) {
+            path = new File(jarDirectory.getParentFile().getParentFile(),
+                    PlatformUtil.isMac() ? "dist/macos/Frameworks" : "dist/windows/lib");
+        } else if (PlatformUtil.isMac()) {
+            path = new File(jarDirectory.getParentFile(), "Frameworks/");
+        } else { // if Windows
+            path = new File(jarDirectory, "lib/");
+        }
+        System.setProperty("jna.boot.library.path", path.getAbsolutePath()); // path for jnidispatch lib
+        System.setProperty("jna.library.path", path.getAbsolutePath());
+        System.out.println("path = " + path.getAbsolutePath());
+        // disable getting library w/ auto unpacking / classpath since it will never be in jar/classpath
+        System.setProperty("jna.noclasspath", "true");
+        System.setProperty("jna.nounpack", "true");
     }
 
     public static class JavaFxApplication extends Application {
@@ -112,6 +158,7 @@ public class Main {
             primaryStage.setResizable(false);
             Controller.afterStageShowing();
             Platform.setImplicitExit(false);
+            setJNALibraryPath();
             showStage();
             if (appPrefs.getBoolean("Start background immediately", false)) {
                 /* I have to show the stage then hide it again in Platform.runLater() otherwise
@@ -123,7 +170,6 @@ public class Main {
                     Background.startBackground(false);
                 });
             }
-
             //if in background, hide; else quit
             primaryStage.setOnCloseRequest(event -> {
                 event.consume();
@@ -133,7 +179,7 @@ public class Main {
                     Platform.exit();
                 }
             });
-            appPrefs.put("App version", appVersion.toString());
+            appPrefs.put("App version", appVersion);
         }
 
         @Override

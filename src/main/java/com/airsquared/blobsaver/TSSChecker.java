@@ -93,15 +93,8 @@ class TSSChecker {
 
         Effect errorBorder = Controller.errorBorder;
 
-        File tsschecker;
+        File tsschecker = getTsschecker();
         File buildManifestPlist = null;
-
-        try {
-            tsschecker = getTsschecker();
-        } catch (IOException e) {
-            newReportableError("There was an error creating tsschecker.", e.getMessage());
-            return;
-        }
 
         File locationToSaveBlobs = new File(controller.pathField.getText());
         //noinspection ResultOfMethodCallIgnored

@@ -22,9 +22,9 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DisableDirPage=yes
 DisableProgramGroupPage=yes
-LicenseFile=src\main\resources\com\airsquared\blobsaver\gpl-3.0_windows.txt
-OutputDir=build\innosetup
-OutputBaseFilename=blobsaver_setup
+LicenseFile=build\tmp\innosetup\LICENSE
+OutputDir=build\distributions
+OutputBaseFilename=blobsaver-windows
 SetupIconFile=icons\blob_emoji.ico
 Compression=lzma
 SolidCompression=yes
@@ -37,8 +37,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "build\launch4j\blobsaver.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\launch4j\lib\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "build\tmp\innosetup\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
