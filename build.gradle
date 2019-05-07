@@ -18,7 +18,7 @@
 
 plugins {
     id 'java'
-    id 'edu.sc.seis.launch4j' version '2.4.5' // for bundling into .exe
+    id 'edu.sc.seis.launch4j' version '2.4.6' // for bundling into .exe
     id "edu.sc.seis.macAppBundle" version "2.3.0" // for bundling into .app
     id 'com.github.johnrengelman.shadow' version '5.0.0' // for fat jar
     id 'com.github.ben-manes.versions' version '0.21.0'
