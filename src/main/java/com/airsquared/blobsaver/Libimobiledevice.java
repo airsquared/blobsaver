@@ -197,14 +197,16 @@ public class Libimobiledevice {
                 }
             });
         }
+        System.out.println("Exception Message: " + exceptionMessage);
         throw new RuntimeException(exceptionMessage);
     }
 
     static {
         try {
             Native.register("imobiledevice");
-        } catch (Exception e) {
-            newReportableError("Error: unable to register native methods", e.getMessage());
+        } catch (Throwable e) { // need to catch UnsatisfiedLinkError
+            e.printStackTrace();
+            newReportableError("Error: unable to register native methods", e.toString());
         }
     }
 

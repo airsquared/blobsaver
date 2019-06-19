@@ -902,7 +902,11 @@ public class Controller {
             if (!boardConfigField.isDisabled()) {
                 boardConfigField.setText(Libimobiledevice.getBoardConfig(true));
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            newReportableError("Error: unable to register native methods", e.toString());
         } finally {
+            System.out.println("finally");
             readFromConnectedDeviceButton.setDisable(false);
             readFromConnectedDeviceButton.setText("Read from connected device");
         }
