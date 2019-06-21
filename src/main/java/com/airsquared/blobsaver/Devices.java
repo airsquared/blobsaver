@@ -38,7 +38,8 @@ class Devices {
             "iPhone XS Max (China) (iPhone11,4)", "iPhone XS Max (iPhone11,6)", "iPhone XR (iPhone11,8)");
 
     private static final ObservableList<String> iPods =
-            FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6");
+            FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6",
+                    "iPod Touch 7 (iPod9,1)");
 
     private static final ObservableList<String> iPads =
             FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
@@ -52,7 +53,9 @@ class Devices {
                     "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)",
                     "iPad 6 (Cellular)(iPad7,6)", "iPad Pro 3 11' (WiFi)(iPad8,1)", "iPad Pro 3 11' (WiFi)(iPad8,2)",
                     "iPad Pro 3 11' (Cellular)(iPad8,3)", "iPad Pro 3 11' (Cellular)(iPad8,4)", "iPad Pro 3 12.9'(WiFi)(iPad8,5)",
-                    "iPad Pro 3 12.9 (WiFi)(iPad8,6)", "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)");
+                    "iPad Pro 3 12.9 (WiFi)(iPad8,6)", "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)",
+                    "iPad Mini 5 (WiFi)(iPad11,1)", "iPad Mini 5 (Cellular)(iPad11,2)", "iPad Air 3 (WiFi)(iPad11,3)",
+                    "iPad Air 3 (Cellular)(iPad11,4)");
 
     private static final ObservableList<String> AppleTVs =
             FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");

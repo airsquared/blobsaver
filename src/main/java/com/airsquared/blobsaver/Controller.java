@@ -906,7 +906,6 @@ public class Controller {
             e.printStackTrace();
             newReportableError("Error: unable to register native methods", e.toString());
         } finally {
-            System.out.println("finally");
             readFromConnectedDeviceButton.setDisable(false);
             readFromConnectedDeviceButton.setText("Read from connected device");
         }
