@@ -198,7 +198,7 @@ class TSSChecker {
         } else if (containsIgnoreCase(tsscheckerLog, "[Error] [Error] can't save signing tickets at " + savePath)) {
             newUnreportableError("\'" + savePath + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             controller.pathField.setEffect(errorBorder);
-        } else if (containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + device + " IS NOT being signed!") || tsscheckerLog.contains("Build " + controller.buildIDField.getText() + " for device" + device + "IS NOT being signed!")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + device + " IS NOT being signed!") || containsIgnoreCase(tsscheckerLog, "Build " + controller.buildIDField.getText() + " for device" + device + "IS NOT being signed!")) {
             newUnreportableError("iOS/tvOS " + version + " is not being signed for device " + device);
             if (version.equals(controller.versionField.getText())) {
                 controller.versionField.setEffect(errorBorder);
