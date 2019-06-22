@@ -152,7 +152,7 @@ class Shared {
         File tsschecker;
         if (!Main.runningFromJar) {
             // temporarily set tsschecker to the dist directory
-            tsschecker = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(), "dist/");
+            tsschecker = new File(Main.jarDirectory.getParentFile().getParentFile(), "dist/");
             if (PlatformUtil.isMac()) {
                 tsschecker = new File(tsschecker, "macos/tsschecker");
             } else if (PlatformUtil.isWindows()) {
