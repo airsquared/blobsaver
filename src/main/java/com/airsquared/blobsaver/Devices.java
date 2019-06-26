@@ -86,6 +86,7 @@ class Devices {
         requiresBoardConfig.put("iPad Pro 3 12.9 (WiFi)(iPad8,6)", "J320xAP");
         requiresBoardConfig.put("iPad Pro 3 12.9 (Cellular)(iPad8,7)", "J321AP");
         requiresBoardConfig.put("iPad Pro 3 12.9 (Cellular)(iPad8,8)", "J321xAP");
+        requiresBoardConfig.put("iPod Touch 7 (iPod9,1)", "N112AP");
     }
 
     static ObservableList<String> getiPhones() {

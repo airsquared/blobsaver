@@ -79,7 +79,7 @@ class TSSChecker {
         }
     }
 
-    private static void run(String device, String version) {
+    private static void run(String device, String version) throws TSSCheckerException {
         if ("".equals(device)) {
             return;
         }
@@ -149,7 +149,7 @@ class TSSChecker {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();
             deleteTempFiles(buildManifestPlist);
-            return;
+            throw new TSSCheckerException(e);
         }
 
         if (containsIgnoreCase(tsscheckerLog, "Saved signing tickets")) {
@@ -236,7 +236,7 @@ class TSSChecker {
      * RuntimeException for all tsschecker related errors.
      */
     @SuppressWarnings({"unused", "WeakerAccess"})
-    static class TSSCheckerException extends RuntimeException {
+    static class TSSCheckerException extends Exception {
 
         /**
          * Constructs a new tsschecker exception with {@code null} as its
@@ -293,7 +293,7 @@ class TSSChecker {
         }
 
         /**
-         * Constructs a new tsschechker exception with the specified detail
+         * Constructs a new tsschecker exception with the specified detail
          * message, cause, suppression enabled or disabled, and writable
          * stack trace enabled or disabled.
          *
