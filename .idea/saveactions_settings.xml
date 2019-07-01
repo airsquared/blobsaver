@@ -8,9 +8,13 @@
         <option value="organizeImports" />
         <option value="reformat" />
         <option value="missingOverrideAnnotation" />
-        <option value="useBlocks" />
       </set>
     </option>
     <option name="configurationPath" value="" />
+    <option name="exclusions">
+      <set>
+        <option value="build.gradle" />
+      </set>
+    </option>
   </component>
 </project>
