@@ -16,6 +16,8 @@ jobs:
       with:
         java-version: '1.8'
         javafx: true
+    - name: print java_home
+      run: ls -LR $JAVA_HOME
     - name: Build with Gradle
       run: ./gradlew build
       
