@@ -12,10 +12,12 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Set up JDK 1.8
-      uses: airsquared/setup-java@2fbb76c
+      uses: airsquared/setup-java@master
       with:
         java-version: '1.8'
         javafx: true
+    - name: Print JDK download info
+      run: cat /mydownloadinfo
     - name: Assemble with Gradle
       run: ./gradlew assemble
       
