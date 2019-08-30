@@ -17,7 +17,7 @@ jobs:
         java-version: '1.8'
         javafx: true
     - name: Print JDK download info
-      run: cat /mydownloadinfo
+      run: cat /tmp/mydownloadinfo
     - name: Assemble with Gradle
       run: ./gradlew assemble
       
