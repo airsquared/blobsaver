@@ -19,5 +19,6 @@ jobs:
     - name: Print Operating System
       run: echo ${{ matrix.os }}
     - name: Assemble with Gradle
-      run: ./gradlew assemble
+      if: matrix.os == 'macOS-latest'
+      run: ./gradlew createApp
       
