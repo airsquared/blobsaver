@@ -18,7 +18,6 @@ jobs:
         javafx: true
     - name: Print Operating System
       run: echo ${{ matrix.os }}
-    - name: Assemble with Gradle
+    - name: Create macOS dmg with Gradle
       if: matrix.os == 'macOS-latest'
-      run: ./gradlew createApp
-      
+      run: ./gradlew createDmg
