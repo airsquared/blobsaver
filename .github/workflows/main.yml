@@ -16,6 +16,8 @@ jobs:
       with:
         java-version: '1.8'
         javafx: true
+    - name: Print Operating System
+      run: echo ${{ matrix.os }}
     - name: Assemble with Gradle
       run: ./gradlew assemble
       
