@@ -26,5 +26,5 @@ jobs:
       run: |
         ./gradlew createLinuxTargz
         tar -xzf build/distributions/blobsaver-linux.tar.gz
-        apt-get install xvfb # Xvfb is needed because the CI runs in headless mode
+        sudo apt-get install xvfb # Xvfb is needed because the CI runs in headless mode
         xvfb-run ./blobsaver
