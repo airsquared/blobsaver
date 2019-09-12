@@ -21,4 +21,4 @@ jobs:
       run: ./gradlew createApp && open ./build/macApp/blobsaver.app/
     - name: Create and run Linux tar.gz
       if: matrix.os == 'ubuntu-latest'
-      run: ./gradlew createLinuxTargz && tar -xzvf build/distributions/blobsaver-linux.tar.gz && ./blobsaver
+      run: ./gradlew createLinuxTargz && file build/distributions/blobsaver-linux.tar.gz && tar -xzvf build/distributions/blobsaver-linux.tar.gz && ./blobsaver
