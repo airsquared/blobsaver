@@ -20,11 +20,11 @@ jobs:
       if: matrix.os == 'macOS-latest'
       run: |
         ./gradlew createApp
-        open ./build/macApp/blobsaver.app/
+        timeout -v --preserve-status 30s ./build/macApp/blobsaver.app/JavaAppLauncher
     - name: Create and run Linux tar.gz
       if: matrix.os == 'ubuntu-latest'
       run: |
         ./gradlew createLinuxTargz
         tar -xzf build/distributions/blobsaver-linux.tar.gz
         sudo apt-get install xvfb # Xvfb is needed because the CI runs in headless mode
-        xvfb-run ./blobsaver
+        timeout -v --preserve-status 30s xvfb-run ./blobsaver
