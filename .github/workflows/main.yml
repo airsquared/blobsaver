@@ -16,8 +16,6 @@ jobs:
       with:
         java-version: '1.8'
         javafx: true
-    - name: Print Operating System
-      run: echo ${{ matrix.os }}
-    - name: Create macOS dmg with Gradle
+    - name: Create and run macOS app with Gradle
       if: matrix.os == 'macOS-latest'
-      run: ./gradlew createApp
+      run: ./gradlew createApp && open ./build/macApp/blobsaver.app/
