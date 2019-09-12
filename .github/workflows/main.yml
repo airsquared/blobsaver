@@ -18,7 +18,13 @@ jobs:
         javafx: true
     - name: Create and run macOS app
       if: matrix.os == 'macOS-latest'
-      run: ./gradlew createApp && open ./build/macApp/blobsaver.app/
+      run: |
+        ./gradlew createApp
+        open ./build/macApp/blobsaver.app/
     - name: Create and run Linux tar.gz
       if: matrix.os == 'ubuntu-latest'
-      run: ./gradlew createLinuxTargz && file build/distributions/blobsaver-linux.tar.gz && head build/distributions/blobsaver-linux.tar.gz && tar -xzvf build/distributions/blobsaver-linux.tar.gz && ./blobsaver
+      run: |
+        ./gradlew createLinuxTargz
+        tar -xzf build/distributions/blobsaver-linux.tar.gz
+        apt-get install xvfb # Xvfb is needed because the CI runs in headless mode
+        xvfb-run ./blobsaver
