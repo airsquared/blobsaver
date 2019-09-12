@@ -108,6 +108,7 @@ task createLinuxTargz(type: Tar, dependsOn: shadowJar) {
     outputs.file("${buildDir}/distributions/blobsaver-linux.tar.gz")
 
     archiveFileName = "blobsaver-linux.tar.gz"
+    compression = Compression.GZIP
     destinationDirectory = file("${buildDir}/distributions/")
     from "${buildDir}/libs/blobsaver.jar", "${projectDir}/dist/linux/"
 
