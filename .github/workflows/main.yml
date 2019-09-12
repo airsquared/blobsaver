@@ -20,4 +20,4 @@ jobs:
       run: echo ${{ matrix.os }}
     - name: Create macOS dmg with Gradle
       if: matrix.os == 'macOS-latest'
-      run: ./gradlew createDmg
+      run: ./gradlew createApp
