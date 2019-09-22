@@ -146,7 +146,7 @@ public class Controller {
                     break;
                 case "iPad":
                     deviceModelChoiceBox.setItems(Devices.getiPads());
-                    versionLabel.setText("iOS Version");
+                    versionLabel.setText("iOS/iPadOS Version");
                     break;
                 case "AppleTV":
                     deviceModelChoiceBox.setItems(Devices.getAppleTVs());

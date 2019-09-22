@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "blobsaver"
-#define MyAppVersion "2.3.2"
+#define MyAppVersion "2.4.0"
 #define MyAppPublisher "blobsaver"
 #define MyAppURL "https://www.github.com/airsquared/blobsaver"
 #define MyAppExeName "blobsaver.exe"
