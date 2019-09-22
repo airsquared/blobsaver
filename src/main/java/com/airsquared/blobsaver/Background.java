@@ -37,9 +37,11 @@ import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -179,9 +181,9 @@ class Background {
             identifier = textToIdentifier(presetPrefs.get("Device Model", ""));
         }
         log("identifier:" + identifier);
-        List<String> signedVersions;
+        List<Map<String, Object>> signedFirmwares;
         try {
-            signedVersions = getAllSignedVersions(identifier);
+            signedFirmwares = getAllSignedFirmwares(identifier);
         } catch (IOException e) {
             Notification notification = new Notification("Saving blobs failed", "Check your internet connection.\nIf it is working, click here to report this error.", Notification.ERROR_ICON);
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -199,20 +201,19 @@ class Background {
             Notification.Notifier.INSTANCE.notify(notification);
             return;
         }
-        log("signed versions:" + signedVersions);
         String ecid = presetPrefs.get("ECID", "");
         String path = presetPrefs.get("Path", "");
         String boardConfig = presetPrefs.get("Board Config", "");
         String apnonce = presetPrefs.get("Apnonce", "");
         File tsschecker = getTsschecker();
-        for (String version : signedVersions) {
+        for (Map<String, Object> firmware : signedFirmwares) {
             //noinspection ResultOfMethodCallIgnored
             new File(path).mkdirs();
             String tsscheckerLog;
             try {
                 ArrayList<String> args = new ArrayList<>();
                 Collections.addAll(args, tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", identifier, "-s", "-e", ecid,
-                        "--save-path", path, "-i", version);
+                        "--save-path", path, "-m", extractBuildManifest(new URL(firmware.get("url").toString())).toString());
                 if (!"none".equals(boardConfig) && !"".equals(boardConfig)) { // needs board config
                     Collections.addAll(args, "--boardconfig", boardConfig);
                 }
@@ -244,7 +245,7 @@ class Background {
                 presetName = appPrefs.get("Name Preset" + preset, "");
             }
             if (containsIgnoreCase(tsscheckerLog, "Saved")) {
-                Notification notification = new Notification("Successfully saved blobs for", "iOS " + version + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
+                Notification notification = new Notification("Successfully saved blobs for", "iOS " + firmware.get("version").toString() + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
                     Notification.Notifier.INSTANCE.stop();
@@ -275,7 +276,7 @@ class Background {
                     reportError(alert, tsscheckerLog);
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-            } else if (containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + identifier + " IS NOT being signed")) {
+            } else if (containsIgnoreCase(tsscheckerLog, " IS NOT being signed")) {
                 continue;
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);

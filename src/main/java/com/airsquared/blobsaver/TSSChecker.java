@@ -24,13 +24,14 @@ import javafx.scene.effect.Effect;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.airsquared.blobsaver.Shared.*;
 
@@ -43,9 +44,10 @@ class TSSChecker {
     static void run(String device) {
         Controller controller = Controller.INSTANCE;
         if (controller.versionCheckBox.isSelected()) {
-            List<String> signedVersions;
+            List<Map<String, Object>> allSignedFirmwares; // really is List<Map<String, String>>
+            ArrayList<String> signedVersionsStringList = new ArrayList<>();
             try {
-                signedVersions = getAllSignedVersions(device);
+                allSignedFirmwares = getAllSignedFirmwares(device);
             } catch (IOException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR,
                         "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
@@ -57,29 +59,34 @@ class TSSChecker {
             }
             try {
                 // can't use the `forEach()` method because exception won't be caught properly
-                for (String version : signedVersions) {
-                    run(device, version);
+                for (Map<String, Object> firmware : allSignedFirmwares) { // really is List<Map<String, String>>
+                    signedVersionsStringList.add(firmware.get("version").toString());
+                    run(new URL(firmware.get("url").toString()), device, firmware.get("version").toString());
                 }
-            } catch (TSSCheckerException e) { // exception is only needed so lambda doesn't keep on going after an error
+            } catch (TSSCheckerException | MalformedURLException e) { // exception is only needed so lambda doesn't keep on going after an error
                 return; // the error alert should already be shown
             }
-            String signedVersionsString = signedVersions.toString().substring(1, signedVersions.toString().length() - 1);
+            String signedVersionsString = signedVersionsStringList.toString().substring(1, signedVersionsStringList.toString().length() - 1);
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "Successfully saved blobs in\n" + controller.pathField.getText() + "\n\nFor "
-                            + (signedVersions.size() == 1 ? "version " : "versions ") + signedVersionsString, ButtonType.OK);
+                            + (signedVersionsStringList.size() == 1 ? "version " : "versions ") + signedVersionsString, ButtonType.OK);
             alert.setHeaderText("Success!");
             alert.showAndWait();
         } else {
             try {
-                run(device, controller.versionField.getText());
+                Map<String, Object> firmware = getFirmwareList(device).stream().filter(stringObjectMap ->
+                        controller.versionField.getText().equals(stringObjectMap.get("version"))).collect(Collectors.toList()).get(0);
+                run(new URL(firmware.get("url").toString()), device, controller.versionField.getText());
             } catch (TSSCheckerException e) {
                 // the error alert should already be shown
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
         }
     }
 
-    private static void run(String device, String version) throws TSSCheckerException {
+    private static void run(URL ipswURL, String device, String version) throws TSSCheckerException {
         if ("".equals(device)) {
             return;
         }
@@ -89,12 +96,10 @@ class TSSChecker {
         String savePath = controller.pathField.getText();
         String boardConfig = controller.boardConfigField.getText();
         String apnonce = controller.apnonceField.getText();
-        String ipswURL = controller.ipswField.getText();
 
         Effect errorBorder = Controller.errorBorder;
 
         File tsschecker = getTsschecker();
-        File buildManifestPlist = null;
 
         File locationToSaveBlobs = new File(controller.pathField.getText());
         //noinspection ResultOfMethodCallIgnored
@@ -107,38 +112,18 @@ class TSSChecker {
             Collections.addAll(args, "--apnonce", apnonce);
         }
         if (controller.betaCheckBox.isSelected()) {
-            try {
-                if (!ipswURL.matches("https?://.*apple.*\\.ipsw")) {
-                    newUnreportableError("\"" + ipswURL + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    return;
-                }
-                buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
-                ZipInputStream zin;
-                try {
-                    URL url = new URL(ipswURL);
-                    zin = new ZipInputStream(url.openStream());
-                } catch (IOException e) {
-                    newUnreportableError("\"" + ipswURL + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
-                    deleteTempFiles(buildManifestPlist);
-                    return;
-                }
-                ZipEntry ze;
-                while ((ze = zin.getNextEntry()) != null) {
-                    if ("BuildManifest.plist".equals(ze.getName())) {
-                        copyStreamToFile(zin, buildManifestPlist);
-                        break;
-                    }
-                }
-                buildManifestPlist.deleteOnExit();
-            } catch (IOException e) {
-                newReportableError("Unable to get BuildManifest from .ipsw.", e.getMessage());
-                e.printStackTrace();
-                deleteTempFiles(buildManifestPlist);
+            if (!controller.ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
+                newUnreportableError("\"" + ipswURL + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
                 return;
             }
-            Collections.addAll(args, "-i", version, "--beta", "--buildid", controller.buildIDField.getText(), "-m", buildManifestPlist.toString());
-        } else {
-            Collections.addAll(args, "-i", version);
+            Collections.addAll(args, "--beta", "--buildid", controller.buildIDField.getText());
+        }
+        try {
+            Collections.addAll(args, "-m", extractBuildManifest(ipswURL).toString());
+        } catch (IOException e) {
+            newReportableError("Unable to extract BuildManifest from .ipsw.", e.getMessage());
+            e.printStackTrace();
+            return;
         }
         String tsscheckerLog;
         try {
@@ -148,7 +133,6 @@ class TSSChecker {
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();
-            deleteTempFiles(buildManifestPlist);
             throw new TSSCheckerException(e);
         }
 
@@ -160,7 +144,6 @@ class TSSChecker {
                 alert.setHeaderText("Success!");
                 alert.showAndWait();
             }
-            deleteTempFiles(buildManifestPlist);
             return;
         } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ecid=" + ecid + ", but parsing failed")) {
             newUnreportableError("\"" + ecid + "\"" + " is not a valid ECID. Try getting it from iTunes.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
@@ -221,15 +204,8 @@ class TSSChecker {
         } else {
             newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         }
-        deleteTempFiles(buildManifestPlist);
         throw new TSSCheckerException();
-    }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void deleteTempFiles(File buildManifestPlist) {
-        if (buildManifestPlist != null && buildManifestPlist.exists()) {
-            buildManifestPlist.delete();
-        }
     }
 
     /**

@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
@@ -136,7 +138,7 @@ class Shared {
         service.start();
     }
 
-    static String makeRequest(URL url) throws IOException {
+    private static String makeRequest(URL url) throws IOException {
         URLConnection urlConnection = url.openConnection();
         BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
         String inputLine;
@@ -173,7 +175,7 @@ class Shared {
         return tsschecker;
     }
 
-    static void copyStreamToFile(InputStream inputStream, File file) throws IOException {
+    private static void copyStreamToFile(InputStream inputStream, File file) throws IOException {
         OutputStream out = new FileOutputStream(file);
         int read;
         byte[] bytes = new byte[1024];
@@ -263,11 +265,33 @@ class Shared {
         }
     }
 
-    static List<String> getAllSignedVersions(String deviceIdentifier) throws IOException {
+    static List<Map<String, Object>> getFirmwareList(String deviceIdentifier) throws IOException {
         String response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + deviceIdentifier));
         JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
         @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
-        return firmwareList.stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).map(map -> map.get("version").toString()).collect(Collectors.toList());
+        return firmwareList;
+    }
+
+    static List<Map<String, Object>> getAllSignedFirmwares(String deviceIdentifier) throws IOException {
+        return getFirmwareList(deviceIdentifier).stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).collect(Collectors.toList());
+    }
+
+//    static List<String> getAllSignedVersions(String deviceIdentifier) throws IOException {
+//        return getAllSignedFirmwares(deviceIdentifier).map(map -> map.get("version").toString()).collect(Collectors.toList());
+//    }
+
+    static File extractBuildManifest(URL ipswURL) throws IOException {
+        File buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
+        ZipInputStream zin = new ZipInputStream(ipswURL.openStream());
+        ZipEntry ze;
+        while ((ze = zin.getNextEntry()) != null) {
+            if ("BuildManifest.plist".equals(ze.getName())) {
+                copyStreamToFile(zin, buildManifestPlist);
+                break;
+            }
+        }
+        buildManifestPlist.deleteOnExit();
+        return buildManifestPlist;
     }
 
     // temporary until ProGuard is implemented
