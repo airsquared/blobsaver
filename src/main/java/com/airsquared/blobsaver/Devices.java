@@ -86,6 +86,10 @@ class Devices {
         requiresBoardConfig.put("iPad Pro 3 12.9 (WiFi)(iPad8,6)", "J320xAP");
         requiresBoardConfig.put("iPad Pro 3 12.9 (Cellular)(iPad8,7)", "J321AP");
         requiresBoardConfig.put("iPad Pro 3 12.9 (Cellular)(iPad8,8)", "J321xAP");
+        requiresBoardConfig.put("iPad Mini 5 (WiFi)(iPad11,1)", "J210AP");
+        requiresBoardConfig.put("iPad Mini 5 (Cellular)(iPad11,2)", "J211AP");
+        requiresBoardConfig.put("iPad Air 3 (WiFi)(iPad11,3)", "J217AP");
+        requiresBoardConfig.put("iPad Air 3 (Cellular)(iPad11,4)", "J218AP");
         requiresBoardConfig.put("iPod Touch 7 (iPod9,1)", "N112AP");
     }
 
