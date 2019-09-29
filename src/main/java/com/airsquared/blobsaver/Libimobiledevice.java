@@ -163,7 +163,7 @@ public class Libimobiledevice {
             switch (errorCode) {
                 case -17:  // LOCKDOWN_E_PASSWORD_PROTECTED
                     exceptionMessage = "lockdownd error: LOCKDOWN_E_PASSWORD_PROTECTED (-17)";
-                    alertMessage = "Error: The device is locked, please unlock your device or enter the passcode and go to the homescreen then try again.";
+                    alertMessage = "Error: The device is locked.\n\nPlease unlock your device and go to the homescreen then try again.";
                     break;
                 case -18:  // LOCKDOWN_E_USER_DENIED_PAIRING
                     exceptionMessage = "lockdownd error: LOCKDOWN_E_USER_DENIED_PAIRING (-18)";
@@ -197,16 +197,31 @@ public class Libimobiledevice {
                 }
             });
         }
-        System.out.println("Exception Message: " + exceptionMessage);
-        throw new RuntimeException(exceptionMessage);
+        throw new LibimobiledeviceException(exceptionMessage);
     }
 
     static {
         try {
             Native.register("imobiledevice");
         } catch (Throwable e) { // need to catch UnsatisfiedLinkError
-            e.printStackTrace();
-            newReportableError("Error: unable to register native methods", e.toString());
+            newReportableError("Error: unable to register native methods", exceptionToString(e));
+            throw new LibimobiledeviceException("Unable to register native methods", e);
+        }
+    }
+
+    public static class LibimobiledeviceException extends RuntimeException {
+        public LibimobiledeviceException() {
+            super();
+        }
+
+        public LibimobiledeviceException(String message) { super(message); }
+
+        public LibimobiledeviceException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public LibimobiledeviceException(Throwable cause) {
+            super(cause);
         }
     }
 
