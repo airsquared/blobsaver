@@ -74,13 +74,33 @@ class TSSChecker {
             alert.showAndWait();
         } else {
             try {
-                Map<String, Object> firmware = getFirmwareList(device).stream().filter(stringObjectMap ->
-                        controller.versionField.getText().equals(stringObjectMap.get("version"))).collect(Collectors.toList()).get(0);
-                run(new URL(firmware.get("url").toString()), device, controller.versionField.getText());
+                URL ipswURL;
+                if (controller.betaCheckBox.isSelected()) {
+                    try {
+                        ipswURL = new URL(controller.ipswField.getText());
+                    } catch (MalformedURLException e) {
+                        newUnreportableError("\"" + controller.ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
+                        e.printStackTrace();
+                        return;
+                    }
+                } else {
+                    try {
+                        ipswURL = new URL(getFirmwareList(device).stream().filter(stringObjectMap ->
+                                controller.versionField.getText().equals(stringObjectMap.get("version")))
+                                .collect(Collectors.toList()).get(0).get("url").toString());
+                    } catch (IOException e) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR,
+                                "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                                githubIssue, redditPM, ButtonType.OK);
+                        resizeAlertButtons(alert);
+                        alert.showAndWait();
+                        reportError(alert, e.getMessage());
+                        return;
+                    }
+                }
+                run(ipswURL, device, controller.versionField.getText());
             } catch (TSSCheckerException e) {
                 // the error alert should already be shown
-            } catch (IOException e) {
-                e.printStackTrace();
             }
 
         }
