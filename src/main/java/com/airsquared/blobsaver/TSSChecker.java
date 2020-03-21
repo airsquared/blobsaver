@@ -156,7 +156,7 @@ class TSSChecker {
             throw new TSSCheckerException(e);
         }
 
-        if (containsIgnoreCase(tsscheckerLog, "Saved signing tickets")) {
+        if (containsIgnoreCase(tsscheckerLog, "Saved shsh blobs")) {
             // if multiple versions are being saved at the same time, do not show success message multiple times
             // the success message will be shown after saving everything is completed
             if (!controller.versionCheckBox.isSelected()) {
@@ -174,34 +174,29 @@ class TSSChecker {
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] ERROR: could not get url for device " + device + " on iOS " + version)) {
-            newUnreportableError("Could not find device \"" + device + "\" on iOS/tvOS " + version +
-                    "\n\nThe version doesn't exist or isn't compatible with the device");
-            controller.versionField.setEffect(errorBorder);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified apnonce=" + apnonce + ", but parsing failed")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")) {
             newUnreportableError("\"" + apnonce + "\" is not a valid apnonce");
             controller.apnonceField.setEffect(errorBorder);
-        } else if (containsIgnoreCase(tsscheckerLog, "[WARNING] [TSSC] could not get id0 for installType=Erase. Using fallback installType=Update since user did not specify installType manually")
-                && containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] Error: could not get id0 for installType=Update")
-                && containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] faild to build TSS request")
-                && containsIgnoreCase(tsscheckerLog, "Error] [TSSC] checking tss status failed!")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Erase")
+                && containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Update")
+                && containsIgnoreCase(tsscheckerLog, "checking tss status failed")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
                     githubIssue, redditPM, ButtonType.OK);
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] ERROR: TSS request failed: Could not resolve host:")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "Could not resolve host")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
                     githubIssue, redditPM, ButtonType.OK);
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [Error] can't save signing tickets at " + savePath)) {
+        } else if (containsIgnoreCase(tsscheckerLog, "can't save shsh at")) {
             newUnreportableError("\'" + savePath + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
             controller.pathField.setEffect(errorBorder);
-        } else if (containsIgnoreCase(tsscheckerLog, "iOS " + version + " for device " + device + " IS NOT being signed!") || containsIgnoreCase(tsscheckerLog, "Build " + controller.buildIDField.getText() + " for device" + device + "IS NOT being signed!")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "IS NOT being signed")) {
             newUnreportableError("iOS/tvOS " + version + " is not being signed for device " + device);
             if (version.equals(controller.versionField.getText())) {
                 controller.versionField.setEffect(errorBorder);
@@ -210,22 +205,19 @@ class TSSChecker {
                 controller.buildIDField.setEffect(errorBorder);
                 controller.ipswField.setEffect(errorBorder);
             }
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] failed to load manifest")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "failed to load manifest")) {
             Alert alert = new Alert(Alert.AlertType.ERROR,
                     "Failed to load manifest.\n\n \"" + ipswURL + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
                     githubIssue, redditPM, ButtonType.OK);
             resizeAlertButtons(alert);
             alert.showAndWait();
             reportError(alert, tsscheckerLog);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] selected device can't be used with that buildmanifest")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "selected device can't be used with that buildmanifest")) {
             newUnreportableError("Device and build manifest don't match.");
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error]")) {
-            newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         } else {
-            newReportableError("Unknown result.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
+            newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         }
         throw new TSSCheckerException();
-
     }
 
     /**

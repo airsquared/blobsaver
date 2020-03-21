@@ -244,7 +244,7 @@ class Background {
             } else {
                 presetName = appPrefs.get("Name Preset" + preset, "");
             }
-            if (containsIgnoreCase(tsscheckerLog, "Saved")) {
+            if (containsIgnoreCase(tsscheckerLog, "Saved shsh blobs")) {
                 Notification notification = new Notification("Successfully saved blobs for", "iOS " + firmware.get("version").toString() + " (" + presetName + ") in\n" + path, Notification.SUCCESS_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed((event) -> {
@@ -261,7 +261,7 @@ class Background {
 
                 log("displayed message");
 
-            } else if (containsIgnoreCase(tsscheckerLog, "[Error] ERROR: TSS request failed: Could not resolve host:")) {
+            } else if (containsIgnoreCase(tsscheckerLog, "Could not resolve host")) {
                 Notification notification = new Notification("Saving blobs failed", "Check your internet connection. If it is working, click here to report this error.", Notification.ERROR_ICON);
                 Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
                 Notification.Notifier.INSTANCE.setOnNotificationPressed(event -> {
@@ -276,7 +276,7 @@ class Background {
                     reportError(alert, tsscheckerLog);
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
-            } else if (containsIgnoreCase(tsscheckerLog, " IS NOT being signed")) {
+            } else if (containsIgnoreCase(tsscheckerLog, "IS NOT being signed")) {
                 continue;
             } else {
                 Notification notification = new Notification("Saving blobs failed", "An unknown error occurred. Click here to report this error.", Notification.ERROR_ICON);
