@@ -3,9 +3,10 @@
 
 #define MyAppName "blobsaver"
 #define MyAppVersion "2.4.0"
-#define MyAppPublisher "blobsaver"
+#define MyAppPublisher "airsquared"
 #define MyAppURL "https://www.github.com/airsquared/blobsaver"
 #define MyAppExeName "blobsaver.exe"
+#define MyAppCopyright "Copyright (c) 2020  airsquared"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -19,8 +20,11 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+AppCopyright={#MyAppCopyright}
+ArchitecturesAllowed=x64 arm64
+ArchitecturesInstallIn64BitMode=x64 arm64
+Uninstallable=not IsTaskSelected('portableMode')
 DefaultDirName={pf}\{#MyAppName}
-DisableDirPage=yes
 DisableProgramGroupPage=yes
 LicenseFile=build\tmp\innosetup\LICENSE
 OutputDir=build\distributions
@@ -35,6 +39,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
+Name: portableMode; Description: "Portable Mode"
 
 [Files]
 Source: "build\tmp\innosetup\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs

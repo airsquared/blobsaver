@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019  airsquared
+ * Copyright (c) 2020  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -74,14 +74,14 @@ public class Main {
         try {
             Class.forName("javafx.application.Application");
             if (PlatformUtil.isMac() || PlatformUtil.isWindows() || PlatformUtil.isLinux()) {
-                JavaFxApplication.launchIt(args);
+                JavaFxApplication.launch(JavaFxApplication.class, args);
             } else {
                 int result = javax.swing.JOptionPane.showOptionDialog(null, "Cannot detect the OS. Assuming it is Linux. Continue?",
                         "Warning", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null, null, null);
                 if (result == javax.swing.JOptionPane.CANCEL_OPTION) {
                     System.exit(0);
                 }
-                JavaFxApplication.launchIt(args);
+                JavaFxApplication.launch(JavaFxApplication.class, args);
             }
         } catch (ClassNotFoundException e) {
             javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. " +
@@ -138,8 +138,15 @@ public class Main {
 
     public static class JavaFxApplication extends Application {
 
-        static void launchIt(String[] args) {
-            launch(args);
+        private static Application INSTANCE;
+
+        public static Application getInstance() {
+            return INSTANCE;
+        }
+
+        @Override
+        public void init() {
+            INSTANCE = this;
         }
 
         @Override

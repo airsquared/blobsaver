@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019  airsquared
+ * Copyright (c) 2020  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -26,15 +26,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.awt.Desktop;
-import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
 import java.io.*;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
@@ -55,20 +53,7 @@ class Shared {
     static ButtonType githubIssue = new ButtonType("Create Issue on Github");
 
     static String textToIdentifier(String deviceModel) {
-        String toReturn = Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
-        if ("".equals(toReturn)) { // this will never happen in background
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Could not find identifier: \"" + deviceModel + "\"" + "\n\nPlease create a new issue on Github or PM me on Reddit.", new ButtonType("Create Issue on Github"), new ButtonType("PM on Reddit"), ButtonType.CANCEL);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            if (alert.getResult().equals(new ButtonType("Create Issue on Github"))) {
-                openURL("https://github.com/airsquared/blobsaver/issues/new/choose");
-            } else if (alert.getResult().equals(new ButtonType("PM on Reddit"))) {
-                openURL("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
-            }
-            return null;
-        } else {
-            return toReturn;
-        }
+        return Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
     }
 
     static void checkForUpdates(boolean forceCheck) {
@@ -190,11 +175,7 @@ class Shared {
     }
 
     static void openURL(String url) {
-        try {
-            Desktop.getDesktop().browse(URI.create(url));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Main.JavaFxApplication.getInstance().getHostServices().showDocument(url);
     }
 
     static String executeProgram(String... command) throws IOException {
@@ -223,8 +204,7 @@ class Shared {
     }
 
     static void reportError(Alert alert, String toCopy) {
-        StringSelection stringSelection = new StringSelection(toCopy);
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
+        copyToClipboard(toCopy);
         reportError(alert);
     }
 
@@ -243,6 +223,12 @@ class Shared {
     static void newUnreportableError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
         alert.showAndWait();
+    }
+
+    static void copyToClipboard(String s) {
+        ClipboardContent clipboardContent = new ClipboardContent();
+        clipboardContent.putString(s);
+        Clipboard.getSystemClipboard().setContent(clipboardContent);
     }
 
     static void resizeAlertButtons(Alert alert) {

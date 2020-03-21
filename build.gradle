@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019  airsquared
+ * Copyright (c) 2020  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -118,7 +118,7 @@ task createLinuxTargz(type: Tar, dependsOn: shadowJar) {
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
     mainClassName = "com.airsquared.blobsaver.Main"
-    copyright = "Copyright (c) 2019  airsquared"
+    copyright = "Copyright (c) 2020  airsquared"
     downloadUrl = "https://java.com/inc/BrowserRedirect1.jsp"
     icon = "${projectDir}/icons/blob_emoji.ico"
     jreMinVersion = "1.8.0"

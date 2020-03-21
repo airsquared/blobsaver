@@ -75,7 +75,7 @@ Carthage/Build
 .idea/**/tasks.xml
 .idea/**/dictionaries
 .idea/**/shelf
-.idea/**/discord.xml # discord plugin
+.idea/discord.xml
 
 # Sensitive or high-churn files
 .idea/**/dataSources/

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019  airsquared
+ * Copyright (c) 2020  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -37,9 +37,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
-import java.awt.Desktop;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.prefs.BackingStoreException;
@@ -353,7 +351,7 @@ public class Controller {
 
     private void presetButtonHandler(ActionEvent evt) {
         Button btn = (Button) evt.getTarget();
-        int preset = Integer.valueOf(btn.getId().substring("preset".length()));
+        int preset = Integer.parseInt(btn.getId().substring("preset".length()));
         if (editingPresets) {
             savePreset(preset);
             savePresetButton.fire();
@@ -577,11 +575,7 @@ public class Controller {
                     licenseFile = new File(Main.jarDirectory, "LICENSE");
                 }
                 licenseFile.setReadOnly();
-                try {
-                    Desktop.getDesktop().edit(licenseFile);
-                } catch (IOException e) {
-                    newReportableError("Unable to open the license file.", e.toString());
-                }
+                openURL(licenseFile.toURI().toString());
                 break;
             case "Libraries Used":
                 File librariesUsedFile;
@@ -594,11 +588,7 @@ public class Controller {
                     librariesUsedFile = new File(Main.jarDirectory, "libraries_used.txt");
                 }
                 librariesUsedFile.setReadOnly();
-                try {
-                    Desktop.getDesktop().edit(librariesUsedFile);
-                } catch (IOException e) {
-                    newReportableError("Unable to open the libraries used file.", e.toString());
-                }
+                openURL(librariesUsedFile.toURI().toString());
                 break;
             case "Donate!":
                 donate();
@@ -744,7 +734,7 @@ public class Controller {
         alert.showAndWait();
         if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !"".equals(textField.getText()) && (choiceBox.getValue() != null)) {
             log("info given");
-            appPrefs.putInt("Time to run", Integer.valueOf(textField.getText()));
+            appPrefs.putInt("Time to run", Integer.parseInt(textField.getText()));
             appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
             log("alert menu canceled");
@@ -761,6 +751,9 @@ public class Controller {
     }
 
     public void startBackgroundHandler() {
+        if (!java.awt.SystemTray.isSupported()) {
+            newUnreportableError("System Tray is not supported on your OS/platform. Saving blobs in the background will not work without System Tray support.");
+        }
         if (Background.inBackground) { //stops background if already in background
             Background.stopBackground(true);
             appPrefs.putBoolean("Show background startup message", true);

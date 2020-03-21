@@ -12,7 +12,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/Notification-0.3.6.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/libdockvisibility-1.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -21,7 +21,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/libdockvisibility-1.0.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/Notification-0.3.6.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

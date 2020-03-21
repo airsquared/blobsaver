@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019  airsquared
+ * Copyright (c) 2020  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -43,7 +43,7 @@ import static com.airsquared.blobsaver.Shared.*;
 public class Libimobiledevice {
 
     public static long getEcid(boolean showErrorAlert) {
-        return Long.valueOf(getKeyFromConnectedDevice("UniqueChipID", PlistType.INTEGER, showErrorAlert));
+        return Long.parseLong(getKeyFromConnectedDevice("UniqueChipID", PlistType.INTEGER, showErrorAlert));
     }
 
     public static String getDeviceModelIdentifier(boolean showErrorAlert) {
@@ -209,6 +209,7 @@ public class Libimobiledevice {
         }
     }
 
+    @SuppressWarnings("unused")
     public static class LibimobiledeviceException extends RuntimeException {
         public LibimobiledeviceException() {
             super();
