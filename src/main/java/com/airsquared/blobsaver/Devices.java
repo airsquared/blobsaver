@@ -35,7 +35,8 @@ class Devices {
             "iPhone 7+ (Global)(iPhone9,2)", "iPhone 7 (GSM)(iPhone9,3)", "iPhone 7+ (GSM)(iPhone9,4)",
             "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
             "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "iPhone XS (Global) (iPhone11,2)",
-            "iPhone XS Max (China) (iPhone11,4)", "iPhone XS Max (iPhone11,6)", "iPhone XR (iPhone11,8)");
+            "iPhone XS Max (China) (iPhone11,4)", "iPhone XS Max (iPhone11,6)", "iPhone XR (iPhone11,8)",
+            "iPhone 11 (iPhone12,1)", "iPhone 11 Pro (iPhone12,3)", "iPhone 11 Pro Max (iPhone12,5)");
 
     private static final ObservableList<String> iPods =
             FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6",
@@ -51,11 +52,11 @@ class Devices {
                     "iPad Pro 9.7 (Wifi)", "iPad Pro 9.7 (Cellular)", "iPad Pro 12.9 (WiFi)", "iPad Pro 12.9 (Cellular)",
                     "iPad 5 (Wifi)", "iPad 5 (Cellular)", "iPad Pro 2 12.9 (WiFi)(iPad7,1)", "iPad Pro 2 12.9 (Cellular)(iPad7,2)",
                     "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)",
-                    "iPad 6 (Cellular)(iPad7,6)", "iPad Pro 3 11' (WiFi)(iPad8,1)", "iPad Pro 3 11' (WiFi)(iPad8,2)",
-                    "iPad Pro 3 11' (Cellular)(iPad8,3)", "iPad Pro 3 11' (Cellular)(iPad8,4)", "iPad Pro 3 12.9'(WiFi)(iPad8,5)",
-                    "iPad Pro 3 12.9 (WiFi)(iPad8,6)", "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)",
-                    "iPad Mini 5 (WiFi)(iPad11,1)", "iPad Mini 5 (Cellular)(iPad11,2)", "iPad Air 3 (WiFi)(iPad11,3)",
-                    "iPad Air 3 (Cellular)(iPad11,4)");
+                    "iPad 6 (Cellular)(iPad7,6)", "iPad 7 (WiFi)(iPad7,11)", "iPad 7 (Cellular)(iPad7,12)",
+                    "iPad Pro 3 11' (WiFi)(iPad8,1)", "iPad Pro 3 11' (WiFi)(iPad8,2)", "iPad Pro 3 11' (Cellular)(iPad8,3)",
+                    "iPad Pro 3 11' (Cellular)(iPad8,4)", "iPad Pro 3 12.9'(WiFi)(iPad8,5)", "iPad Pro 3 12.9 (WiFi)(iPad8,6)",
+                    "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)", "iPad Mini 5 (WiFi)(iPad11,1)",
+                    "iPad Mini 5 (Cellular)(iPad11,2)", "iPad Air 3 (WiFi)(iPad11,3)", "iPad Air 3 (Cellular)(iPad11,4)");
 
     private static final ObservableList<String> AppleTVs =
             FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
@@ -67,30 +68,11 @@ class Devices {
     private static HashMap<String, String> deviceModelIdentifiers = null;
 
     static {
-        requiresBoardConfig.put("iPhone 6s", "");
-        requiresBoardConfig.put("iPhone 6s+", "");
-        requiresBoardConfig.put("iPhone SE", "");
-        requiresBoardConfig.put("iPad 5 (Wifi)", "");
-        requiresBoardConfig.put("iPad 5 (Cellular)", "");
-        requiresBoardConfig.put("iPad 6 (WiFi)(iPad 7,5)", "J71bAP");
-        requiresBoardConfig.put("iPad 6 (Cellular)(iPad7,6)", "J72bAP");
-        requiresBoardConfig.put("iPhone XS (Global) (iPhone11,2)", "D321AP");
-        requiresBoardConfig.put("iPhone XS Max (China) (iPhone11,4)", "D331AP");
-        requiresBoardConfig.put("iPhone XS Max (iPhone11,6)", "D331pAP");
-        requiresBoardConfig.put("iPhone XR (iPhone11,8)", "N841AP");
-        requiresBoardConfig.put("iPad Pro 3 11' (WiFi)(iPad8,1)", "J317AP");
-        requiresBoardConfig.put("iPad Pro 3 11' (WiFi)(iPad8,2)", "J317xAP");
-        requiresBoardConfig.put("iPad Pro 3 11' (Cellular)(iPad8,3)", "J318AP");
-        requiresBoardConfig.put("iPad Pro 3 11' (Cellular)(iPad8,4)", "J318xAP");
-        requiresBoardConfig.put("iPad Pro 3 12.9'(WiFi)(iPad8,5)", "J320AP");
-        requiresBoardConfig.put("iPad Pro 3 12.9 (WiFi)(iPad8,6)", "J320xAP");
-        requiresBoardConfig.put("iPad Pro 3 12.9 (Cellular)(iPad8,7)", "J321AP");
-        requiresBoardConfig.put("iPad Pro 3 12.9 (Cellular)(iPad8,8)", "J321xAP");
-        requiresBoardConfig.put("iPad Mini 5 (WiFi)(iPad11,1)", "J210AP");
-        requiresBoardConfig.put("iPad Mini 5 (Cellular)(iPad11,2)", "J211AP");
-        requiresBoardConfig.put("iPad Air 3 (WiFi)(iPad11,3)", "J217AP");
-        requiresBoardConfig.put("iPad Air 3 (Cellular)(iPad11,4)", "J218AP");
-        requiresBoardConfig.put("iPod Touch 7 (iPod9,1)", "N112AP");
+        requiresBoardConfig.put("iPhone8,1", "");
+        requiresBoardConfig.put("iPhone8,2", "");
+        requiresBoardConfig.put("iPhone8,4", "");
+        requiresBoardConfig.put("iPad6,11", "");
+        requiresBoardConfig.put("iPad6,12", "");
     }
 
     static ObservableList<String> getiPhones() {
@@ -122,7 +104,7 @@ class Devices {
             try {
                 Properties properties = new Properties();
                 properties.load(Shared.class.getResourceAsStream("devicemodels.properties"));
-                @SuppressWarnings("unchecked") Map<String, String> prop = ((Map) properties); // so I can avoid "unchecked call" warning
+                @SuppressWarnings("unchecked") Map<String, String> prop = ((Map) properties);
                 deviceModelIdentifiers = new HashMap<>(prop);
                 prop.forEach((key, value) -> deviceModelIdentifiers.put(value, key));
             } catch (IOException e) {

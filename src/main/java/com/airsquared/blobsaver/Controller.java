@@ -160,11 +160,11 @@ public class Controller {
         deviceTypeChoiceBox.setValue("iPhone");
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceModelChoiceBox.setEffect(null);
-            requireBoardConfig((String) newValue);
+            requireBoardConfig(Devices.getDeviceModelIdentifiersMap().get(newValue.toString()));
         });
         identifierField.textProperty().addListener((x, y, newValue) -> {
             identifierField.setEffect(null);
-            requireBoardConfig(Devices.getDeviceModelIdentifiersMap().get(newValue));
+            requireBoardConfig(newValue);
         });
 
         addListenerToSetNullEffect(ecidField, versionField, boardConfigField, apnonceField, pathField, buildIDField, ipswField);
@@ -217,12 +217,13 @@ public class Controller {
 
     public void sendRedditPM() { Shared.sendRedditPM(); }
 
-    private void requireBoardConfig(String newValue) {
-        if (!"".equals(newValue) && Devices.getRequiresBoardConfigMap().containsKey(newValue)) {
+    private void requireBoardConfig(String identifier) {
+        if (!"".equals(identifier) && (Devices.getRequiresBoardConfigMap().containsKey(identifier) ||
+                !Devices.getDeviceModelIdentifiersMap().containsKey(identifier))) {
             boardConfigField.setEffect(borderGlow);
             getBoardConfig = true;
             boardConfigField.setDisable(false);
-            boardConfigField.setText(Devices.getRequiresBoardConfigMap().get(newValue));
+            boardConfigField.setText(Devices.getRequiresBoardConfigMap().get(identifier));
         } else {
             boardConfigField.setEffect(null);
             getBoardConfig = false;
@@ -335,7 +336,7 @@ public class Controller {
             deviceTypeChoiceBox.setValue(prefs.get("Device Type", ""));
             deviceModelChoiceBox.setValue(prefs.get("Device Model", ""));
         }
-        if (!"none".equals(prefs.get("Board Config", ""))) {
+        if (!"none".equals(prefs.get("Board Config", "")) && getBoardConfig) {
             boardConfigField.setText(prefs.get("Board Config", ""));
         }
         if (!"".equals(prefs.get("Apnonce", ""))) {
