@@ -18,6 +18,7 @@
   ~ along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
+<?import com.airsquared.blobsaver.Devices?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -119,6 +120,9 @@
                 <HBox.margin>
                     <Insets left="10.0"/>
                 </HBox.margin>
+                <items>
+                    <Devices fx:factory="getDeviceTypes"/>
+                </items>
             </ChoiceBox>
             <ChoiceBox fx:id="deviceModelChoiceBox" prefWidth="150.0">
                 <HBox.margin>

@@ -128,14 +128,14 @@ class Background {
             // add the application tray icon to the system tray.
             try {
                 tray.add(trayIcon);
-                log("in tray");
+                System.out.println("in tray");
             } catch (AWTException e) {
                 e.printStackTrace();
             }
         }
         if (runOnlyOnce) {
             if (!presetsToSave.isEmpty()) {
-                log("there are some presets to save");
+                System.out.println("there are some presets to save");
                 presetsToSave.forEach(Background::saveBackgroundBlobs);
             }
             inBackground = false;
@@ -162,17 +162,17 @@ class Background {
             }
             executor.scheduleAtFixedRate(() -> {
                 if (!presetsToSave.isEmpty()) {
-                    log("there are some presets to save");
+                    System.out.println("there are some presets to save");
                     presetsToSave.forEach(Background::saveBackgroundBlobs);
                 }
-                log("done w execution of executor");
+                System.out.println("done with executor");
             }, 0, timeAmount, timeUnit);
             executor.scheduleAtFixedRate(() -> checkForUpdates(false), 4, 4, TimeUnit.DAYS);
         }
     }
 
     private static void saveBackgroundBlobs(int preset) {
-        log("attempting to save for preset " + preset);
+        System.out.println("attempting to save for preset " + preset);
         Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
         String identifier;
         if ("none".equals(presetPrefs.get("Device Model", ""))) {
@@ -180,7 +180,6 @@ class Background {
         } else {
             identifier = textToIdentifier(presetPrefs.get("Device Model", ""));
         }
-        log("identifier:" + identifier);
         List<Map<String, Object>> signedFirmwares;
         try {
             signedFirmwares = getAllSignedFirmwares(identifier);
@@ -259,7 +258,7 @@ class Background {
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
 
-                log("displayed message");
+                System.out.println("displayed message");
 
             } else if (containsIgnoreCase(tsscheckerLog, "Could not resolve host")) {
                 Notification notification = new Notification("Saving blobs failed", "Check your internet connection. If it is working, click here to report this error.", Notification.ERROR_ICON);
@@ -293,7 +292,7 @@ class Background {
                 });
                 Notification.Notifier.INSTANCE.notify(notification);
             }
-            log("it worked");
+            System.out.println("Success");
         }
     }
 
@@ -313,10 +312,6 @@ class Background {
                 alert.showAndWait();
             });
         }
-        log("stopped background");
-    }
-
-    private static void log(String msg) {
-        System.out.println(msg);
+        System.out.println("Stopped background");
     }
 }

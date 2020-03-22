@@ -98,8 +98,8 @@ public class Controller {
     private boolean editingPresets = false;
     private boolean choosingRunInBackground = false;
 
-    static DropShadow errorBorder = new DropShadow();
-    private static DropShadow borderGlow = new DropShadow();
+    static DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
+    private static DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
 
     static Controller INSTANCE;
 
@@ -117,19 +117,6 @@ public class Controller {
     @FXML
     public void initialize() {
         INSTANCE = this;
-        // create effects
-        borderGlow.setOffsetY(0f);
-        borderGlow.setOffsetX(0f);
-        borderGlow.setColor(Color.DARKCYAN);
-        borderGlow.setWidth(20);
-        borderGlow.setHeight(20);
-        errorBorder.setOffsetY(0f);
-        errorBorder.setOffsetX(0f);
-        errorBorder.setColor(Color.RED);
-        errorBorder.setWidth(20);
-        errorBorder.setHeight(20);
-
-        deviceTypeChoiceBox.setItems(FXCollections.observableArrayList(Devices.getDeviceTypes()));
 
         deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceTypeChoiceBox.setEffect(null);
@@ -170,20 +157,8 @@ public class Controller {
         presetButtons = new ArrayList<>(Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button));
         presetButtons.forEach(btn -> btn.setOnAction(this::presetButtonHandler));
 
-        // the following is to set the path to save blobs to the correct location
-        String path = Main.jarDirectory.getAbsolutePath();
-        if (path.endsWith("blobsaver.app/Contents/Java")) {
-            path = path.replaceAll("blobsaver\\.app/Contents/Java", "");
-        }
-        if (path.contains("\\Program Files") || path.contains("/Applications")) {
-            path = System.getProperty("user.home");
-        }
-        if (path.endsWith(System.getProperty("file.separator"))) {
-            path = path + "Blobs";
-        } else {
-            path = path + System.getProperty("file.separator") + "Blobs";
-        }
-        pathField.setText(path);
+
+        pathField.setText(new File(System.getProperty("user.home"), "Blobs").getAbsolutePath());
 
 
         if (PlatformUtil.isMac()) {
@@ -250,7 +225,6 @@ public class Controller {
             versionField.setText("");
         } else {
             versionField.setEffect(borderGlow);
-
             versionField.setDisable(false);
         }
     }
@@ -367,12 +341,12 @@ public class Controller {
                 if (presetsToSaveFor.isEmpty()) {
                     appPrefs.putBoolean("Background setup", false);
                 }
-                log("removed " + preset + " from list");
+                System.out.println("removed " + preset + " from list");
                 backgroundSettingsButton.fire();
             } else {
                 presetsToSaveFor.add(Integer.toString(preset));
                 appPrefs.putBoolean("Background setup", true);
-                log("added preset" + preset + " to list");
+                System.out.println("added preset" + preset + " to list");
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, "If it doesn't work, please remove it, fix the error, and add it back");
                 alert.setTitle("Testing preset " + preset);
                 alert.setHeaderText("Testing preset");
@@ -657,7 +631,7 @@ public class Controller {
 
         // needs to be run with Platform.runLater(), otherwise the application menu doesn't show up
         Platform.runLater(() -> tk.setGlobalMenuBar(macOSMenuBar));
-        log("using macOS menu bar");
+        System.out.println("using macOS menu bar");
     }
 
     public void backgroundSettingsHandler() {
@@ -733,11 +707,9 @@ public class Controller {
         alert.getDialogPane().setContent(hBox);
         alert.showAndWait();
         if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !"".equals(textField.getText()) && (choiceBox.getValue() != null)) {
-            log("info given");
             appPrefs.putInt("Time to run", Integer.parseInt(textField.getText()));
             appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
-            log("alert menu canceled");
             backgroundSettingsButton.fire(); //goes back to main menu
             return;
         }
@@ -797,29 +769,11 @@ public class Controller {
             prefs.clear();
             prefs.removeNode();
             prefs.flush();
-            File blobsaver_bin = new File(System.getProperty("user.home"), ".blobsaver_bin");
-            deleteFolder(blobsaver_bin);
             Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall .exe. Otherwise, you can just delete the .app or .jar file.\nThe application will now exit.", ButtonType.OK);
             applicationCloseAlert.showAndWait();
             Platform.exit();
         } catch (BackingStoreException e) {
             newReportableError("There was an error resetting the application.", e.getMessage());
-        }
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private static void deleteFolder(File folder) {
-        if (folder.exists()) {
-            File[] files = folder.listFiles();
-            if (files != null) {
-                Arrays.asList(files).forEach(file -> {
-                    if (file.isDirectory()) {
-                        deleteFolder(file);
-                    } else {
-                        file.delete();
-                    }
-                });
-            }
         }
     }
 
@@ -907,8 +861,6 @@ public class Controller {
 
     public void donate() { openURL("https://www.paypal.me/airsqrd"); }
 
-    private static void log(String msg) { System.out.println(msg); }
-
     @SuppressWarnings("Duplicates")
     public void goButtonHandler() {
         boolean doReturn = false;
@@ -928,22 +880,20 @@ public class Controller {
         doReturn = doReturn || isTextFieldInvalid(!versionCheckBox.isSelected(), versionField);
         doReturn = doReturn || isTextFieldInvalid(betaCheckBox, buildIDField);
         doReturn = doReturn || isTextFieldInvalid(betaCheckBox, ipswField);
-        if (doReturn) {
-            return;
-        }
+        if (doReturn) return;
+
         String deviceModel = (String) deviceModelChoiceBox.getValue();
         if ("".equals(deviceModel)) {
             String identifierText = identifierField.getText();
             try {
                 if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
                     TSSChecker.run(identifierText);
-                } else {
-                    identifierField.setEffect(errorBorder);
-                    newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
+                    return;
                 }
-            } catch (StringIndexOutOfBoundsException e) {
-                newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
+            } catch (StringIndexOutOfBoundsException ignored) {
             }
+            identifierField.setEffect(errorBorder);
+            newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
         } else {
             TSSChecker.run(textToIdentifier(deviceModel));
         }

@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-class Devices {
+public class Devices {
 
     private static final ObservableList<String> iPhones = FXCollections.observableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
             "iPhone 4 (GSM 2012)", "iPhone 4 (CDMA)", "iPhone 4[S]", "iPhone 5 (GSM)", "iPhone 5 (Global)",
@@ -91,7 +91,7 @@ class Devices {
         return AppleTVs;
     }
 
-    static ObservableList<String> getDeviceTypes() {
+    public static ObservableList<String> getDeviceTypes() {
         return deviceTypes;
     }
 

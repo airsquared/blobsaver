@@ -95,17 +95,13 @@ public class Main {
         if (PlatformUtil.isMac()) {
             DockVisibility.show();
         }
-        System.out.println(1);
         try {
             primaryStage.show();
         } catch (Throwable t) {
             t.printStackTrace();
         }
-        System.out.println(2);
         primaryStage.centerOnScreen();
-        System.out.println(3);
         primaryStage.requestFocus();
-        System.out.println(4);
     }
 
     static void hideStage() {
@@ -153,7 +149,13 @@ public class Main {
         @SuppressWarnings("unchecked")
         public void start(Stage primaryStage) throws IOException, ReflectiveOperationException {
             Main.primaryStage = primaryStage;
-            Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
+            Parent root = null;
+            try {
+                root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
             primaryStage.setTitle("blobsaver " + Main.appVersion);
             primaryStage.setScene(new Scene(root));
             primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
