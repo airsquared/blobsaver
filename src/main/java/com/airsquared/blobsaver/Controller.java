@@ -861,8 +861,6 @@ public class Controller {
 
     @SuppressWarnings("unchecked")
     public void readInfo() {
-        readFromConnectedDeviceButton.setText("Reading...");
-        readFromConnectedDeviceButton.setDisable(true);
         if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setContentText("IMPORTANT: make sure to install libimobiledevice and have it in your path before running this.");

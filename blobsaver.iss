@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "blobsaver"
-#define MyAppVersion "2.4.0"
+#define MyAppVersion "2.4.1-beta5"
 #define MyAppPublisher "airsquared"
 #define MyAppURL "https://www.github.com/airsquared/blobsaver"
 #define MyAppExeName "blobsaver.exe"
@@ -21,6 +21,7 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 AppCopyright={#MyAppCopyright}
+AppMutex=com.airsquared.blobsaver
 ArchitecturesAllowed=x64 arm64
 ArchitecturesInstallIn64BitMode=x64 arm64
 Uninstallable=not IsTaskSelected('portableMode')
@@ -37,9 +38,8 @@ SolidCompression=yes
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
-Name: portableMode; Description: "Portable Mode"
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}";
+Name: "portableMode"; Description: "Portable Installation Mode"; Flags: unchecked
 
 [Files]
 Source: "build\tmp\innosetup\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -48,7 +48,6 @@ Source: "build\tmp\innosetup\*"; DestDir: "{app}"; Flags: ignoreversion recurses
 [Icons]
 Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

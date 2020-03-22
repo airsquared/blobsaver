@@ -38,9 +38,8 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.4.1-beta4";
+    static final String appVersion = "v2.4.1-beta5";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
-    private static final String appID = "com.airsquared.blobsaver";
     static Stage primaryStage;
     static final File jarDirectory;
     static final boolean runningFromJar;
@@ -66,13 +65,14 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            JUnique.acquireLock(appID);
+            JUnique.acquireLock("com.airsquared.blobsaver");
         } catch (AlreadyLockedException e) {
             javax.swing.JOptionPane.showMessageDialog(null, "blobsaver already running, exiting");
             System.exit(-1);
         }
         try {
             Class.forName("javafx.application.Application");
+            setJNALibraryPath();
             if (PlatformUtil.isMac() || PlatformUtil.isWindows() || PlatformUtil.isLinux()) {
                 JavaFxApplication.launch(JavaFxApplication.class, args);
             } else {
@@ -167,7 +167,6 @@ public class Main {
             primaryStage.setResizable(false);
             Controller.afterStageShowing();
             Platform.setImplicitExit(false);
-            setJNALibraryPath();
             showStage();
             if (appPrefs.getBoolean("Start background immediately", false)) {
                 /* I have to show the stage then hide it again in Platform.runLater() otherwise

@@ -27,6 +27,13 @@ plugins {
 version null
 sourceCompatibility = 1.8
 
+/*
+ * REMEMBER: also update the version string in:
+ *  - Main.java
+ *  - blobsaver.iss
+ */
+String appVersion = "v2.4.1-beta5";
+
 repositories {
     mavenCentral()
 }
@@ -119,18 +126,17 @@ task createLinuxTargz(type: Tar, dependsOn: shadowJar) {
 launch4j { // Windows only, don't use this, use createWindowsInstaller
     mainClassName = "com.airsquared.blobsaver.Main"
     copyright = "Copyright (c) 2020  airsquared"
-    downloadUrl = "https://java.com/inc/BrowserRedirect1.jsp"
+    downloadUrl = "https://www.java.com/en/download/manual.jsp"
     icon = "${projectDir}/icons/blob_emoji.ico"
+    mutexName = "com.airsquared.blobsaver"
+    windowTitle = "blobsaver " + appVersion
+    jreRuntimeBits = "64"
     jreMinVersion = "1.8.0"
     jreMaxVersion = "1.8.0_999"
     createExe.dependsOn shadowJar
 }
 
-// IMPORTANT: first make sure you have installed Inno Setup
-//            Install Inno Setup Preprocessor (ISPP) along with Inno Setup
-//            and make sure you have wine in your path if you are not on windows
-//            Inno Setup **MUST** be installed to C:\Program Files (x86)\Inno Setup 5\
-// if your platform isn't Windows, "wine" is required to run this task
+// if your platform isn't Windows, wine is required to run this task
 task createWindowsInstaller(dependsOn: createExe) {
     inputs.files(createExe.outputs)
     inputs.dir("${projectDir}/dist/windows/")
@@ -150,9 +156,9 @@ task createWindowsInstaller(dependsOn: createExe) {
         exec {
             workingDir = projectDir
             if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")) {
-                commandLine 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
+                commandLine 'gradle\\InnoSetup6\\ISCC.exe', '/Qp', 'blobsaver.iss'
             } else {
-                commandLine 'wine', 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe', '/Qp', 'blobsaver.iss'
+                commandLine "wine", "gradle/InnoSetup6/ISCC.exe", "/Qp", "blobsaver.iss"
             }
         }
     }
