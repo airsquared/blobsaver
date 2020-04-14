@@ -19,9 +19,12 @@
 package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
 import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -38,9 +41,8 @@ import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
@@ -49,8 +51,8 @@ import static com.airsquared.blobsaver.Main.appVersion;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 class Shared {
 
-    static ButtonType redditPM = new ButtonType("PM on Reddit");
-    static ButtonType githubIssue = new ButtonType("Create Issue on Github");
+    static final ButtonType redditPM = new ButtonType("PM on Reddit");
+    static final ButtonType githubIssue = new ButtonType("Create Issue on Github");
 
     static String textToIdentifier(String deviceModel) {
         return Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
@@ -99,7 +101,7 @@ class Shared {
                                     resizeAlertButtons(alert);
                                     alert.showAndWait();
                                     if (alert.getResult().equals(downloadNow)) {
-                                        openURL("https://github.com/airsquared/blobsaver/releases/latest");
+                                        openURL("https://github.com/airsquared/blobsaver/releases");
                                     } else if (alert.getResult().equals(ignore)) {
                                         appPrefs.put("Ignore Version", finalNewVersion);
                                     }
@@ -144,7 +146,7 @@ class Shared {
         } else if (PlatformUtil.isMac()) {
             tsschecker = new File(Main.jarDirectory.getParentFile(), "MacOS/tsschecker");
         } else if (PlatformUtil.isWindows()) {
-            tsschecker = new File(Main.jarDirectory, "tsschecker.exe");
+            tsschecker = new File(Main.jarDirectory, "lib/tsschecker.exe");
         } else {
             tsschecker = new File(Main.jarDirectory, "tsschecker");
         }
@@ -180,19 +182,19 @@ class Shared {
 
     static String executeProgram(String... command) throws IOException {
         Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-        try {
+        StringBuilder logBuilder = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+                logBuilder.append(line).append("\n");
+            }
             process.waitFor();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            StringBuilder logBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                logBuilder.append(line).append("\n");
-            }
-            return logBuilder.toString();
-        }
+        return logBuilder.toString();
     }
 
     static void reportError(Alert alert) {
@@ -232,9 +234,11 @@ class Shared {
     }
 
     static void resizeAlertButtons(Alert alert) {
-        alert.getDialogPane().getButtonTypes().stream()
-                .map(alert.getDialogPane()::lookupButton)
-                .forEach(node -> ButtonBar.setButtonUniformSize(node, false));
+        forEachButton(alert, button -> ButtonBar.setButtonUniformSize(button, false));
+    }
+
+    static void forEachButton(Alert alert, Consumer<? super Node> action) {
+        runSafe(() -> alert.getDialogPane().getButtonTypes().stream().map(alert.getDialogPane()::lookupButton).forEach(action));
     }
 
     static void runSafe(Runnable runnable) {
@@ -260,18 +264,54 @@ class Shared {
 //        return getAllSignedFirmwares(deviceIdentifier).map(map -> map.get("version").toString()).collect(Collectors.toList());
 //    }
 
-    static File extractBuildManifest(URL ipswURL) throws IOException {
-        File buildManifestPlist = File.createTempFile("BuildManifest", ".plist");
-        ZipInputStream zin = new ZipInputStream(ipswURL.openStream());
-        ZipEntry ze;
-        while ((ze = zin.getNextEntry()) != null) {
-            if ("BuildManifest.plist".equals(ze.getName())) {
-                copyStreamToFile(zin, buildManifestPlist);
-                break;
+    static File extractBuildManifest(String url) throws IOException {
+        File buildManifest = File.createTempFile("BuildManifest", ".plist");
+        System.out.println("Extracting build manifest from " + url);
+        Pointer fragmentzip = Libfragmentzip.open(url);
+        try {
+            int err = Libfragmentzip.downloadFile(fragmentzip, "BuildManifest.plist", buildManifest.getAbsolutePath());
+            if (err != 0) {
+                throw new IOException("problem with libfragmentzip download: code=" + err);
             }
+            System.out.println("Extracted to " + buildManifest);
+            return buildManifest;
+        } finally {
+            Libfragmentzip.close(fragmentzip);
         }
-        buildManifestPlist.deleteOnExit();
-        return buildManifestPlist;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static class Libfragmentzip {
+
+        public static Pointer open(String url) {
+            return fragmentzip_open(url);
+        }
+
+        public static int downloadFile(Pointer fragmentzip_t, String remotePath, String savePath) {
+            return fragmentzip_download_file(fragmentzip_t, remotePath, savePath, null);
+        }
+
+        public static void close(Pointer fragmentzip_t) {
+            fragmentzip_close(fragmentzip_t);
+        }
+
+        /**
+         * Native declaration:
+         * <code>fragmentzip_t *fragmentzip_open(const char *url);</code>
+         */
+        private static native Pointer fragmentzip_open(String url);
+
+        /**
+         * Native declaration:
+         * <code>int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, const char *savepath, fragmentzip_process_callback_t callback);</code>
+         */
+        private static native int fragmentzip_download_file(Pointer fragmentzip_t, String remotePath, String savePath, Pointer fragmentzip_process_callback_t);
+
+        private static native void fragmentzip_close(Pointer fragmentzip_t);
+
+        static {
+            Native.register("fragmentzip");
+        }
     }
 
     static String exceptionToString(Throwable t) {

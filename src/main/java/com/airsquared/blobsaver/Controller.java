@@ -20,6 +20,7 @@ package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
+import com.sun.jna.ptr.PointerByReference;
 import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -40,6 +41,7 @@ import org.json.JSONArray;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -53,41 +55,20 @@ public class Controller {
 
     @FXML private MenuBar menuBar;
 
-    @FXML private ChoiceBox deviceTypeChoiceBox;
-    @FXML private ChoiceBox deviceModelChoiceBox;
+    @FXML private ChoiceBox deviceTypeChoiceBox, deviceModelChoiceBox;
 
-    @FXML TextField ecidField;
-    @FXML TextField boardConfigField;
-    @FXML TextField apnonceField;
-    @FXML TextField versionField;
-    @FXML TextField identifierField;
-    @FXML TextField pathField;
-    @FXML TextField ipswField;
-    @FXML TextField buildIDField;
+    @FXML TextField ecidField, boardConfigField, apnonceField, versionField, identifierField,
+            pathField, ipswField, buildIDField;
 
-    @FXML CheckBox apnonceCheckBox;
-    @FXML CheckBox versionCheckBox;
-    @FXML CheckBox identifierCheckBox;
-    @FXML CheckBox betaCheckBox;
+    @FXML CheckBox apnonceCheckBox, versionCheckBox, identifierCheckBox, betaCheckBox;
 
     @FXML private Label versionLabel;
 
-    @FXML private Button readFromConnectedDeviceButton;
-    @FXML private Button startBackgroundButton;
-    @FXML private Button chooseTimeToRunButton;
-    @FXML private Button forceCheckForBlobs;
-    @FXML private Button backgroundSettingsButton;
-    @FXML private Button savePresetButton;
-    @FXML private Button preset1Button;
-    @FXML private Button preset2Button;
-    @FXML private Button preset3Button;
-    @FXML private Button preset4Button;
-    @FXML private Button preset5Button;
-    @FXML private Button preset6Button;
-    @FXML private Button preset7Button;
-    @FXML private Button preset8Button;
-    @FXML private Button preset9Button;
-    @FXML private Button preset10Button;
+    @FXML private Button readFromConnectedDeviceButton, readApnonceButton, startBackgroundButton,
+            chooseTimeToRunButton, forceCheckForBlobs, backgroundSettingsButton, savePresetButton;
+
+    @FXML private Button preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button,
+            preset7Button, preset8Button, preset9Button, preset10Button;
     private ArrayList<Button> presetButtons;
 
     @FXML private VBox presetVBox;
@@ -104,7 +85,7 @@ public class Controller {
     static Controller INSTANCE;
 
     static void afterStageShowing() {
-        for (int i = 1; i < 11; i++) { // sets the names for the presets
+        for (int i = 0; i < 10; i++) { // sets the names for the presets
             if (!"".equals(appPrefs.get("Name Preset" + i, ""))) {
                 Button btn = (Button) primaryStage.getScene().lookup("#preset" + i);
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
@@ -145,17 +126,19 @@ public class Controller {
         deviceTypeChoiceBox.setValue("iPhone");
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceModelChoiceBox.setEffect(null);
-            requireBoardConfig(Devices.getDeviceModelIdentifiersMap().get(newValue.toString()));
+            String identifier = Devices.getDeviceModelIdentifiersMap().get(newValue.toString());
+            requireBoardConfig(identifier);
+            requireApnonce(identifier);
         });
-        identifierField.textProperty().addListener((x, y, newValue) -> {
+        identifierField.textProperty().addListener((x, y, identifier) -> {
             identifierField.setEffect(null);
-            requireBoardConfig(newValue);
+            requireBoardConfig(identifier);
+            requireApnonce(identifier);
         });
 
         addListenerToSetNullEffect(ecidField, versionField, boardConfigField, apnonceField, pathField, buildIDField, ipswField);
 
         presetButtons = new ArrayList<>(Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button));
-        presetButtons.forEach(btn -> btn.setOnAction(this::presetButtonHandler));
 
 
         pathField.setText(new File(System.getProperty("user.home"), "Blobs").getAbsolutePath());
@@ -205,16 +188,33 @@ public class Controller {
         }
     }
 
+    private void requireApnonce(String identifier) {
+        if (!"".equals(identifier) && (identifier.startsWith("iPhone11,") || identifier.startsWith("iPhone12,") ||
+                identifier.startsWith("iPad11,"))) {
+            if (!apnonceCheckBox.isSelected()) {
+                apnonceCheckBox.fire();
+            }
+            apnonceCheckBox.setDisable(true);
+        } else {
+            apnonceCheckBox.setDisable(false);
+            if (apnonceCheckBox.isSelected()) {
+                apnonceCheckBox.fire();
+            }
+        }
+    }
+
     public void checkForUpdatesHandler() { checkForUpdates(true); }
 
     public void apnonceCheckBoxHandler() {
         if (apnonceCheckBox.isSelected()) {
             apnonceField.setDisable(false);
+            readApnonceButton.setDisable(false);
             apnonceField.setEffect(borderGlow);
         } else {
             apnonceField.setEffect(null);
             apnonceField.setText("");
             apnonceField.setDisable(true);
+            readApnonceButton.setDisable(true);
         }
     }
 
@@ -323,7 +323,7 @@ public class Controller {
         }
     }
 
-    private void presetButtonHandler(ActionEvent evt) {
+    public void presetButtonHandler(ActionEvent evt) {
         Button btn = (Button) evt.getTarget();
         int preset = Integer.parseInt(btn.getId().substring("preset".length()));
         if (editingPresets) {
@@ -522,8 +522,8 @@ public class Controller {
         libButton.setDefaultButton(false);
 
         //Activate default behavior for OK-Button:
-        Button OkButton = (Button) alert.getDialogPane().lookupButton(customOK);
-        OkButton.setDefaultButton(true);
+        Button okButton = (Button) alert.getDialogPane().lookupButton(customOK);
+        okButton.setDefaultButton(true);
 
         alert.setHeaderText("blobsaver " + appVersion);
         alert.setContentText("blobsaver Copyright (c) 2019  airsquared\n\n" +
@@ -541,7 +541,7 @@ public class Controller {
             case "View License":
                 File licenseFile;
                 if (!Main.runningFromJar) {
-                    licenseFile = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(),
+                    licenseFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
                             PlatformUtil.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
                 } else if (PlatformUtil.isMac()) {
                     licenseFile = new File(Main.jarDirectory.getParentFile(), "Resources/LICENSE");
@@ -554,7 +554,7 @@ public class Controller {
             case "Libraries Used":
                 File librariesUsedFile;
                 if (!Main.runningFromJar) {
-                    librariesUsedFile = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(),
+                    librariesUsedFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
                             PlatformUtil.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
                 } else if (PlatformUtil.isMac()) {
                     librariesUsedFile = new File(Main.jarDirectory.getParentFile(), "Resources/libraries_used.txt");
@@ -562,6 +562,7 @@ public class Controller {
                     librariesUsedFile = new File(Main.jarDirectory, "libraries_used.txt");
                 }
                 librariesUsedFile.setReadOnly();
+                System.out.println(librariesUsedFile.toURI().toString());
                 openURL(librariesUsedFile.toURI().toString());
                 break;
             case "Donate!":
@@ -785,32 +786,8 @@ public class Controller {
         }
     }
 
-    public void showWiki(ActionEvent event) {
-        String url;
-        switch (((MenuItem) event.getTarget()).getText()) {
-            case "What are blobs?":
-                url = "https://github.com/airsquared/blobsaver/wiki/What-are-blobs-and-why-do-you-need-them%3F";
-                break;
-            case "Getting the required information":
-                url = "https://github.com/airsquared/blobsaver/wiki/Getting-the-required-information";
-                break;
-            case "Setting it up to run in the background":
-                url = "https://github.com/airsquared/blobsaver/wiki/Setting-up-the-background";
-                break;
-            case "Running on system startup":
-                url = "https://github.com/airsquared/blobsaver/wiki/Running-on-system-startup";
-                break;
-            case "Automatically upload blobs to the cloud":
-                url = "https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud(Dropbox,-Google-Drive,-iCloud)";
-                break;
-            case "How do I get a crash log?":
-                url = "https://github.com/airsquared/blobsaver/wiki/How-do-I-get-a-crash-log%3F";
-                break;
-            default:
-                url = "https://github.com/airsquared/blobsaver/wiki";
-                break;
-        }
-        openURL(url);
+    public void showWiki() {
+        openURL("https://github.com/airsquared/blobsaver/wiki");
     }
 
     @SuppressWarnings("unchecked")
@@ -857,6 +834,55 @@ public class Controller {
             readFromConnectedDeviceButton.setDisable(false);
             readFromConnectedDeviceButton.setText("Read from connected device");
         }
+    }
+
+    public void readApnonce() {
+        Alert alert1 = new Alert(Alert.AlertType.CONFIRMATION);
+        alert1.setHeaderText("Read apnonce from connected device");
+        alert1.setContentText("blobsaver can read the apnonce from a connected device.\n\n" +
+                "It is recommended, but not required to set a generator on your device prior to reading the apnonce. " +
+                "blobsaver uses the generator 0x1111111111111111 (that's 0x followed by sixteen 1's) when saving blobs.\n\n" +
+                "Please connect your device and hit \"OK\" to begin. Your device will enter recovery mode while retrieving the apnonce and will automatically reboot to normal mode when complete.\n\n" +
+                "NOTE: an apnonce is only required for devices with an A12 processor or newer.");
+        Optional<ButtonType> result = alert1.showAndWait();
+        if (!result.isPresent() || !result.get().equals(ButtonType.OK)) return;
+        final Alert alert2 = new Alert(Alert.AlertType.INFORMATION, "Entering recovery mode...\n\n" +
+                "This can take up to 60 seconds", ButtonType.FINISH);
+        alert2.setHeaderText("Reading apnonce from connected device...");
+        Shared.forEachButton(alert2, button -> button.setDisable(true));
+        alert2.show();
+        new Thread(() -> { // run later to make sure alert shows
+            try {
+                System.out.println("Entering recovery mode");
+                Libimobiledevice.enterRecovery(true);
+                PointerByReference irecvClient = new PointerByReference();
+                long endTime = System.currentTimeMillis() + 60_000; // timeout is 20 seconds
+                int errorCode = -3;
+                while (errorCode == -3 && System.currentTimeMillis() < endTime) {
+                    Thread.sleep(1000);
+                    errorCode = Libimobiledevice.Libirecovery.irecv_open_with_ecid(irecvClient, 0);
+                }
+                Libimobiledevice.throwIfNeeded(errorCode, true, Libimobiledevice.ErrorCodeType.irecv_error_t);
+                Libimobiledevice.Libirecovery.irecv_device_info deviceInfo = Libimobiledevice.Libirecovery.irecv_get_device_info(irecvClient.getValue());
+                final StringBuilder apnonce = new StringBuilder();
+                for (byte b : deviceInfo.ap_nonce.getByteArray(0, deviceInfo.ap_nonce_size)) {
+                    apnonce.append(String.format("%02x", b));
+                }
+                System.out.println("Got apnonce");
+                Platform.runLater(() -> {
+                    apnonceField.setText(apnonce.toString());
+                    alert2.setContentText("Successfully got apnonce, exiting recovery mode...");
+                });
+                System.out.println("Exiting recovery mode");
+                Libimobiledevice.exitRecovery(irecvClient.getValue(), true);
+                Thread.sleep(3000);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(alert2::close);
+            } finally {
+                Shared.forEachButton(alert2, button -> button.setDisable(false));
+            }
+        }).start();
     }
 
     public void donate() { openURL("https://www.paypal.me/airsqrd"); }

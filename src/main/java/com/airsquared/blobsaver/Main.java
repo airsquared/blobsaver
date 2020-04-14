@@ -38,7 +38,7 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.4.1";
+    static final String appVersion = "v2.5.0-beta4";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     static Stage primaryStage;
     static final File jarDirectory;
@@ -65,13 +65,14 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            JUnique.acquireLock("com.airsquared.blobsaver");
-        } catch (AlreadyLockedException e) {
-            javax.swing.JOptionPane.showMessageDialog(null, "blobsaver already running, exiting");
-            System.exit(-1);
-        }
-        try {
             Class.forName("javafx.application.Application");
+            if (!PlatformUtil.isMac() && !PlatformUtil.isWindows())
+                try {
+                    JUnique.acquireLock("com.airsquared.blobsaver");
+                } catch (AlreadyLockedException e) {
+                    javax.swing.JOptionPane.showMessageDialog(null, "blobsaver already running, exiting");
+                    System.exit(-1);
+                }
             setJNALibraryPath();
             if (PlatformUtil.isMac() || PlatformUtil.isWindows() || PlatformUtil.isLinux()) {
                 JavaFxApplication.launch(JavaFxApplication.class, args);

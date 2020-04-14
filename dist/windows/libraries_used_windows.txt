@@ -117,13 +117,4 @@ https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-
 "What's the best way to check if a String represents an integer in Java?"
 https://stackoverflow.com/questions/237159/whats-the-best-way-to-check-if-a-string-represents-an-integer-in-java
 
-"Copy entire directory contents to another directory?"
-https://stackoverflow.com/questions/6214703/copy-entire-directory-contents-to-another-directory
-
-"Copy directory from a jar file"
-https://stackoverflow.com/questions/1386809/copy-directory-from-a-jar-file
-
-"How to delete a folder with files using Java"
-https://stackoverflow.com/questions/20281835/how-to-delete-a-folder-with-files-using-java
-
 ============================================================================

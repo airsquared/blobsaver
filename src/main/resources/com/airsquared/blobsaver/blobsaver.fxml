@@ -34,22 +34,8 @@
                 <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Uninstall..."/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
-                <Menu mnemonicParsing="false" text="blobsaver Help/Wiki">
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki" text="Wiki Home"/>
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki" text="What are blobs?"/>
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                              text="Getting the required information"/>
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                              text="Setting it up to run in the background"/>
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                              text="Automatically upload blobs to the cloud"/>
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                              text="Running on system startup"/>
-                    <MenuItem mnemonicParsing="false" onAction="#showWiki"
-                              text="How do I get a crash log?"/>
-                </Menu>
-                <MenuItem mnemonicParsing="false" onAction="#newGithubIssue"
-                          text="Send Feedback (Github Issue)"/>
+                <MenuItem mnemonicParsing="false" onAction="#showWiki" text="blobsaver Help/Wiki"/>
+                <MenuItem mnemonicParsing="false" onAction="#newGithubIssue" text="Send Feedback (Github Issue)"/>
                 <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback (Reddit PM)"/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#donate" text="Donate!"/>
@@ -72,20 +58,8 @@
                     <Insets left="10.0"/>
                 </HBox.margin>
             </TextField>
-            <Label id="ecidHelp" onMouseClicked="#helpLabelHandler" text="?">
-                <HBox.margin>
-                    <Insets/>
-                </HBox.margin>
-                <tooltip>
-                    <Tooltip
-                            text="Get this from iTunes by connecting your device and going to the device page.&#10;Then click on the serial number twice."/>
-                </tooltip>
-                <padding>
-                    <Insets bottom="5.0" left="5.0" right="5.0"/>
-                </padding>
-            </Label>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="readFromConnectedDeviceButton" onAction="#readInfo" text="Read from connected device">
+            <Button fx:id="readFromConnectedDeviceButton" onAction="#readInfo" text="Read from device">
                 <HBox.margin>
                     <Insets right="5.0"/>
                 </HBox.margin>
@@ -141,8 +115,7 @@
             </VBox.margin>
             <CheckBox fx:id="versionCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler"
                       selected="true" text="All Signed Versions"/>
-            <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler"
-                      text="Beta version">
+            <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler" text="Beta version">
                 <HBox.margin>
                     <Insets left="10.0"/>
                 </HBox.margin>
@@ -193,36 +166,32 @@
                 <Insets bottom="5.0" left="10.0" top="5.0"/>
             </VBox.margin>
         </Label>
-        <HBox>
+        <TextField fx:id="boardConfigField" disable="true" prefWidth="500.0" promptText="Board Configuration">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" right="10.0"/>
             </VBox.margin>
-            <TextField fx:id="boardConfigField" disable="true" prefWidth="500.0"
-                       promptText="Board Configuration"/>
-            <Label id="boardConfigHelp" onMouseClicked="#helpLabelHandler" text="?">
-                <HBox.margin>
-                    <Insets/>
-                </HBox.margin>
-                <padding>
-                    <Insets bottom="5.0" left="5.0"/>
-                </padding>
-                <tooltip>
-                    <Tooltip
-                            text="Get this from the BMSSM app from the App Store.&#10;It will be called the model and is usually something like &quot;n69ap&quot;"/>
-                </tooltip>
-            </Label>
-        </HBox>
+        </TextField>
         <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
                   text="Manually specify apnonce:">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" top="5.0"/>
             </VBox.margin>
         </CheckBox>
-        <TextField fx:id="apnonceField" disable="true" promptText="Apnonce">
+        <AnchorPane>
+            <TextField fx:id="apnonceField" disable="true" promptText="Apnonce" AnchorPane.bottomAnchor="0.0"
+                       AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <padding>
+                    <Insets left="8.0" right="120.0"/>
+                </padding>
+            </TextField>
+            <Button fx:id="readApnonceButton" mnemonicParsing="false" disable="true" onAction="#readApnonce"
+                    text="Read from device"
+                    AnchorPane.rightAnchor="0.0">
+            </Button>
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" right="10.0"/>
             </VBox.margin>
-        </TextField>
+        </AnchorPane>
         <Label text="Location">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" top="5.0"/>
@@ -233,11 +202,13 @@
                 <Insets bottom="5.0" left="10.0" right="10.0"/>
             </VBox.margin>
             <AnchorPane HBox.hgrow="ALWAYS">
-                <TextField fx:id="pathField" promptText="Path" AnchorPane.bottomAnchor="0.0"
-                           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                           AnchorPane.topAnchor="0.0"/>
-                <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..."
-                        AnchorPane.rightAnchor="0.0"/>
+                <TextField fx:id="pathField" promptText="Path" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <padding>
+                        <Insets left="8.0" right="33.0"/>
+                    </padding>
+                </TextField>
+                <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
             </AnchorPane>
             <Label id="locationHelp" onMouseClicked="#helpLabelHandler" text="?">
                 <padding>
@@ -262,61 +233,61 @@
             <Insets left="10.0" right="10.0"/>
         </padding>
         <Button id="preset1" fx:id="preset1Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 1">
+                text="Load Preset 1" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset2" fx:id="preset2Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 2">
+                text="Load Preset 2" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset3" fx:id="preset3Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 3">
+                text="Load Preset 3" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset4" fx:id="preset4Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 4">
+                text="Load Preset 4" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset5" fx:id="preset5Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 5">
+                text="Load Preset 5" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset6" fx:id="preset6Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 6">
+                text="Load Preset 6" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset7" fx:id="preset7Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 7">
+                text="Load Preset 7" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset8" fx:id="preset8Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 8">
+                text="Load Preset 8" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
         <Button id="preset9" fx:id="preset9Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 9">
+                text="Load Preset 9" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button id="preset10" fx:id="preset10Button" maxWidth="Infinity" mnemonicParsing="false"
-                prefWidth="Infinity" text="Load Preset 10">
+        <Button id="preset10" fx:id="preset10Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Preset 10" onAction="#presetButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>

@@ -37,7 +37,6 @@ import java.awt.TrayIcon;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -212,7 +211,7 @@ class Background {
             try {
                 ArrayList<String> args = new ArrayList<>();
                 Collections.addAll(args, tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", identifier, "-s", "-e", ecid,
-                        "--save-path", path, "-m", extractBuildManifest(new URL(firmware.get("url").toString())).toString());
+                        "--save-path", path, "-m", extractBuildManifest(firmware.get("url").toString()).toString());
                 if (!"none".equals(boardConfig) && !"".equals(boardConfig)) { // needs board config
                     Collections.addAll(args, "--boardconfig", boardConfig);
                 }

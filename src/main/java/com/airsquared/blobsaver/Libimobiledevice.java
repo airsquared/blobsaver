@@ -21,6 +21,7 @@ package com.airsquared.blobsaver;
 import com.sun.javafx.PlatformUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+import com.sun.jna.Structure;
 import com.sun.jna.ptr.PointerByReference;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -77,29 +78,42 @@ public class Libimobiledevice {
         lockdownd_client_free(client);
         if (plistType.equals(PlistType.INTEGER)) {
             PointerByReference xml_doc = new PointerByReference();
-            plist_to_xml(plist_value.getValue(), xml_doc, new PointerByReference());
-            plist_free(plist_value.getValue());
+            Libplist.toXml(plist_value.getValue(), xml_doc, new PointerByReference());
+            Libplist.free(plist_value.getValue());
             String toReturn = xml_doc.getValue().getString(0, "UTF-8");
             return toReturn.substring(toReturn.indexOf("<integer>") + "<integer>".length(), toReturn.indexOf("</integer>"));
         } else {
             PointerByReference toReturn = new PointerByReference();
-            plist_get_string_val(plist_value.getValue(), toReturn);
-            plist_free(plist_value.getValue());
+            Libplist.getStringVal(plist_value.getValue(), toReturn);
+            Libplist.free(plist_value.getValue());
             return toReturn.getValue().getString(0, "UTF-8");
         }
     }
 
-    public static Pointer lockdowndClientFromConnectedDevice(boolean showErrorAlert) { // should i do idevice_free()?
+    public static Pointer lockdowndClientFromConnectedDevice(boolean showErrorAlert) {
         PointerByReference device = new PointerByReference();
         throwIfNeeded(idevice_new(device, Pointer.NULL), showErrorAlert, ErrorCodeType.idevice_error_t);
         PointerByReference client = new PointerByReference();
         throwIfNeeded(lockdownd_client_new(device.getValue(), client, "blobsaver"), showErrorAlert, ErrorCodeType.lockdownd_error_t);
-        idevice_free(device.getValue());
         if (lockdownd_pair(client.getValue(), Pointer.NULL) != 0) {
             // try again, and if it doesn't work, show an error to the user + throw an exception
             throwIfNeeded(lockdownd_pair(client.getValue(), Pointer.NULL), showErrorAlert, ErrorCodeType.lockdownd_error_t);
         }
+        idevice_free(device.getValue());
         return client.getValue();
+    }
+
+    public static void enterRecovery(boolean showErrorAlert) {
+        Pointer client = lockdowndClientFromConnectedDevice(true);
+        throwIfNeeded(lockdownd_enter_recovery(client), showErrorAlert, ErrorCodeType.lockdownd_error_t);
+        lockdownd_client_free(client);
+    }
+
+    public static void exitRecovery(Pointer irecvClient, boolean showErrorAlert) {
+        throwIfNeeded(Libirecovery.irecv_setenv(irecvClient, "auto-boot", "true"), showErrorAlert, ErrorCodeType.irecv_error_t);
+        throwIfNeeded(Libirecovery.irecv_saveenv(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
+        throwIfNeeded(Libirecovery.irecv_reboot(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
+        throwIfNeeded(Libirecovery.irecv_close(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
     }
 
     enum PlistType {
@@ -107,12 +121,12 @@ public class Libimobiledevice {
     }
 
     enum ErrorCodeType {
-        idevice_error_t, lockdownd_error_t
+        idevice_error_t, lockdownd_error_t, irecv_error_t
     }
 
-    public static native void plist_get_string_val(Pointer plist, PointerByReference value);
-
     public static native int lockdownd_get_value(Pointer client, Pointer domain, String key, PointerByReference value);
+
+    public static native int lockdownd_enter_recovery(Pointer client);
 
     public static native int idevice_new(PointerByReference device, Pointer udid);
 
@@ -124,9 +138,69 @@ public class Libimobiledevice {
 
     public static native void idevice_free(Pointer idevice);
 
-    public static native void plist_free(Pointer plist);
+    public static class Libplist {
 
-    public static native void plist_to_xml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
+        public static void getStringVal(Pointer plist, PointerByReference value) {
+            plist_get_string_val(plist, value);
+        }
+
+        public static void free(Pointer plist) {
+            plist_free(plist);
+        }
+
+        public static void toXml(Pointer plist, PointerByReference plist_xml, PointerByReference length) {
+            plist_to_xml(plist, plist_xml, length);
+        }
+
+        private static native void plist_get_string_val(Pointer plist, PointerByReference value);
+
+        private static native void plist_free(Pointer plist);
+
+        private static native void plist_to_xml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
+
+        static {
+            Native.register("plist");
+        }
+    }
+
+    public static class Libirecovery {
+
+        public static native int irecv_open_with_ecid(PointerByReference irecv_client, long ecid);
+
+        public static native int irecv_close(Pointer irecv_client);
+
+        public static native int irecv_setenv(Pointer irecv_client, String variable, String value);
+
+        public static native int irecv_saveenv(Pointer irecv_client);
+
+        public static native int irecv_reboot(Pointer irecv_client);
+
+        public static native irecv_device_info irecv_get_device_info(Pointer irecv_client);
+
+        @SuppressWarnings({"unused", "SpellCheckingInspection"})
+        @Structure.FieldOrder({"cpid", "cprv", "cpfm", "scep", "bdid", "ecid", "ibfl", "srnm", "imei", "srtg", "serial_string", "ap_nonce", "ap_nonce_size", "sep_nonce", "sep_nonce_size"})
+        public static class irecv_device_info extends Structure {
+            public int cpid;
+            public int cprv;
+            public int cpfm;
+            public int scep;
+            public int bdid;
+            public long ecid;
+            public int ibfl;
+            public String srnm;
+            public String imei;
+            public String srtg;
+            public String serial_string;
+            public Pointer ap_nonce;
+            public int ap_nonce_size;
+            public Pointer sep_nonce;
+            public int sep_nonce_size;
+        }
+
+        static {
+            Native.register("irecovery");
+        }
+    }
 
     public static void throwIfNeeded(int errorCode, boolean showAlert, ErrorCodeType errorType) {
         if (errorCode == 0) {
@@ -184,6 +258,10 @@ public class Libimobiledevice {
                     reportableError = true;
                     break;
             }
+        } else if (errorType.equals(ErrorCodeType.irecv_error_t)) {
+            exceptionMessage = "irecovery error: code=" + errorCode;
+            alertMessage = exceptionMessage;
+            reportableError = true;
         }
         if (showAlert) {
             // temporary final variables are required because of the lambda

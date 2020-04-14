@@ -139,7 +139,7 @@ class TSSChecker {
             Collections.addAll(args, "--beta", "--buildid", controller.buildIDField.getText());
         }
         try {
-            Collections.addAll(args, "-m", extractBuildManifest(ipswURL).toString());
+            Collections.addAll(args, "-m", extractBuildManifest(ipswURL.toString()).toString());
         } catch (IOException e) {
             newReportableError("Unable to extract BuildManifest from .ipsw.", e.getMessage());
             e.printStackTrace();
@@ -149,7 +149,6 @@ class TSSChecker {
         try {
             System.out.println("Running: " + args.toString());
             tsscheckerLog = executeProgram(args.toArray(new String[0]));
-            System.out.println(tsscheckerLog);
         } catch (IOException e) {
             newReportableError("There was an error starting tsschecker.", e.toString());
             e.printStackTrace();

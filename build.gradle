@@ -32,7 +32,7 @@ sourceCompatibility = 1.8
  *  - Main.java
  *  - blobsaver.iss
  */
-String appVersion = "v2.4.1";
+String appVersion = "v2.5.0-beta4";
 
 repositories {
     mavenCentral()
@@ -126,7 +126,7 @@ task createLinuxTargz(type: Tar, dependsOn: shadowJar) {
 launch4j { // Windows only, don't use this, use createWindowsInstaller
     mainClassName = "com.airsquared.blobsaver.Main"
     copyright = "Copyright (c) 2020  airsquared"
-    downloadUrl = "https://www.java.com/en/download/manual.jsp"
+    downloadUrl = "https://github.com/airsquared/blobsaver/wiki/Making-sure-you-have-the-right-Java-version"
     icon = "${projectDir}/icons/blob_emoji.ico"
     mutexName = "com.airsquared.blobsaver"
     windowTitle = "blobsaver " + appVersion
@@ -164,4 +164,8 @@ task createWindowsInstaller(dependsOn: createExe) {
     }
     assemble.dependsOn createWindowsInstaller
     group = "build"
+}
+
+task testWindows(dependsOn: createWindowsInstaller, type: Exec) {
+    commandLine "open", "-a", "Parallels Desktop", "${buildDir}/distributions/blobsaver-windows.exe"
 }
