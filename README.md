@@ -1,7 +1,7 @@
 Help support this project by ⭐️'ing it! [Donations](https://www.paypal.me/airsqrd) also appreciated!
 
 # blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases/latest) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/21c7f52476c948c9adc0439c0b6841ad)](https://app.codacy.com/app/airsquared/blobsaver?utm_source=github.com&utm_medium=referral&utm_content=airsquared/blobsaver&utm_campaign=Badge_Grade_Dashboard)
-A GUI for saving SHSH blobs using [tsschecker](https://github.com/tihmstar/tsschecker). Supports Mac, Windows, and Linux. Requires [Java](https://java.com/inc/BrowserRedirect1.jsp).
+A GUI for saving SHSH blobs using [tsschecker](https://github.com/tihmstar/tsschecker). Supports Mac, Windows, and Linux. Requires [Java](https://java.com/en/download/manual.jsp).
 
 **Tip:** if you want blobs you save to automatically be uploaded to the cloud, see [this](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud)
 
@@ -17,12 +17,8 @@ If you have an antivirus or firewall, you may need to disable some other setting
 - Store up to ten devices with presets
 - Save blobs for beta versions
 - Read ECID and other info from device so you don't have to get it manually
+- Read apnonce from device also
 - No need to download entire .ipsw for beta versions(just specify link)
-- Choose where to save blobs with file picker
-- Explains how to get ECID, Board Config(if needed), and information necessary for beta versions
-- Automatically checks for updates and prompts if available
-- Optionally specify device identifier instead of using device picker
-- Optionally specify apnonce
 
 ## Feedback
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) or [Reddit PM](https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Feedback) if you encounter any bugs/problems or have a feature request. 
