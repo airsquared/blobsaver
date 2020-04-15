@@ -141,12 +141,14 @@ class TSSChecker {
         File locationToSaveBlobs = new File(controller.pathField.getText());
         //noinspection ResultOfMethodCallIgnored
         locationToSaveBlobs.mkdirs();
-        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "--generator", "0x1111111111111111", "--nocache", "-d", device, "-s", "-e", ecid, "--save-path", savePath));
+        ArrayList<String> args = new ArrayList<>(Arrays.asList(tsschecker.getPath(), "--nocache", "-d", device, "-s", "-e", ecid, "--save-path", savePath));
         if (controller.getBoardConfig) {
             Collections.addAll(args, "--boardconfig", boardConfig);
         }
         if (controller.apnonceCheckBox.isSelected()) {
             Collections.addAll(args, "--apnonce", apnonce);
+        } else {
+            Collections.addAll(args, "--generator", "0x1111111111111111");
         }
         if (controller.betaCheckBox.isSelected()) {
             if (!controller.ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
@@ -205,7 +207,8 @@ class TSSChecker {
                 resizeAlertButtons(alert);
                 alert.showAndWait();
                 reportError(alert);
-            } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")) {
+            } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")
+                    || containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] parsed APNoncelen != requiredAPNoncelen")) {
                 newUnreportableError("\"" + apnonce + "\" is not a valid apnonce");
                 controller.apnonceField.setEffect(errorBorder);
             } else if (containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Erase")

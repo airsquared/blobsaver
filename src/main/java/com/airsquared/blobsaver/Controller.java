@@ -857,7 +857,7 @@ public class Controller {
                 System.out.println("Entering recovery mode");
                 Libimobiledevice.enterRecovery(true);
                 PointerByReference irecvClient = new PointerByReference();
-                long endTime = System.currentTimeMillis() + 60_000; // timeout is 20 seconds
+                long endTime = System.currentTimeMillis() + 60_000; // timeout is 60 seconds
                 int errorCode = -3;
                 while (errorCode == -3 && System.currentTimeMillis() < endTime) {
                     Thread.sleep(1000);
