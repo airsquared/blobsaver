@@ -25,6 +25,7 @@ import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -922,6 +923,27 @@ public class Controller {
             newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
         } else {
             TSSChecker.run(textToIdentifier(deviceModel));
+        }
+    }
+
+    private Alert runningAlert;
+
+    void showRunningAlert() {
+        runningAlert = new Alert(Alert.AlertType.INFORMATION);
+        runningAlert.setTitle("");
+        runningAlert.setHeaderText("Saving blobs...            ");
+        runningAlert.getDialogPane().setContent(new ProgressBar());
+        Shared.forEachButton(runningAlert, button -> button.setDisable(true));
+        runningAlert.getDialogPane().getScene().getWindow().setOnCloseRequest(Event::consume);
+        runningAlert.show();
+    }
+
+    void hideRunningAlert() {
+        if (runningAlert != null) {
+            Shared.forEachButton(runningAlert, button -> button.setDisable(false));
+            runningAlert.getDialogPane().getScene().getWindow().setOnCloseRequest(null);
+            runningAlert.close();
+            runningAlert = null;
         }
     }
 

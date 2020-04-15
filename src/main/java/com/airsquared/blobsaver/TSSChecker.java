@@ -18,6 +18,7 @@
 
 package com.airsquared.blobsaver;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.effect.Effect;
@@ -40,21 +41,28 @@ import static com.airsquared.blobsaver.Shared.*;
  * TODO: fix this class to separate GUI logic
  */
 class TSSChecker {
-
     static void run(String device) {
-        Controller controller = Controller.INSTANCE;
+        Controller.INSTANCE.showRunningAlert();
+        new Thread(() -> runImpl(device)).start();
+    }
+
+    private static void runImpl(String device) {
+        final Controller controller = Controller.INSTANCE;
         if (controller.versionCheckBox.isSelected()) {
             List<Map<String, Object>> allSignedFirmwares; // really is List<Map<String, String>>
             ArrayList<String> signedVersionsStringList = new ArrayList<>();
             try {
                 allSignedFirmwares = getAllSignedFirmwares(device);
             } catch (IOException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR,
-                        "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
-                        githubIssue, redditPM, ButtonType.OK);
-                resizeAlertButtons(alert);
-                alert.showAndWait();
-                reportError(alert, e.getMessage());
+                Platform.runLater(() -> {
+                    controller.hideRunningAlert();
+                    Alert alert = new Alert(Alert.AlertType.ERROR,
+                            "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                            githubIssue, redditPM, ButtonType.OK);
+                    resizeAlertButtons(alert);
+                    alert.showAndWait();
+                    reportError(alert, e.getMessage());
+                });
                 return;
             }
             try {
@@ -67,11 +75,14 @@ class TSSChecker {
                 return; // the error alert should already be shown
             }
             String signedVersionsString = signedVersionsStringList.toString().substring(1, signedVersionsStringList.toString().length() - 1);
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "Successfully saved blobs in\n" + controller.pathField.getText() + "\n\nFor "
-                            + (signedVersionsStringList.size() == 1 ? "version " : "versions ") + signedVersionsString, ButtonType.OK);
-            alert.setHeaderText("Success!");
-            alert.showAndWait();
+            Platform.runLater(() -> {
+                controller.hideRunningAlert();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                        "Successfully saved blobs in\n" + controller.pathField.getText() + "\n\nFor "
+                                + (signedVersionsStringList.size() == 1 ? "version " : "versions ") + signedVersionsString, ButtonType.OK);
+                alert.setHeaderText("Success!");
+                alert.showAndWait();
+            });
         } else {
             try {
                 URL ipswURL;
@@ -79,7 +90,10 @@ class TSSChecker {
                     try {
                         ipswURL = new URL(controller.ipswField.getText());
                     } catch (MalformedURLException e) {
-                        newUnreportableError("\"" + controller.ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
+                        Platform.runLater(() -> {
+                            controller.hideRunningAlert();
+                            newUnreportableError("\"" + controller.ipswField.getText() + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
+                        });
                         e.printStackTrace();
                         return;
                     }
@@ -89,12 +103,15 @@ class TSSChecker {
                                 controller.versionField.getText().equals(stringObjectMap.get("version")))
                                 .collect(Collectors.toList()).get(0).get("url").toString());
                     } catch (IOException e) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR,
-                                "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
-                                githubIssue, redditPM, ButtonType.OK);
-                        resizeAlertButtons(alert);
-                        alert.showAndWait();
-                        reportError(alert, e.getMessage());
+                        Platform.runLater(() -> {
+                            controller.hideRunningAlert();
+                            Alert alert = new Alert(Alert.AlertType.ERROR,
+                                    "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to the website ipsw.me in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.",
+                                    githubIssue, redditPM, ButtonType.OK);
+                            resizeAlertButtons(alert);
+                            alert.showAndWait();
+                            reportError(alert, e.getMessage());
+                        });
                         return;
                     }
                 }
@@ -133,7 +150,10 @@ class TSSChecker {
         }
         if (controller.betaCheckBox.isSelected()) {
             if (!controller.ipswField.getText().matches("https?://.*apple.*\\.ipsw")) {
-                newUnreportableError("\"" + ipswURL + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
+                Platform.runLater(() -> {
+                    controller.hideRunningAlert();
+                    newUnreportableError("\"" + ipswURL + "\" is not a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"");
+                });
                 return;
             }
             Collections.addAll(args, "--beta", "--buildid", controller.buildIDField.getText());
@@ -141,7 +161,10 @@ class TSSChecker {
         try {
             Collections.addAll(args, "-m", extractBuildManifest(ipswURL.toString()).toString());
         } catch (IOException e) {
-            newReportableError("Unable to extract BuildManifest from .ipsw.", e.getMessage());
+            Platform.runLater(() -> {
+                controller.hideRunningAlert();
+                newReportableError("Unable to extract BuildManifest from .ipsw.", e.getMessage());
+            });
             e.printStackTrace();
             return;
         }
@@ -150,72 +173,82 @@ class TSSChecker {
             System.out.println("Running: " + args.toString());
             tsscheckerLog = executeProgram(args.toArray(new String[0]));
         } catch (IOException e) {
-            newReportableError("There was an error starting tsschecker.", e.toString());
+            Platform.runLater(() -> {
+                controller.hideRunningAlert();
+                newReportableError("There was an error starting tsschecker.", e.toString());
+            });
             e.printStackTrace();
             throw new TSSCheckerException(e);
         }
-
         if (containsIgnoreCase(tsscheckerLog, "Saved shsh blobs")) {
             // if multiple versions are being saved at the same time, do not show success message multiple times
             // the success message will be shown after saving everything is completed
             if (!controller.versionCheckBox.isSelected()) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs for version " + version + " in\n" + savePath, ButtonType.OK);
-                alert.setHeaderText("Success!");
-                alert.showAndWait();
+                Platform.runLater(() -> {
+                    controller.hideRunningAlert();
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Successfully saved blobs for version " + version + " in\n" + savePath, ButtonType.OK);
+                    alert.setHeaderText("Success!");
+                    alert.showAndWait();
+                });
             }
             return;
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ecid=" + ecid + ", but parsing failed")) {
-            newUnreportableError("\"" + ecid + "\"" + " is not a valid ECID. Try getting it from iTunes.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
-            controller.ecidField.setEffect(errorBorder);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] device " + device + " could not be found in devicelist")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "tsschecker could not find device: \"" + device +
-                    "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", githubIssue, redditPM, ButtonType.CANCEL);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")) {
-            newUnreportableError("\"" + apnonce + "\" is not a valid apnonce");
-            controller.apnonceField.setEffect(errorBorder);
-        } else if (containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Erase")
-                && containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Update")
-                && containsIgnoreCase(tsscheckerLog, "checking tss status failed")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
-                    githubIssue, redditPM, ButtonType.OK);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert, tsscheckerLog);
-        } else if (containsIgnoreCase(tsscheckerLog, "Could not resolve host")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
-                    githubIssue, redditPM, ButtonType.OK);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert, tsscheckerLog);
-        } else if (containsIgnoreCase(tsscheckerLog, "can't save shsh at")) {
-            newUnreportableError("\'" + savePath + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
-            controller.pathField.setEffect(errorBorder);
-        } else if (containsIgnoreCase(tsscheckerLog, "IS NOT being signed")) {
-            newUnreportableError("iOS/tvOS " + version + " is not being signed for device " + device);
-            if (version.equals(controller.versionField.getText())) {
-                controller.versionField.setEffect(errorBorder);
-            }
-            if (controller.betaCheckBox.isSelected()) {
-                controller.buildIDField.setEffect(errorBorder);
-                controller.ipswField.setEffect(errorBorder);
-            }
-        } else if (containsIgnoreCase(tsscheckerLog, "failed to load manifest")) {
-            Alert alert = new Alert(Alert.AlertType.ERROR,
-                    "Failed to load manifest.\n\n \"" + ipswURL + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
-                    githubIssue, redditPM, ButtonType.OK);
-            resizeAlertButtons(alert);
-            alert.showAndWait();
-            reportError(alert, tsscheckerLog);
-        } else if (containsIgnoreCase(tsscheckerLog, "selected device can't be used with that buildmanifest")) {
-            newUnreportableError("Device and build manifest don't match.");
-        } else {
-            newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
         }
+
+        Platform.runLater(() -> {
+            controller.hideRunningAlert();
+            if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ecid=" + ecid + ", but parsing failed")) {
+                newUnreportableError("\"" + ecid + "\"" + " is not a valid ECID. Try getting it from iTunes.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
+                controller.ecidField.setEffect(errorBorder);
+            } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] device " + device + " could not be found in devicelist")) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "tsschecker could not find device: \"" + device +
+                        "\"\n\nPlease create a new Github issue or PM me on Reddit if you used the dropdown menu.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", githubIssue, redditPM, ButtonType.CANCEL);
+                resizeAlertButtons(alert);
+                alert.showAndWait();
+                reportError(alert);
+            } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")) {
+                newUnreportableError("\"" + apnonce + "\" is not a valid apnonce");
+                controller.apnonceField.setEffect(errorBorder);
+            } else if (containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Erase")
+                    && containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Update")
+                    && containsIgnoreCase(tsscheckerLog, "checking tss status failed")) {
+                Alert alert = new Alert(Alert.AlertType.ERROR,
+                        "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
+                        githubIssue, redditPM, ButtonType.OK);
+                resizeAlertButtons(alert);
+                alert.showAndWait();
+                reportError(alert, tsscheckerLog);
+            } else if (containsIgnoreCase(tsscheckerLog, "Could not resolve host")) {
+                Alert alert = new Alert(Alert.AlertType.ERROR,
+                        "Saving blobs failed. Check your internet connection.\n\nIf your internet is working and you can connect to apple.com in your browser, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
+                        githubIssue, redditPM, ButtonType.OK);
+                resizeAlertButtons(alert);
+                alert.showAndWait();
+                reportError(alert, tsscheckerLog);
+            } else if (containsIgnoreCase(tsscheckerLog, "can't save shsh at")) {
+                newUnreportableError("\'" + savePath + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
+                controller.pathField.setEffect(errorBorder);
+            } else if (containsIgnoreCase(tsscheckerLog, "IS NOT being signed")) {
+                newUnreportableError("iOS/tvOS " + version + " is not being signed for device " + device);
+                if (version.equals(controller.versionField.getText())) {
+                    controller.versionField.setEffect(errorBorder);
+                }
+                if (controller.betaCheckBox.isSelected()) {
+                    controller.buildIDField.setEffect(errorBorder);
+                    controller.ipswField.setEffect(errorBorder);
+                }
+            } else if (containsIgnoreCase(tsscheckerLog, "failed to load manifest")) {
+                Alert alert = new Alert(Alert.AlertType.ERROR,
+                        "Failed to load manifest.\n\n \"" + ipswURL + "\" might not be a valid URL.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"\n\nIf the URL is fine, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard",
+                        githubIssue, redditPM, ButtonType.OK);
+                resizeAlertButtons(alert);
+                alert.showAndWait();
+                reportError(alert, tsscheckerLog);
+            } else if (containsIgnoreCase(tsscheckerLog, "selected device can't be used with that buildmanifest")) {
+                newUnreportableError("Device and build manifest don't match.");
+            } else {
+                newReportableError("Saving blobs failed.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.", tsscheckerLog);
+            }
+        });
         throw new TSSCheckerException();
     }
 
