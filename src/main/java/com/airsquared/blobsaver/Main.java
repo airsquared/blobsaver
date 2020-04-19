@@ -147,23 +147,13 @@ public class Main {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public void start(Stage primaryStage) throws IOException, ReflectiveOperationException {
+        public void start(Stage primaryStage) throws IOException {
             Main.primaryStage = primaryStage;
-            Parent root = null;
-            try {
-                root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(-1);
-            }
+            Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
             primaryStage.setTitle("blobsaver " + Main.appVersion);
             primaryStage.setScene(new Scene(root));
             primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
-            if (PlatformUtil.isMac()) { // setup the dock icon
-                Class clazz = Class.forName("com.apple.eawt.Application");
-                clazz.getMethod("setDockIconImage", java.awt.Image.class).invoke(clazz.getMethod("getApplication").invoke(null), javax.imageio.ImageIO.read(getClass().getResourceAsStream("blob_emoji.png")));
-            } else {
+            if (!PlatformUtil.isMac()) {
                 primaryStage.getIcons().clear();
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
             }
