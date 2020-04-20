@@ -22,10 +22,14 @@ plugins {
     id "edu.sc.seis.macAppBundle" version "2.3.0" // for bundling into .app
     id 'com.github.johnrengelman.shadow' version '5.2.0' // for fat jar
     id 'com.github.ben-manes.versions' version '0.28.0'
+
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.8'
+    id 'com.gluonhq.client-gradle-plugin' version '0.1.20'
 }
 
 version null
-sourceCompatibility = 1.8
+sourceCompatibility = 11
 
 /*
  * REMEMBER: also update the version string in:
@@ -48,6 +52,18 @@ dependencies {
     testImplementation 'junit:junit:4.13'
 }
 
+gluonClient {
+    graalvmHome = "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-20.0.0/Contents/Home"
+    nativeCompile.doFirst {
+System.out.println(compilerArgs)
+    }
+}
+
+javafx {
+    version = "11"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
 compileJava {
     options.fork = true
     options.forkOptions.javaHome = new File("${System.properties.'java.home'}")
@@ -63,6 +79,7 @@ jar {
 }
 
 shadowJar {
+    mainClassName = "com.airsquared.blobsaver.Main"
     archiveClassifier.set(null) // remove '-all' suffix
     // the jna libraries are bundled separately to reduce application size
     exclude "about.fxml", "about.css",

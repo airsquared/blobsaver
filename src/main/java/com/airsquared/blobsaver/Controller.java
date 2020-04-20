@@ -19,7 +19,7 @@
 package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
-import com.sun.javafx.scene.control.skin.LabeledText;
+import com.sun.javafx.scene.control.LabeledText;
 import com.sun.jna.ptr.PointerByReference;
 import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;

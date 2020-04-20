@@ -15,6 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+pluginManagement {
+    repositories {
+        maven {
+            url "https://nexus.gluonhq.com/nexus/content/repositories/releases"
+        }
+        gradlePluginPortal()
+    }
+}
 rootProject.name = 'blobsaver'
 
