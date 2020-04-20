@@ -320,6 +320,10 @@ class Shared {
         return writer.toString();
     }
 
+    static boolean isEmptyOrNull(String s) {
+        return s == null || s.isEmpty();
+    }
+
     // temporary until ProGuard is implemented
     static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
         if (str == null || searchStr == null) {

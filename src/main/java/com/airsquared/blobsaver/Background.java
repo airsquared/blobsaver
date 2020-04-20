@@ -215,7 +215,7 @@ class Background {
                 if (!"none".equals(boardConfig) && !"".equals(boardConfig)) { // needs board config
                     Collections.addAll(args, "--boardconfig", boardConfig);
                 }
-                if (!"".equals(apnonce)) {
+                if (!Shared.isEmptyOrNull(apnonce)) {
                     Collections.addAll(args, "--apnonce", apnonce);
                 }
                 tsscheckerLog = executeProgram(args.toArray(new String[0]));

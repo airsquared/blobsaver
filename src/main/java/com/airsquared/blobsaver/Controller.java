@@ -87,7 +87,7 @@ public class Controller {
 
     static void afterStageShowing() {
         for (int i = 0; i < 10; i++) { // sets the names for the presets
-            if (!"".equals(appPrefs.get("Name Preset" + i, ""))) {
+            if (!Shared.isEmptyOrNull(appPrefs.get("Name Preset" + i, ""))) {
                 Button btn = (Button) primaryStage.getScene().lookup("#preset" + i);
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
@@ -127,12 +127,18 @@ public class Controller {
         deviceTypeChoiceBox.setValue("iPhone");
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceModelChoiceBox.setEffect(null);
+            if (Shared.isEmptyOrNull((String) newValue)) {
+                return;
+            }
             String identifier = Devices.getDeviceModelIdentifiersMap().get(newValue.toString());
             requireBoardConfig(identifier);
             requireApnonce(identifier);
         });
         identifierField.textProperty().addListener((x, y, identifier) -> {
             identifierField.setEffect(null);
+            if (Shared.isEmptyOrNull(identifier)) {
+                return;
+            }
             requireBoardConfig(identifier);
             requireApnonce(identifier);
         });
@@ -296,7 +302,7 @@ public class Controller {
             return;
         }
         ecidField.setText(prefs.get("ECID", ""));
-        if (!"".equals(prefs.get("Path", ""))) {
+        if (!Shared.isEmptyOrNull(prefs.get("Path", ""))) {
             pathField.setText(prefs.get("Path", ""));
         }
         if ("none".equals(prefs.get("Device Model", ""))) {
@@ -312,7 +318,7 @@ public class Controller {
         if (!"none".equals(prefs.get("Board Config", "")) && getBoardConfig) {
             boardConfigField.setText(prefs.get("Board Config", ""));
         }
-        if (!"".equals(prefs.get("Apnonce", ""))) {
+        if (!Shared.isEmptyOrNull(prefs.get("Apnonce", ""))) {
             if (!apnonceCheckBox.isSelected()) {
                 apnonceCheckBox.fire();
             }
@@ -364,7 +370,7 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     private void savePreset(int preset) {
         boolean doReturn = false;
-        if (!identifierCheckBox.isSelected() && "".equals(deviceModelChoiceBox.getValue())) {
+        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull((String) deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
@@ -382,7 +388,7 @@ public class Controller {
         textInputDialog.showAndWait();
 
         String result = textInputDialog.getResult();
-        if (result != null && !"".equals(result)) {
+        if (Shared.isEmptyOrNull(result)) {
             appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
             ((Button) primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
         } else {
@@ -633,7 +639,6 @@ public class Controller {
 
         // needs to be run with Platform.runLater(), otherwise the application menu doesn't show up
         Platform.runLater(() -> tk.setGlobalMenuBar(macOSMenuBar));
-        System.out.println("using macOS menu bar");
     }
 
     public void backgroundSettingsHandler() {
@@ -708,7 +713,7 @@ public class Controller {
         hBox.getChildren().addAll(textField, choiceBox);
         alert.getDialogPane().setContent(hBox);
         alert.showAndWait();
-        if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !"".equals(textField.getText()) && (choiceBox.getValue() != null)) {
+        if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Shared.isEmptyOrNull(textField.getText()) && Shared.isEmptyOrNull(choiceBox.getValue())) {
             appPrefs.putInt("Time to run", Integer.parseInt(textField.getText()));
             appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
@@ -891,11 +896,11 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     public void goButtonHandler() {
         boolean doReturn = false;
-        if (!identifierCheckBox.isSelected() && (deviceTypeChoiceBox.getValue() == null || "".equals(deviceTypeChoiceBox.getValue()))) {
+        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull((String) deviceTypeChoiceBox.getValue())) {
             deviceTypeChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (!identifierCheckBox.isSelected() && ("".equals(deviceModelChoiceBox.getValue()))) {
+        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull((String) deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
@@ -910,7 +915,7 @@ public class Controller {
         if (doReturn) return;
 
         String deviceModel = (String) deviceModelChoiceBox.getValue();
-        if ("".equals(deviceModel)) {
+        if (Shared.isEmptyOrNull(deviceModel)) {
             String identifierText = identifierField.getText();
             try {
                 if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
@@ -952,7 +957,7 @@ public class Controller {
     }
 
     private static boolean isTextFieldInvalid(boolean isTextFieldRequired, TextField textField) {
-        if (isTextFieldRequired && (textField.getText() == null || "".equals(textField.getText()))) {
+        if (isTextFieldRequired && Shared.isEmptyOrNull(textField.getText())) {
             textField.setEffect(errorBorder);
             return true;
         }
