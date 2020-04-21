@@ -9,7 +9,8 @@ assignees: ''
 
 YOUR ISSUE WILL BE CLOSED AND/OR DELETED IF YOU DO NOT FILL OUT THIS TEMPLATE
 
-Remove the following line and the text above it before submitting this issue:
+
+Please remove the following line and the text above it before submitting this issue:
 
 -------------------------------------------------------------
 
@@ -19,9 +20,14 @@ A clear and concise description of what the bug is and the expected behavior.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. macOS Mojave]
- - App version [e.g. 1.1.1]
+**Desktop:**
+ - OS Version:
+ - iOS Device: (if applicable)
+
+**Checklist (place an x between the brackets to mark as completed):**
+ - [ ] I have made sure I am on the latest version of blobsaver
+ - [ ] I have checked the blobsaver wiki to see if there is already a solution to my problem
+ - [ ] I have tried common troubleshooting tactics such as restarting my computer and reinstalling blobsaver
 
 **Log(s)**
 ```
