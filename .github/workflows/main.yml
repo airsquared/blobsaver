@@ -18,10 +18,10 @@ jobs:
           java-package: jdk+fx
       - name: Create macOS app
         if: matrix.os == 'macOS-latest'
-        run: ./gradlew createApp
+        run: gradle createApp
       - name: Create Linux tar.gz
         if: matrix.os == 'ubuntu-latest'
-        run: ./gradlew createLinuxTargz
+        run: gradle createLinuxTargz
       - name: Create Windows exe
         if: matrix.os == 'windows-latest'
-        run: ./gradlew createWindowsInstaller
+        run: gradle createWindowsInstaller
