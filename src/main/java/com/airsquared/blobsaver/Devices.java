@@ -36,7 +36,8 @@ public class Devices {
             "iPhone 8 (iPhone10,1)", "iPhone 8+ (iPhone10,2)", "iPhone X (iPhone10,3)", "iPhone 8 (iPhone10,4)",
             "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "iPhone XS (Global) (iPhone11,2)",
             "iPhone XS Max (China) (iPhone11,4)", "iPhone XS Max (iPhone11,6)", "iPhone XR (iPhone11,8)",
-            "iPhone 11 (iPhone12,1)", "iPhone 11 Pro (iPhone12,3)", "iPhone 11 Pro Max (iPhone12,5)");
+            "iPhone 11 (iPhone12,1)", "iPhone 11 Pro (iPhone12,3)", "iPhone 11 Pro Max (iPhone12,5)",
+            "iPhone SE 2 (iPhone12,8)");
 
     private static final ObservableList<String> iPods =
             FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6",
@@ -55,8 +56,10 @@ public class Devices {
                     "iPad 6 (Cellular)(iPad7,6)", "iPad 7 (WiFi)(iPad7,11)", "iPad 7 (Cellular)(iPad7,12)",
                     "iPad Pro 3 11' (WiFi)(iPad8,1)", "iPad Pro 3 11' (WiFi)(iPad8,2)", "iPad Pro 3 11' (Cellular)(iPad8,3)",
                     "iPad Pro 3 11' (Cellular)(iPad8,4)", "iPad Pro 3 12.9'(WiFi)(iPad8,5)", "iPad Pro 3 12.9 (WiFi)(iPad8,6)",
-                    "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)", "iPad Mini 5 (WiFi)(iPad11,1)",
-                    "iPad Mini 5 (Cellular)(iPad11,2)", "iPad Air 3 (WiFi)(iPad11,3)", "iPad Air 3 (Cellular)(iPad11,4)");
+                    "iPad Pro 3 12.9 (Cellular)(iPad8,7)", "iPad Pro 3 12.9 (Cellular)(iPad8,8)", "iPad Pro 4 11' (WiFi)(iPad8,9)",
+                    "iPad Pro 4 11' (Cellular)(iPad8,10)", "iPad Pro 4 12.9' (WiFi)(iPad8,11)",
+                    "iPad Pro 4 12.9' (Cellular)(iPad8,12)", "iPad Mini 5 (WiFi)(iPad11,1)", "iPad Mini 5 (Cellular)(iPad11,2)",
+                    "iPad Air 3 (WiFi)(iPad11,3)", "iPad Air 3 (Cellular)(iPad11,4)");
 
     private static final ObservableList<String> AppleTVs =
             FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
@@ -68,6 +71,13 @@ public class Devices {
     private static HashMap<String, String> deviceModelIdentifiers = null;
 
     static {
+        requiresBoardConfig.put("iPhone12,8", "D79AP");
+        requiresBoardConfig.put("iPad8,9", "J417AP");
+        requiresBoardConfig.put("iPad8,10", "J418AP");
+        requiresBoardConfig.put("iPad8,11", "J420AP");
+        requiresBoardConfig.put("iPad8,12", "J421AP");
+
+        // devices with multiple board configs
         requiresBoardConfig.put("iPhone8,1", "");
         requiresBoardConfig.put("iPhone8,2", "");
         requiresBoardConfig.put("iPhone8,4", "");

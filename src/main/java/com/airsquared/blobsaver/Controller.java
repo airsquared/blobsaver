@@ -197,7 +197,7 @@ public class Controller {
 
     private void requireApnonce(String identifier) {
         if (!"".equals(identifier) && (identifier.startsWith("iPhone11,") || identifier.startsWith("iPhone12,") ||
-                identifier.startsWith("iPad11,"))) {
+                identifier.startsWith("iPad8,") || identifier.startsWith("iPad11,"))) {
             if (!apnonceCheckBox.isSelected()) {
                 apnonceCheckBox.fire();
             }
@@ -838,7 +838,6 @@ public class Controller {
             newReportableError("Error: unable to register native methods", exceptionToString(e));
         } finally {
             readFromConnectedDeviceButton.setDisable(false);
-            readFromConnectedDeviceButton.setText("Read from connected device");
         }
     }
 
@@ -847,7 +846,7 @@ public class Controller {
         alert1.setHeaderText("Read apnonce from connected device");
         alert1.setContentText("blobsaver can read the apnonce from a connected device.\n\n" +
                 "It is recommended, but not required to set a generator on your device prior to reading the apnonce. " +
-                "blobsaver uses the generator 0x1111111111111111 (that's 0x followed by sixteen 1's) when saving blobs.\n\n" +
+                "If you set a generator, make sure to take note of that generator so you can use it in the future.\n\n" +
                 "Please connect your device and hit \"OK\" to begin. Your device will enter recovery mode while retrieving the apnonce and will automatically reboot to normal mode when complete.\n\n" +
                 "NOTE: an apnonce is only required for devices with an A12 processor or newer.");
         Optional<ButtonType> result = alert1.showAndWait();
