@@ -25,7 +25,7 @@ plugins {
 
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.8'
-    id 'com.gluonhq.client-gradle-plugin' version '0.1.20'
+    id 'com.gluonhq.client-gradle-plugin' version '0.1.23'
 }
 
 version null
@@ -53,10 +53,34 @@ dependencies {
 }
 
 gluonClient {
-    graalvmHome = "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-20.0.0/Contents/Home"
-    nativeCompile.doFirst {
-System.out.println(compilerArgs)
-    }
+    // change this path to the correct GraalVM installation
+    graalvmHome = "/Library/Java/JavaVirtualMachines/graalvm-svm-darwin-20.1.0-ea+28"
+    reflectionList.addAll "com.airsquared.blobsaver.Main\$JavaFxApplication", "com.airsquared.blobsaver.Controller",
+            "com.airsquared.blobsaver.Devices", "javafx.scene.control.MenuBar", "javafx.scene.control.Menu",
+            "javafx.scene.control.MenuItem", "javafx.scene.control.SeparatorMenuItem", "javafx.scene.control.Label",
+            "javafx.scene.control.TextField", "javafx.scene.control.Button", "javafx.scene.control.CheckBox",
+            "javafx.scene.control.ChoiceBox", "javafx.scene.control.Tooltip", "com.sun.jna.Native",
+            "javafx.scene.input.Clipboard", "com.sun.jna.Structure\$FFIType", "com.sun.jna.Structure\$FFIType\$size_t",
+
+            "com.airsquared.blobsaver.Shared\$Libfragmentzip", "com.airsquared.blobsaver.Libimobiledevice",
+            "com.airsquared.blobsaver.Libimobiledevice\$Libplist", "com.airsquared.blobsaver.Libimobiledevice\$Libirecovery",
+            "com.airsquared.blobsaver.DockVisibility"
+    jniList.addAll "java.lang.Object", "com.sun.jna.Native", "java.lang.Class", "java.lang.reflect.Method",
+            "java.lang.String", "java.nio.Buffer", "java.nio.ByteBuffer", "java.nio.CharBuffer", "java.nio.ShortBuffer",
+            "java.nio.IntBuffer", "java.nio.LongBuffer", "java.nio.FloatBuffer", "java.nio.DoubleBuffer",
+            "java.lang.Void", "java.lang.Boolean", "java.lang.Byte", "java.lang.Character", "java.lang.Short",
+            "java.lang.Integer", "java.lang.Long", "java.lang.Float", "java.lang.Double", "com.sun.jna.Pointer",
+            "com.sun.jna.Structure", "com.sun.jna.Structure\$ByValue", "com.sun.jna.Callback",
+            "com.sun.jna.CallbackReference\$AttachOptions", "com.sun.jna.CallbackReference",
+            "com.sun.jna.Callback\$UncaughtExceptionHandler", "com.sun.jna.WString", "java.lang.Throwable",
+            "com.sun.jna.NativeMapped", "com.sun.jna.ToNativeConverter", "com.sun.jna.FromNativeConverter",
+            "com.sun.jna.IntegerType", "com.sun.jna.PointerType", "com.sun.jna.JNIEnv", "com.sun.jna.Native\$ffi_callback",
+            "com.sun.jna.Structure\$FFIType", "com.sun.jna.Structure\$FFIType\$FFITypes",
+
+            "com.airsquared.blobsaver.Shared\$Libfragmentzip", "com.airsquared.blobsaver.Libimobiledevice",
+            "com.airsquared.blobsaver.Libimobiledevice\$Libplist", "com.airsquared.blobsaver.Libimobiledevice\$Libirecovery",
+            "com.airsquared.blobsaver.DockVisibility"
+    resourcesList << ".*/devicemodels.properties\$"
 }
 
 javafx {

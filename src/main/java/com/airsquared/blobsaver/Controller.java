@@ -26,7 +26,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -36,7 +35,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import org.json.JSONArray;
 
 import java.io.File;
@@ -145,23 +143,23 @@ public class Controller {
         pathField.setText(new File(System.getProperty("user.home"), "Blobs").getAbsolutePath());
 
 
-        if (PlatformUtil.isMac()) {
-            // resize stage to account for removed menu bar
-            ((VBox) menuBar.getParent()).setMinHeight(560.0);
-            ((VBox) menuBar.getParent()).setPrefHeight(560.0);
-            presetVBox.setMinHeight(560.0);
-            presetVBox.setPrefHeight(560.0);
-
-            ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
-
-            primaryStage.setOnShowing(new EventHandler<WindowEvent>() {
-                @Override
-                public void handle(WindowEvent event) {
-                    useMacOSMenuBar();
-                    primaryStage.removeEventHandler(event.getEventType(), this);
-                }
-            });
-        }
+//        if (PlatformUtil.isMac()) { TODO: fix native macOS menu bar
+//            // resize stage to account for removed menu bar
+//            ((VBox) menuBar.getParent()).setMinHeight(560.0);
+//            ((VBox) menuBar.getParent()).setPrefHeight(560.0);
+//            presetVBox.setMinHeight(560.0);
+//            presetVBox.setPrefHeight(560.0);
+//
+//            ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
+//
+//            primaryStage.setOnShowing(new EventHandler<>() {
+//                @Override
+//                public void handle(WindowEvent event) {
+//                    useMacOSMenuBar();
+//                    primaryStage.removeEventHandler(event.getEventType(), this);
+//                }
+//            });
+//        }
     }
 
     private static void addListenerToSetNullEffect(TextField... textFields) {
@@ -541,8 +539,8 @@ public class Controller {
                 break;
             case "View License":
                 File licenseFile;
-                if (!Main.runningFromJar) {
-                    licenseFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
+                if (Main.runningFromIDE) {
+                    licenseFile = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(),
                             PlatformUtil.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
                 } else if (PlatformUtil.isMac()) {
                     licenseFile = new File(Main.jarDirectory.getParentFile(), "Resources/LICENSE");
@@ -554,8 +552,8 @@ public class Controller {
                 break;
             case "Libraries Used":
                 File librariesUsedFile;
-                if (!Main.runningFromJar) {
-                    librariesUsedFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
+                if (Main.runningFromIDE) {
+                    librariesUsedFile = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(),
                             PlatformUtil.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
                 } else if (PlatformUtil.isMac()) {
                     librariesUsedFile = new File(Main.jarDirectory.getParentFile(), "Resources/libraries_used.txt");
@@ -725,6 +723,7 @@ public class Controller {
     }
 
     public void startBackgroundHandler() {
+        // TODO: SubstrateVM does not support AWT (find another way to get system tray)
         if (!java.awt.SystemTray.isSupported()) {
             newUnreportableError("System Tray is not supported on your OS/platform. Saving blobs in the background will not work without System Tray support.");
         }

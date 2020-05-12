@@ -159,7 +159,7 @@ public class Libimobiledevice {
         private static native void plist_to_xml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
 
         static {
-            Native.register("plist");
+            Native.register(Libplist.class, "plist");
         }
     }
 
@@ -198,7 +198,7 @@ public class Libimobiledevice {
         }
 
         static {
-            Native.register("irecovery");
+            Native.register(Libirecovery.class, "irecovery");
         }
     }
 
@@ -280,7 +280,7 @@ public class Libimobiledevice {
 
     static {
         try {
-            Native.register("imobiledevice");
+            Native.register(Libimobiledevice.class, "imobiledevice");
         } catch (Throwable e) { // need to catch UnsatisfiedLinkError
             newReportableError("Error: unable to register native methods", exceptionToString(e));
             throw new LibimobiledeviceException("Unable to register native methods", e);

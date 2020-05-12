@@ -133,9 +133,9 @@ class Shared {
 
     static File getTsschecker() {
         File tsschecker;
-        if (!Main.runningFromJar) {
+        if (Main.runningFromIDE) {
             // temporarily set tsschecker to the dist directory
-            tsschecker = new File(Main.jarDirectory.getParentFile().getParentFile(), "dist/");
+            tsschecker = new File(Main.jarDirectory.getParentFile().getParentFile().getParentFile(), "dist/");
             if (PlatformUtil.isMac()) {
                 tsschecker = new File(tsschecker, "macos/tsschecker");
             } else if (PlatformUtil.isWindows()) {
@@ -177,7 +177,15 @@ class Shared {
     }
 
     static void openURL(String url) {
-        Main.JavaFxApplication.getInstance().getHostServices().showDocument(url);
+        if (PlatformUtil.isMac()) {
+            try {
+                Runtime.getRuntime().exec(new String[]{"open", url});
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Main.JavaFxApplication.getInstance().getHostServices().showDocument(url);
+        }
     }
 
     static String executeProgram(String... command) throws IOException {
@@ -310,7 +318,7 @@ class Shared {
         private static native void fragmentzip_close(Pointer fragmentzip_t);
 
         static {
-            Native.register("fragmentzip");
+            Native.register(Libfragmentzip.class, "fragmentzip");
         }
     }
 
