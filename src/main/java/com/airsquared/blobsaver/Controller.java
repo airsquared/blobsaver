@@ -56,7 +56,7 @@ public class Controller {
 
     @FXML private MenuBar menuBar;
 
-    @FXML private ChoiceBox deviceTypeChoiceBox, deviceModelChoiceBox;
+    @FXML private ChoiceBox<String> deviceTypeChoiceBox, deviceModelChoiceBox;
 
     @FXML TextField ecidField, boardConfigField, apnonceField, versionField, identifierField,
             pathField, ipswField, buildIDField;
@@ -80,8 +80,8 @@ public class Controller {
     private boolean editingPresets = false;
     private boolean choosingRunInBackground = false;
 
-    static DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
-    private static DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
+    static final DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
+    static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
 
     static Controller INSTANCE;
 
@@ -95,14 +95,13 @@ public class Controller {
         checkForUpdates(false);
     }
 
-    @SuppressWarnings("unchecked")
     @FXML
     public void initialize() {
         INSTANCE = this;
 
         deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceTypeChoiceBox.setEffect(null);
-            switch ((String) (newValue == null ? "" : newValue)) {
+            switch (newValue == null ? "" : newValue) {
                 case "iPhone":
                     deviceModelChoiceBox.setItems(Devices.getiPhones());
                     versionLabel.setText("iOS Version");
@@ -127,10 +126,10 @@ public class Controller {
         deviceTypeChoiceBox.setValue("iPhone");
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceModelChoiceBox.setEffect(null);
-            if (Shared.isEmptyOrNull((String) newValue)) {
+            if (Shared.isEmptyOrNull(newValue)) {
                 return;
             }
-            String identifier = Devices.getDeviceModelIdentifiersMap().get(newValue.toString());
+            String identifier = Devices.getDeviceModelIdentifiersMap().get(newValue);
             requireBoardConfig(identifier);
             requireApnonce(identifier);
         });
@@ -236,7 +235,6 @@ public class Controller {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void identifierCheckBoxHandler() {
         if (identifierCheckBox.isSelected()) {
             identifierField.setDisable(false);
@@ -295,7 +293,6 @@ public class Controller {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void loadPreset(int preset) {
         Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
         if (!prefs.getBoolean("Exists", false)) {
@@ -370,7 +367,7 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     private void savePreset(int preset) {
         boolean doReturn = false;
-        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull((String) deviceModelChoiceBox.getValue())) {
+        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull(deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
@@ -404,8 +401,8 @@ public class Controller {
             presetPrefs.put("Device Model", "none");
             presetPrefs.put("Device Identifier", identifierField.getText());
         } else {
-            presetPrefs.put("Device Type", (String) deviceTypeChoiceBox.getValue());
-            presetPrefs.put("Device Model", (String) deviceModelChoiceBox.getValue());
+            presetPrefs.put("Device Type", deviceTypeChoiceBox.getValue());
+            presetPrefs.put("Device Model", deviceModelChoiceBox.getValue());
         }
         if (getBoardConfig) {
             presetPrefs.put("Board Config", boardConfigField.getText());
@@ -796,7 +793,6 @@ public class Controller {
         openURL("https://github.com/airsquared/blobsaver/wiki");
     }
 
-    @SuppressWarnings("unchecked")
     public void readInfo() {
         if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -895,11 +891,11 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     public void goButtonHandler() {
         boolean doReturn = false;
-        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull((String) deviceTypeChoiceBox.getValue())) {
+        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull(deviceTypeChoiceBox.getValue())) {
             deviceTypeChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
-        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull((String) deviceModelChoiceBox.getValue())) {
+        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull(deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
@@ -913,7 +909,7 @@ public class Controller {
         doReturn = doReturn || isTextFieldInvalid(betaCheckBox, ipswField);
         if (doReturn) return;
 
-        String deviceModel = (String) deviceModelChoiceBox.getValue();
+        String deviceModel = deviceModelChoiceBox.getValue();
         if (Shared.isEmptyOrNull(deviceModel)) {
             String identifierText = identifierField.getText();
             try {

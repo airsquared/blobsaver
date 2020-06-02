@@ -89,6 +89,7 @@ Carthage/Build
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
+.idea/**/jarRepositories.xml
 
 # CMake
 cmake-build-debug/

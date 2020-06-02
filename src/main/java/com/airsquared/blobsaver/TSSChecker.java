@@ -41,6 +41,7 @@ import static com.airsquared.blobsaver.Shared.*;
  * TODO: fix this class to separate GUI logic
  */
 class TSSChecker {
+
     static void run(String device) {
         Controller.INSTANCE.showRunningAlert();
         new Thread(() -> runImpl(device)).start();
@@ -228,7 +229,7 @@ class TSSChecker {
                 alert.showAndWait();
                 reportError(alert, tsscheckerLog);
             } else if (containsIgnoreCase(tsscheckerLog, "can't save shsh at")) {
-                newUnreportableError("\'" + savePath + "\' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
+                newUnreportableError("'" + savePath + "' is not a valid path\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.");
                 controller.pathField.setEffect(errorBorder);
             } else if (containsIgnoreCase(tsscheckerLog, "IS NOT being signed")) {
                 newUnreportableError("iOS/tvOS " + version + " is not being signed for device " + device);

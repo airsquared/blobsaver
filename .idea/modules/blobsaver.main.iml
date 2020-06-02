@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id="blobsaver:main" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+  <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/../../out/production/classes" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../src/main">
@@ -27,7 +27,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="Gradle: org.json:json:20190722" level="project" />
+    <orderEntry type="library" name="Gradle: org.json:json:20200518" level="project" />
     <orderEntry type="library" name="Gradle: it.sauronsoftware:junique:1.0.4" level="project" />
     <orderEntry type="library" name="Gradle: de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.7" level="project" />
     <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:5.5.0" level="project" />

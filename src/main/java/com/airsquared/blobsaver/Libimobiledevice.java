@@ -180,17 +180,10 @@ public class Libimobiledevice {
         @SuppressWarnings({"unused", "SpellCheckingInspection"})
         @Structure.FieldOrder({"cpid", "cprv", "cpfm", "scep", "bdid", "ecid", "ibfl", "srnm", "imei", "srtg", "serial_string", "ap_nonce", "ap_nonce_size", "sep_nonce", "sep_nonce_size"})
         public static class irecv_device_info extends Structure {
-            public int cpid;
-            public int cprv;
-            public int cpfm;
-            public int scep;
-            public int bdid;
+            public int cpid, cprv, cpfm, scep, bdid;
             public long ecid;
             public int ibfl;
-            public String srnm;
-            public String imei;
-            public String srtg;
-            public String serial_string;
+            public String srnm, imei, srtg, serial_string;
             public Pointer ap_nonce;
             public int ap_nonce_size;
             public Pointer sep_nonce;

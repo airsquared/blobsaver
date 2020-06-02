@@ -148,13 +148,9 @@ class Background {
                 case "Hours":
                     timeUnit = TimeUnit.HOURS;
                     break;
-                case "Days":
-                    timeUnit = TimeUnit.DAYS;
-                    break;
                 case "Weeks":
-                    timeUnit = TimeUnit.DAYS;
-                    timeAmount = timeAmount * 7;
-                    break;
+                    timeAmount *= 7;
+                case "Days":
                 default:
                     timeUnit = TimeUnit.DAYS;
                     break;
