@@ -624,13 +624,9 @@ public class Controller {
 
         Menu helpMenu = menuBar.getMenus().get(1);
 
-        helpMenu.getItems().add(1, new SeparatorMenuItem());
-        helpMenu.getItems().add(4, new SeparatorMenuItem());
-
         MenuItem checkForValidBlobsMenuItem = new MenuItem("Check for Valid Blobs...");
         checkForValidBlobsMenuItem.setOnAction(event -> checkBlobs());
-        helpMenu.getItems().set(5, checkForValidBlobsMenuItem);
-        helpMenu.getItems().add(6, new SeparatorMenuItem());
+        helpMenu.getItems().add(0, checkForValidBlobsMenuItem);
 
         macOSMenuBar.getMenus().add(helpMenu);
 
@@ -884,6 +880,16 @@ public class Controller {
                 Shared.forEachButton(alert2, button -> button.setDisable(false));
             }
         }).start();
+    }
+
+    public void exitRecoveryHandler() {
+        PointerByReference irecvClient = new PointerByReference();
+        int errorCode = Libimobiledevice.Libirecovery.irecv_open_with_ecid(irecvClient, 0);
+        if (errorCode != 0) {
+            newReportableError("irecovery error: code=" + errorCode + "\n\nUnable to find a device, try using another tool to exit recovery mode.");
+            return;
+        }
+        Libimobiledevice.exitRecovery(irecvClient.getValue(), true);
     }
 
     public void donate() { openURL("https://www.paypal.me/airsqrd"); }

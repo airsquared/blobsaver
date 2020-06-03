@@ -34,6 +34,8 @@
                 <MenuItem mnemonicParsing="false" onAction="#resetAppHandler" text="Uninstall..."/>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
+                <MenuItem mnemonicParsing="false" onAction="#exitRecoveryHandler" text="Exit Recovery Mode..."/>
+                <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#showWiki" text="blobsaver Help/Wiki"/>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue" text="Send Feedback (Github Issue)"/>
                 <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback (Reddit PM)"/>

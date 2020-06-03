@@ -253,7 +253,7 @@ public class Libimobiledevice {
             }
         } else if (errorType.equals(ErrorCodeType.irecv_error_t)) {
             exceptionMessage = "irecovery error: code=" + errorCode;
-            alertMessage = exceptionMessage;
+            alertMessage = exceptionMessage + "\n\nIf your device is still in recovery mode, use the \"Exit Recovery Mode\" option from the help menu.";
             reportableError = true;
         }
         if (showAlert) {
