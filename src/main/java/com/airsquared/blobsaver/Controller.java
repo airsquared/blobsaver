@@ -385,7 +385,7 @@ public class Controller {
         textInputDialog.showAndWait();
 
         String result = textInputDialog.getResult();
-        if (Shared.isEmptyOrNull(result)) {
+        if (!Shared.isEmptyOrNull(result)) {
             appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
             ((Button) primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
         } else {
@@ -706,7 +706,7 @@ public class Controller {
         hBox.getChildren().addAll(textField, choiceBox);
         alert.getDialogPane().setContent(hBox);
         alert.showAndWait();
-        if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Shared.isEmptyOrNull(textField.getText()) && Shared.isEmptyOrNull(choiceBox.getValue())) {
+        if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Shared.isEmptyOrNull(textField.getText()) && !Shared.isEmptyOrNull(choiceBox.getValue())) {
             appPrefs.putInt("Time to run", Integer.parseInt(textField.getText()));
             appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
