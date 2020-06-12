@@ -32,7 +32,7 @@ sourceCompatibility = 1.8
  *  - Main.java
  *  - blobsaver.iss
  */
-String appVersion = "v2.5.2"
+String appVersion = "v2.5.3"
 
 repositories {
     mavenCentral()
