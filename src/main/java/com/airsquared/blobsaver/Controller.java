@@ -437,7 +437,7 @@ public class Controller {
         }
     }
 
-    public void checkBlobs() { openURL("https://tsssaver.1conan.com/check.php"); }
+    public void checkBlobs() { openURL("https://verify.shsh.host"); }
 
     public void helpLabelHandler(MouseEvent evt) {
         if (Main.SHOW_BREAKPOINT) {
