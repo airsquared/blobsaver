@@ -45,8 +45,8 @@ public class Main {
     static final boolean runningFromJar;
 
     static { // set jarDirectory and runningFromJar variables
-        final String url = Shared.class.getResource("Shared.class").toString();
-        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Shared.class".length());
+        final String url = Main.class.getResource("Main.class").toString();
+        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Main.class".length());
         if (path.startsWith("jar:")) {
             runningFromJar = true;
             path = path.substring("jar:".length(), path.length() - 2);

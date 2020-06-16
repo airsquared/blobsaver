@@ -19,12 +19,14 @@
 package com.airsquared.blobsaver;
 
 import com.sun.javafx.PlatformUtil;
+import org.junit.Before;
 
 import java.io.File;
 
 public class TestMisc {
 
-    static void setJNALibraryPath() {
+    @Before
+    public void setJNALibraryPath() {
         if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
             return;
         }

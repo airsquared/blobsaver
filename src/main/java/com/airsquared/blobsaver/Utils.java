@@ -22,8 +22,6 @@ import com.sun.javafx.PlatformUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import javafx.application.Platform;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -35,12 +33,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -48,75 +50,51 @@ import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
 
 // code shared by Controller and Background
-@SuppressWarnings("ResultOfMethodCallIgnored")
-class Shared {
+//@SuppressWarnings("ResultOfMethodCallIgnored")
+final class Utils {
 
     static final ButtonType redditPM = new ButtonType("PM on Reddit");
     static final ButtonType githubIssue = new ButtonType("Create Issue on Github");
 
-    static String textToIdentifier(String deviceModel) {
-        return Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
-    }
-
     static void checkForUpdates(boolean forceCheck) {
-        Service<Void> service = new Service<Void>() {
-            @Override
-            protected Task<Void> createTask() {
-                return new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        String response;
-                        try {
-                            response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
-                        } catch (IOException e) {
-                            Platform.runLater(() -> newReportableError("Unable to check for updates.", e.toString()));
-                            e.printStackTrace();
-                            return null;
-                        }
-                        String newVersion;
-                        String changelog;
-                        try {
-                            newVersion = new JSONObject(response).getString("tag_name");
-                            changelog = new JSONObject(response).getString("body");
-                            changelog = changelog.substring(changelog.indexOf("Changelog"));
-                        } catch (JSONException e) {
-                            newVersion = appVersion;
-                            changelog = "";
-                        }
-                        if (!appVersion.equals(newVersion) &&
-                                (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
-                            final CountDownLatch latch = new CountDownLatch(1);
-                            final String finalNewVersion = newVersion; //so that the lambda works
-                            final String finalChangelog = changelog;
-                            Platform.runLater(() -> {
-                                try {
-                                    ButtonType downloadNow = new ButtonType("Download");
-                                    ButtonType ignore = new ButtonType("Ignore this update");
-                                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
-                                            + appVersion + "\n\n" + finalChangelog, downloadNow, ignore, ButtonType.CANCEL);
-                                    alert.setHeaderText("New Update Available: " + finalNewVersion);
-                                    alert.setTitle("New Update Available for blobsaver");
-                                    Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
-                                    dlButton.setDefaultButton(true);
-                                    resizeAlertButtons(alert);
-                                    alert.showAndWait();
-                                    if (alert.getResult().equals(downloadNow)) {
-                                        openURL("https://github.com/airsquared/blobsaver/releases");
-                                    } else if (alert.getResult().equals(ignore)) {
-                                        appPrefs.put("Ignore Version", finalNewVersion);
-                                    }
-                                } finally {
-                                    latch.countDown();
-                                }
-                            });
-                            latch.await();
-                        }
-                        return null;
-                    }
-                };
+        new Thread(() -> {
+            String response;
+            try {
+                response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
+            } catch (IOException e) {
+                Platform.runLater(() -> newReportableError("Unable to check for updates.", e.toString()));
+                throw new RuntimeException(e);
             }
-        };
-        service.start();
+            String newVersion;
+            String changelog;
+            try {
+                newVersion = new JSONObject(response).getString("tag_name");
+                String tempChangelog = new JSONObject(response).getString("body");
+                changelog = tempChangelog.substring(tempChangelog.indexOf("Changelog"));
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+            if (!appVersion.equals(newVersion) &&
+                    (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
+                Platform.runLater(() -> {
+                    ButtonType downloadNow = new ButtonType("Download");
+                    ButtonType ignore = new ButtonType("Ignore this update");
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
+                            + appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
+                    alert.setHeaderText("New Update Available: " + newVersion);
+                    alert.setTitle("New Update Available for blobsaver");
+                    Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
+                    dlButton.setDefaultButton(true);
+                    resizeAlertButtons(alert);
+                    alert.showAndWait();
+                    if (alert.getResult().equals(downloadNow)) {
+                        openURL("https://github.com/airsquared/blobsaver/releases");
+                    } else if (alert.getResult().equals(ignore)) {
+                        appPrefs.put("Ignore Version", newVersion);
+                    }
+                });
+            }
+        }).start();
     }
 
     private static String makeRequest(URL url) throws IOException {
@@ -131,8 +109,11 @@ class Shared {
         return response.toString();
     }
 
+    static File tsschecker;
+
     static File getTsschecker() {
-        File tsschecker;
+        if (tsschecker != null) return tsschecker;
+
         if (!Main.runningFromJar) {
             // temporarily set tsschecker to the dist directory
             tsschecker = new File(Main.jarDirectory.getParentFile().getParentFile(), "dist/");
@@ -154,18 +135,6 @@ class Shared {
         tsschecker.setReadable(true, false);
         tsschecker.setExecutable(true, false);
         return tsschecker;
-    }
-
-    private static void copyStreamToFile(InputStream inputStream, File file) throws IOException {
-        OutputStream out = new FileOutputStream(file);
-        int read;
-        byte[] bytes = new byte[1024];
-
-        while ((read = inputStream.read(bytes)) != -1) {
-            out.write(bytes, 0, read);
-        }
-        out.close();
-        inputStream.close();
     }
 
     static void newGithubIssue() {
@@ -256,7 +225,7 @@ class Shared {
         return firmwareList;
     }
 
-    static List<Map<String, Object>> getAllSignedFirmwares(String deviceIdentifier) throws IOException {
+    static List<Map<String, Object>> getSignedFirmwares(String deviceIdentifier) throws IOException {
         return getFirmwareList(deviceIdentifier).stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).collect(Collectors.toList());
     }
 
@@ -305,7 +274,8 @@ class Shared {
          * Native declaration:
          * <code>int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, const char *savepath, fragmentzip_process_callback_t callback);</code>
          */
-        private static native int fragmentzip_download_file(Pointer fragmentzip_t, String remotePath, String savePath, Pointer fragmentzip_process_callback_t);
+        private static native int fragmentzip_download_file(Pointer fragmentzip_t, String remotePath, String savePath,
+                                                            Pointer fragmentzip_process_callback_t);
 
         private static native void fragmentzip_close(Pointer fragmentzip_t);
 

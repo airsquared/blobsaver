@@ -26,7 +26,11 @@ import com.sun.jna.ptr.PointerByReference;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Utils.exceptionToString;
+import static com.airsquared.blobsaver.Utils.newReportableError;
+import static com.airsquared.blobsaver.Utils.newUnreportableError;
+import static com.airsquared.blobsaver.Utils.openURL;
+import static com.airsquared.blobsaver.Utils.runSafe;
 
 /**
  * This class provides access to functions in the native library libimobiledevice.

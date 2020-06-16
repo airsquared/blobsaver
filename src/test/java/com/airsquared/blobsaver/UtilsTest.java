@@ -25,13 +25,12 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertTrue;
 
-public class SharedTest {
+public class UtilsTest {
 
     @Test
     public void extractBuildManifest() throws IOException {
-        TestMisc.setJNALibraryPath();
         String ipswUrl = "http://updates-http.cdn-apple.com/2020WinterFCS/fullrestores/061-20302/454ACB32-D3F6-4984-92CB-27C8FA368165/iPhone11,8,iPhone12,1_13.4_17E255_Restore.ipsw";
-        File buildManifest = Shared.extractBuildManifest(ipswUrl);
+        File buildManifest = Utils.extractBuildManifest(ipswUrl);
         System.out.println(buildManifest.getAbsolutePath());
         assertTrue(buildManifest.exists());
         assertTrue(buildManifest.isFile());

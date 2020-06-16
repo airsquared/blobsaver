@@ -113,7 +113,7 @@ public class Devices {
         if (deviceModelIdentifiers == null) {
             try {
                 Properties properties = new Properties();
-                properties.load(Shared.class.getResourceAsStream("devicemodels.properties"));
+                properties.load(Devices.class.getResourceAsStream("devicemodels.properties"));
                 @SuppressWarnings("unchecked") Map<String, String> prop = ((Map) properties);
                 deviceModelIdentifiers = new HashMap<>(prop);
                 prop.forEach((key, value) -> deviceModelIdentifiers.put(value, key));
@@ -122,5 +122,9 @@ public class Devices {
             }
         }
         return deviceModelIdentifiers;
+    }
+
+    static String textToIdentifier(String deviceModel) {
+        return Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
     }
 }

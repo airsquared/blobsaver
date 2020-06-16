@@ -44,7 +44,7 @@ public class LibimobiledeviceTest {
         String ecidString = xml_doc.getValue().getString(0, "UTF-8");
         assertNotNull(ecidString);
         ecidString = ecidString.substring(ecidString.indexOf("<integer>") + "<integer>".length(), ecidString.indexOf("</integer>"));
-        long ecid = Long.valueOf(ecidString);
+        long ecid = Long.parseLong(ecidString);
 //         assertEquals(0L, ecid);                                                  // change to your device's ecid
     }
 
@@ -60,7 +60,6 @@ public class LibimobiledeviceTest {
     public void enterRecovery() {
         //noinspection ConstantConditions
         if (true) return; // disable test unless device is connected
-        TestMisc.setJNALibraryPath();
         PointerByReference device = new PointerByReference();
         assertEquals(0, idevice_new(device, Pointer.NULL));
         PointerByReference client = new PointerByReference();
@@ -75,7 +74,6 @@ public class LibimobiledeviceTest {
     public void getNonce() {
         //noinspection ConstantConditions
         if (true) return; // disable test unless device is connected
-        TestMisc.setJNALibraryPath();
         PointerByReference irecvClient = new PointerByReference();
         assertEquals(0, Libirecovery.irecv_open_with_ecid(irecvClient, 0));
         Libirecovery.irecv_device_info deviceInfo = Libirecovery.irecv_get_device_info(irecvClient.getValue());

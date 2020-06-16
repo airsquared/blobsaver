@@ -24,7 +24,7 @@ import com.sun.jna.ptr.PointerByReference;
 import de.codecentric.centerdevice.MenuToolkit;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -49,7 +49,11 @@ import java.util.prefs.Preferences;
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
 import static com.airsquared.blobsaver.Main.primaryStage;
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Utils.exceptionToString;
+import static com.airsquared.blobsaver.Utils.newReportableError;
+import static com.airsquared.blobsaver.Utils.newUnreportableError;
+import static com.airsquared.blobsaver.Utils.openURL;
+import static com.airsquared.blobsaver.Utils.resizeAlertButtons;
 
 public class Controller {
 
@@ -58,10 +62,10 @@ public class Controller {
 
     @FXML private ChoiceBox<String> deviceTypeChoiceBox, deviceModelChoiceBox;
 
-    @FXML TextField ecidField, boardConfigField, apnonceField, versionField, identifierField,
+    @FXML private TextField ecidField, boardConfigField, apnonceField, versionField, identifierField,
             pathField, ipswField, buildIDField;
 
-    @FXML CheckBox apnonceCheckBox, versionCheckBox, identifierCheckBox, betaCheckBox;
+    @FXML private CheckBox apnonceCheckBox, versionCheckBox, identifierCheckBox, betaCheckBox;
 
     @FXML private Label versionLabel;
 
@@ -76,29 +80,26 @@ public class Controller {
 
     @FXML private Button goButton;
 
-    boolean getBoardConfig = false;
+    private boolean getBoardConfig = false;
     private boolean editingPresets = false;
     private boolean choosingRunInBackground = false;
 
-    static final DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
-    static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
+    private static final DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
+    private static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
 
-    static Controller INSTANCE;
 
     static void afterStageShowing() {
         for (int i = 0; i < 10; i++) { // sets the names for the presets
-            if (!Shared.isEmptyOrNull(appPrefs.get("Name Preset" + i, ""))) {
+            if (!Utils.isEmptyOrNull(appPrefs.get("Name Preset" + i, ""))) {
                 Button btn = (Button) primaryStage.getScene().lookup("#preset" + i);
                 btn.setText("Load " + appPrefs.get("Name Preset" + i, ""));
             }
         }
-        checkForUpdates(false);
+        Utils.checkForUpdates(false);
     }
 
     @FXML
     public void initialize() {
-        INSTANCE = this;
-
         deviceTypeChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceTypeChoiceBox.setEffect(null);
             switch (newValue == null ? "" : newValue) {
@@ -126,7 +127,7 @@ public class Controller {
         deviceTypeChoiceBox.setValue("iPhone");
         deviceModelChoiceBox.getSelectionModel().selectedItemProperty().addListener((x, y, newValue) -> {
             deviceModelChoiceBox.setEffect(null);
-            if (Shared.isEmptyOrNull(newValue)) {
+            if (Utils.isEmptyOrNull(newValue)) {
                 return;
             }
             String identifier = Devices.getDeviceModelIdentifiersMap().get(newValue);
@@ -135,7 +136,7 @@ public class Controller {
         });
         identifierField.textProperty().addListener((x, y, identifier) -> {
             identifierField.setEffect(null);
-            if (Shared.isEmptyOrNull(identifier)) {
+            if (Utils.isEmptyOrNull(identifier)) {
                 return;
             }
             requireBoardConfig(identifier);
@@ -175,9 +176,9 @@ public class Controller {
         }
     }
 
-    public void newGithubIssue() { Shared.newGithubIssue(); }
+    public void newGithubIssue() { Utils.newGithubIssue(); }
 
-    public void sendRedditPM() { Shared.sendRedditPM(); }
+    public void sendRedditPM() { Utils.sendRedditPM(); }
 
     private void requireBoardConfig(String identifier) {
         if (!"".equals(identifier) && (Devices.getRequiresBoardConfigMap().containsKey(identifier) ||
@@ -209,7 +210,7 @@ public class Controller {
         }
     }
 
-    public void checkForUpdatesHandler() { checkForUpdates(true); }
+    public void checkForUpdatesHandler() { Utils.checkForUpdates(true); }
 
     public void apnonceCheckBoxHandler() {
         if (apnonceCheckBox.isSelected()) {
@@ -273,6 +274,9 @@ public class Controller {
             buildIDField.setText("");
             buildIDField.setDisable(true);
             versionCheckBox.setDisable(false);
+            if (!versionCheckBox.isSelected()) {
+                versionCheckBox.fire();
+            }
         }
     }
 
@@ -299,7 +303,7 @@ public class Controller {
             return;
         }
         ecidField.setText(prefs.get("ECID", ""));
-        if (!Shared.isEmptyOrNull(prefs.get("Path", ""))) {
+        if (!Utils.isEmptyOrNull(prefs.get("Path", ""))) {
             pathField.setText(prefs.get("Path", ""));
         }
         if ("none".equals(prefs.get("Device Model", ""))) {
@@ -315,7 +319,7 @@ public class Controller {
         if (!"none".equals(prefs.get("Board Config", "")) && getBoardConfig) {
             boardConfigField.setText(prefs.get("Board Config", ""));
         }
-        if (!Shared.isEmptyOrNull(prefs.get("Apnonce", ""))) {
+        if (!Utils.isEmptyOrNull(prefs.get("Apnonce", ""))) {
             if (!apnonceCheckBox.isSelected()) {
                 apnonceCheckBox.fire();
             }
@@ -327,7 +331,7 @@ public class Controller {
         }
     }
 
-    public void presetButtonHandler(ActionEvent evt) {
+    public void presetButtonHandler(Event evt) {
         Button btn = (Button) evt.getTarget();
         int preset = Integer.parseInt(btn.getId().substring("preset".length()));
         if (editingPresets) {
@@ -339,26 +343,38 @@ public class Controller {
                 newUnreportableError("Preset doesn't have anything");
                 return;
             }
-            ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
             if (btn.getText().startsWith("Cancel ")) {
+                ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
                 presetsToSaveFor.remove(Integer.toString(preset));
                 if (presetsToSaveFor.isEmpty()) {
                     appPrefs.putBoolean("Background setup", false);
                 }
-                System.out.println("removed " + preset + " from list");
-                backgroundSettingsButton.fire();
+                System.out.println("removed preset" + preset + " from list");
+                btn.setText("Use " + btn.getText().substring("Cancel ".length()));
+                appPrefs.put("Presets to save in background", new JSONArray(presetsToSaveFor).toString());
             } else {
-                presetsToSaveFor.add(Integer.toString(preset));
-                appPrefs.putBoolean("Background setup", true);
-                System.out.println("added preset" + preset + " to list");
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "If it doesn't work, please remove it, fix the error, and add it back");
-                alert.setTitle("Testing preset " + preset);
-                alert.setHeaderText("Testing preset");
-                backgroundSettingsButton.fire();
-                btn.fire();
-                goButton.fire();
+                loadPreset(preset);
+                if (betaCheckBox.isSelected()) betaCheckBox.fire();
+                if (!versionCheckBox.isSelected()) versionCheckBox.fire();
+                TSS tss = createTSS();
+                EventHandler<WorkerStateEvent> oldEventHandler = tss.getOnSucceeded();
+                tss.setOnSucceeded(event -> {
+                    ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
+                    presetsToSaveFor.add(Integer.toString(preset));
+                    appPrefs.put("Presets to save in background", new JSONArray(presetsToSaveFor).toString());
+                    appPrefs.putBoolean("Background setup", true);
+                    btn.setText("Cancel " + btn.getText().substring("Use ".length()));
+                    startBackgroundButton.setDisable(false);
+                    forceCheckForBlobs.setDisable(false);
+                    chooseTimeToRunButton.setDisable(false);
+                    System.out.println("added preset" + preset + " to list");
+
+                    oldEventHandler.handle(event);
+                });
+                tss.executeInThreadPool();
+                showRunningAlert("Testing preset...");
             }
-            appPrefs.put("Presets to save in background", new JSONArray(presetsToSaveFor).toString());
+
         } else {
             loadPreset(preset);
         }
@@ -367,7 +383,7 @@ public class Controller {
     @SuppressWarnings("Duplicates")
     private void savePreset(int preset) {
         boolean doReturn = false;
-        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull(deviceModelChoiceBox.getValue())) {
+        if (!identifierCheckBox.isSelected() && Utils.isEmptyOrNull(deviceModelChoiceBox.getValue())) {
             deviceModelChoiceBox.setEffect(errorBorder);
             doReturn = true;
         }
@@ -385,7 +401,7 @@ public class Controller {
         textInputDialog.showAndWait();
 
         String result = textInputDialog.getResult();
-        if (!Shared.isEmptyOrNull(result)) {
+        if (!Utils.isEmptyOrNull(result)) {
             appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
             ((Button) primaryStage.getScene().lookup("#preset" + preset)).setText("Save in " + textInputDialog.getResult());
         } else {
@@ -706,7 +722,7 @@ public class Controller {
         hBox.getChildren().addAll(textField, choiceBox);
         alert.getDialogPane().setContent(hBox);
         alert.showAndWait();
-        if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Shared.isEmptyOrNull(textField.getText()) && !Shared.isEmptyOrNull(choiceBox.getValue())) {
+        if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Utils.isEmptyOrNull(textField.getText()) && !Utils.isEmptyOrNull(choiceBox.getValue())) {
             appPrefs.putInt("Time to run", Integer.parseInt(textField.getText()));
             appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
@@ -846,7 +862,7 @@ public class Controller {
         final Alert alert2 = new Alert(Alert.AlertType.INFORMATION, "Entering recovery mode...\n\n" +
                 "This can take up to 60 seconds", ButtonType.FINISH);
         alert2.setHeaderText("Reading apnonce from connected device...");
-        Shared.forEachButton(alert2, button -> button.setDisable(true));
+        Utils.forEachButton(alert2, button -> button.setDisable(true));
         alert2.show();
         new Thread(() -> { // run later to make sure alert shows
             try {
@@ -877,7 +893,7 @@ public class Controller {
                 e.printStackTrace();
                 Platform.runLater(alert2::close);
             } finally {
-                Shared.forEachButton(alert2, button -> button.setDisable(false));
+                Utils.forEachButton(alert2, button -> button.setDisable(false));
             }
         }).start();
     }
@@ -894,59 +910,131 @@ public class Controller {
 
     public void donate() { openURL("https://www.paypal.me/airsqrd"); }
 
-    @SuppressWarnings("Duplicates")
     public void goButtonHandler() {
-        boolean doReturn = false;
-        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull(deviceTypeChoiceBox.getValue())) {
-            deviceTypeChoiceBox.setEffect(errorBorder);
-            doReturn = true;
-        }
-        if (!identifierCheckBox.isSelected() && Shared.isEmptyOrNull(deviceModelChoiceBox.getValue())) {
-            deviceModelChoiceBox.setEffect(errorBorder);
-            doReturn = true;
-        }
-        doReturn = doReturn || isTextFieldInvalid(true, ecidField);
-        doReturn = doReturn || isTextFieldInvalid(identifierCheckBox, identifierField);
-        doReturn = doReturn || isTextFieldInvalid(getBoardConfig, boardConfigField);
-        doReturn = doReturn || isTextFieldInvalid(apnonceCheckBox, apnonceField);
-        doReturn = doReturn || isTextFieldInvalid(true, pathField);
-        doReturn = doReturn || isTextFieldInvalid(!versionCheckBox.isSelected(), versionField);
-        doReturn = doReturn || isTextFieldInvalid(betaCheckBox, buildIDField);
-        doReturn = doReturn || isTextFieldInvalid(betaCheckBox, ipswField);
-        if (doReturn) return;
+        if (checkInputs()) return;
 
-        String deviceModel = deviceModelChoiceBox.getValue();
-        if (Shared.isEmptyOrNull(deviceModel)) {
-            String identifierText = identifierField.getText();
-            try {
-                if (identifierText.startsWith("iPad") || identifierText.startsWith("iPod") || identifierText.startsWith("iPhone") || identifierText.startsWith("AppleTV")) {
-                    TSSChecker.run(identifierText);
-                    return;
-                }
-            } catch (StringIndexOutOfBoundsException ignored) {
+        createTSS().executeInThreadPool();
+        showRunningAlert("Saving blobs...");
+    }
+
+    /**
+     * @return true if inputs are wrong, otherwise true
+     */
+    private boolean checkInputs() {
+        boolean incorrect = false;
+        if (!identifierCheckBox.isSelected() && Utils.isEmptyOrNull(deviceTypeChoiceBox.getValue())) {
+            deviceTypeChoiceBox.setEffect(errorBorder);
+            incorrect = true;
+        }
+        if (!identifierCheckBox.isSelected() && Utils.isEmptyOrNull(deviceModelChoiceBox.getValue())) {
+            deviceModelChoiceBox.setEffect(errorBorder);
+            incorrect = true;
+        }
+        incorrect |= isTextFieldInvalid(true, ecidField);
+        incorrect |= isTextFieldInvalid(identifierCheckBox, identifierField);
+        incorrect |= isTextFieldInvalid(getBoardConfig, boardConfigField);
+        incorrect |= isTextFieldInvalid(apnonceCheckBox, apnonceField);
+        incorrect |= isTextFieldInvalid(true, pathField);
+        incorrect |= isTextFieldInvalid(!versionCheckBox.isSelected(), versionField);
+        incorrect |= isTextFieldInvalid(betaCheckBox, buildIDField);
+        incorrect |= isTextFieldInvalid(betaCheckBox, ipswField);
+        return incorrect;
+    }
+
+    private TSS createTSS() {
+        TSS.Builder builder = new TSS.Builder()
+                .setDevice(identifierCheckBox.isSelected() ?
+                        identifierField.getText() : Devices.textToIdentifier(deviceModelChoiceBox.getValue()))
+                .setEcid(ecidField.getText())
+                .setSavePath(pathField.getText());
+        if (getBoardConfig) {
+            builder.setBoardConfig(boardConfigField.getText());
+        }
+        if (!versionCheckBox.isSelected() && !betaCheckBox.isSelected()) {
+            builder.setManualVersion(versionField.getText());
+        } else if (betaCheckBox.isSelected()) {
+            builder.setManualIpswURL(ipswField.getText());
+        }
+        if (apnonceCheckBox.isSelected()) {
+            builder.setApnonce(apnonceField.getText());
+        }
+
+        TSS tss = builder.build();
+
+        tss.setOnSucceeded(event -> {
+            hideRunningAlert();
+            int versionsSavedAmt = tss.getValue().size();
+            String versionsSavedString = tss.getValue().toString();
+            versionsSavedString = versionsSavedString.substring(1, versionsSavedString.length() - 1);
+            if (versionsSavedAmt > 1) {
+                versionsSavedString = "\n\nFor versions " + versionsSavedString;
+            } else if (versionsSavedAmt == 1) {
+                versionsSavedString = "\n\nFor version " + versionsSavedString;
+            } else {
+                versionsSavedString = "";
             }
-            identifierField.setEffect(errorBorder);
-            newUnreportableError("\"" + identifierText + "\" is not a valid identifier");
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    "Successfully saved blobs in\n" + pathField.getText() + versionsSavedString);
+            alert.setHeaderText("Success!");
+            alert.showAndWait();
+        });
+        tss.setOnFailed(event -> {
+            hideRunningAlert();
+            tss.getException().printStackTrace();
+            parseException(tss.getException());
+        });
+        return tss;
+    }
+
+    private void parseException(Throwable t) {
+        if (t instanceof TSS.TSSException) {
+            TSS.TSSException e = ((TSS.TSSException) t);
+            String message = t.getMessage();
+            if (message.contains("not a valid identifier")) {
+                identifierField.setEffect(errorBorder);
+            } else if (message.contains("IPSW URL is not valid")
+                    || message.contains("IPSW URL might not be valid")) {
+                ipswField.setEffect(errorBorder);
+            } else if (message.contains("not a valid ECID")) {
+                ecidField.setEffect(errorBorder);
+            } else if (message.contains("not a valid apnonce")) {
+                apnonceField.setEffect(errorBorder);
+            } else if (message.contains("not a valid path")) {
+                pathField.setEffect(errorBorder);
+            } else if (message.contains("not being signed")) {
+                if (betaCheckBox.isSelected()) {
+                    ipswField.setEffect(errorBorder);
+                } else if (!versionCheckBox.isSelected()) {
+                    versionField.setEffect(errorBorder);
+                }
+            }
+            if (e.isReportable && e.tssLog != null) {
+                Utils.newReportableError(e.getMessage(), e.tssLog);
+            } else if (e.isReportable) {
+                Utils.newReportableError(e.getMessage(), exceptionToString(e));
+            } else {
+                Utils.newUnreportableError(e.getMessage());
+            }
         } else {
-            TSSChecker.run(textToIdentifier(deviceModel));
+            Utils.newReportableError("An unknown error occurred.", exceptionToString(t));
         }
     }
 
     private Alert runningAlert;
 
-    void showRunningAlert() {
+    private void showRunningAlert(String title) {
         runningAlert = new Alert(Alert.AlertType.INFORMATION);
-        runningAlert.setTitle("");
+        runningAlert.setTitle(title);
         runningAlert.setHeaderText("Saving blobs...            ");
         runningAlert.getDialogPane().setContent(new ProgressBar());
-        Shared.forEachButton(runningAlert, button -> button.setDisable(true));
+        Utils.forEachButton(runningAlert, button -> button.setDisable(true));
         runningAlert.getDialogPane().getScene().getWindow().setOnCloseRequest(Event::consume);
         runningAlert.show();
     }
 
-    void hideRunningAlert() {
+    private void hideRunningAlert() {
         if (runningAlert != null) {
-            Shared.forEachButton(runningAlert, button -> button.setDisable(false));
+            Utils.forEachButton(runningAlert, button -> button.setDisable(false));
             runningAlert.getDialogPane().getScene().getWindow().setOnCloseRequest(null);
             runningAlert.close();
             runningAlert = null;
@@ -958,7 +1046,7 @@ public class Controller {
     }
 
     private static boolean isTextFieldInvalid(boolean isTextFieldRequired, TextField textField) {
-        if (isTextFieldRequired && Shared.isEmptyOrNull(textField.getText())) {
+        if (isTextFieldRequired && Utils.isEmptyOrNull(textField.getText())) {
             textField.setEffect(errorBorder);
             return true;
         }

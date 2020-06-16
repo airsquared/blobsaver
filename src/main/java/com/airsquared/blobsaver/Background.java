@@ -48,7 +48,7 @@ import java.util.prefs.Preferences;
 
 import static com.airsquared.blobsaver.Main.appPrefs;
 import static com.airsquared.blobsaver.Main.appVersion;
-import static com.airsquared.blobsaver.Shared.*;
+import static com.airsquared.blobsaver.Utils.*;
 
 class Background {
 
@@ -173,11 +173,11 @@ class Background {
         if ("none".equals(presetPrefs.get("Device Model", ""))) {
             identifier = presetPrefs.get("Device Identifier", "");
         } else {
-            identifier = textToIdentifier(presetPrefs.get("Device Model", ""));
+            identifier = Devices.textToIdentifier(presetPrefs.get("Device Model", ""));
         }
         List<Map<String, Object>> signedFirmwares;
         try {
-            signedFirmwares = getAllSignedFirmwares(identifier);
+            signedFirmwares = getSignedFirmwares(identifier);
         } catch (IOException e) {
             Notification notification = new Notification("Saving blobs failed", "Check your internet connection.\nIf it is working, click here to report this error.", Notification.ERROR_ICON);
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
@@ -211,7 +211,7 @@ class Background {
                 if (!"none".equals(boardConfig) && !"".equals(boardConfig)) { // needs board config
                     Collections.addAll(args, "--boardconfig", boardConfig);
                 }
-                if (!Shared.isEmptyOrNull(apnonce)) {
+                if (!Utils.isEmptyOrNull(apnonce)) {
                     Collections.addAll(args, "--apnonce", apnonce);
                 }
                 tsscheckerLog = executeProgram(args.toArray(new String[0]));
@@ -300,7 +300,7 @@ class Background {
             SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
         }
         if (showAlert) {
-            Shared.runSafe(() -> {
+            Utils.runSafe(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
                         "The background process has been cancelled",
                         ButtonType.OK);
