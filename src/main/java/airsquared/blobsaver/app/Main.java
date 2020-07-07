@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver;
+package airsquared.blobsaver.app;
 
 import com.sun.javafx.PlatformUtil;
 import it.sauronsoftware.junique.AlreadyLockedException;
@@ -46,7 +46,7 @@ public class Main {
 
     static { // set jarDirectory and runningFromJar variables
         final String url = Main.class.getResource("Main.class").toString();
-        String path = url.substring(0, url.length() - "com/airsquared/blobsaver/Main.class".length());
+        String path = url.substring(0, url.length() - "airsquared/blobsaver/app/Main.class".length());
         if (path.startsWith("jar:")) {
             runningFromJar = true;
             path = path.substring("jar:".length(), path.length() - 2);
@@ -66,24 +66,23 @@ public class Main {
     public static void main(String[] args) {
         try {
             Class.forName("javafx.application.Application");
-            if (!PlatformUtil.isMac() && !PlatformUtil.isWindows())
+            if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
                 try {
-                    JUnique.acquireLock("com.airsquared.blobsaver");
+                    JUnique.acquireLock("airsquared.blobsaver.app.blobsaver");
                 } catch (AlreadyLockedException e) {
                     javax.swing.JOptionPane.showMessageDialog(null, "blobsaver already running, exiting");
                     System.exit(-1);
                 }
+            }
             setJNALibraryPath();
-            if (PlatformUtil.isMac() || PlatformUtil.isWindows() || PlatformUtil.isLinux()) {
-                JavaFxApplication.launch(JavaFxApplication.class, args);
-            } else {
+            if (!PlatformUtil.isMac() && !PlatformUtil.isWindows() && !PlatformUtil.isLinux()) {
                 int result = javax.swing.JOptionPane.showOptionDialog(null, "Cannot detect the OS. Assuming it is Linux. Continue?",
                         "Warning", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null, null, null);
                 if (result == javax.swing.JOptionPane.CANCEL_OPTION) {
                     System.exit(0);
                 }
-                JavaFxApplication.launch(JavaFxApplication.class, args);
             }
+            JavaFxApplication.launch(JavaFxApplication.class, args);
         } catch (ClassNotFoundException e) {
             javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. " +
                     "Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx." +
@@ -147,18 +146,23 @@ public class Main {
         }
 
         @Override
-        public void start(Stage primaryStage) throws IOException {
+        public void start(Stage primaryStage) {
             Main.primaryStage = primaryStage;
-            Parent root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
-            primaryStage.setTitle("blobsaver " + Main.appVersion);
+            Parent root = null;
+            try {
+                root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+            primaryStage.setTitle("blobsaver");
             primaryStage.setScene(new Scene(root));
-            primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
             if (!PlatformUtil.isMac()) {
                 primaryStage.getIcons().clear();
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
             }
             primaryStage.setResizable(false);
-            Controller.afterStageShowing();
+            Utils.checkForUpdates(false);
             Platform.setImplicitExit(false);
             showStage();
             if (appPrefs.getBoolean("Start background immediately", false)) {

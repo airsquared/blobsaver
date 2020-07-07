@@ -20,7 +20,7 @@ plugins {
     id 'java'
     id 'edu.sc.seis.launch4j' version '2.4.6' // for bundling into .exe
     id "edu.sc.seis.macAppBundle" version "2.3.0" // for bundling into .app
-    id 'com.github.johnrengelman.shadow' version '5.2.0' // for fat jar
+    id 'com.github.johnrengelman.shadow' version '6.0.0' // for fat jar
     id 'com.github.ben-manes.versions' version '0.28.0'
 }
 
@@ -40,12 +40,12 @@ repositories {
 
 dependencies {
     implementation group: 'org.json', name: 'json', version: '20200518'
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'], excludes: ['**/sources/**'])
     implementation group: 'it.sauronsoftware', name: 'junique', version: '1.0.4'
     implementation "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.7"
     implementation 'net.java.dev.jna:jna:5.5.0'
 
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
 }
 
 compileJava {
@@ -56,7 +56,7 @@ compileJava {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.airsquared.blobsaver.Main'
+        attributes 'Main-Class': 'airsquared.blobsaver.app.Main'
     }
     jar.enabled = false
     jar.finalizedBy shadowJar // make shadowJar always overwrite the jar task
@@ -73,7 +73,7 @@ shadowJar {
 }
 
 macAppBundle {
-    mainClassName = "com.airsquared.blobsaver.Main"
+    mainClassName = "airsquared.blobsaver.app.Main"
     icon = "icons/blob_emoji.icns"
     backgroundImage = "icons/dmg_background.png"
     appName = 'blobsaver'
@@ -124,11 +124,11 @@ task createLinuxTargz(type: Tar, dependsOn: shadowJar) {
 }
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
-    mainClassName = "com.airsquared.blobsaver.Main"
+    mainClassName = "airsquared.blobsaver.app.Main"
     copyright = "Copyright (c) 2020  airsquared"
     downloadUrl = "https://github.com/airsquared/blobsaver/wiki/Making-sure-you-have-the-right-Java-version"
     icon = "${projectDir}/icons/blob_emoji.ico"
-    mutexName = "com.airsquared.blobsaver"
+    mutexName = "airsquared.blobsaver.app"
     windowTitle = "blobsaver " + appVersion
     jreRuntimeBits = "64"
     jreMinVersion = "1.8.0"
@@ -164,8 +164,4 @@ task createWindowsInstaller(dependsOn: createExe) {
     }
     assemble.dependsOn createWindowsInstaller
     group = "build"
-}
-
-task testWindows(dependsOn: createWindowsInstaller, type: Exec) {
-    commandLine "open", "-a", "Parallels Desktop", "${buildDir}/distributions/blobsaver-windows.exe"
 }

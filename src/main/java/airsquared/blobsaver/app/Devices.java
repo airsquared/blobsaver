@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver;
+package airsquared.blobsaver.app;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -85,19 +85,19 @@ public class Devices {
         requiresBoardConfig.put("iPad6,12", "");
     }
 
-    static ObservableList<String> getiPhones() {
+    public static ObservableList<String> getiPhones() {
         return iPhones;
     }
 
-    static ObservableList<String> getiPods() {
+    public static ObservableList<String> getiPods() {
         return iPods;
     }
 
-    static ObservableList<String> getiPads() {
+    public static ObservableList<String> getiPads() {
         return iPads;
     }
 
-    static ObservableList<String> getAppleTVs() {
+    public static ObservableList<String> getAppleTVs() {
         return AppleTVs;
     }
 
@@ -126,5 +126,31 @@ public class Devices {
 
     static String textToIdentifier(String deviceModel) {
         return Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
+    }
+
+    /**
+     * @return either "iPhone", "iPod", "iPad", or "AppleTV"
+     */
+    static String getDeviceType(String deviceIdentifier) {
+        if (deviceIdentifier.startsWith("iPhone")) {
+            return "iPhone";
+        } else if (deviceIdentifier.startsWith("iPod")) {
+            return "iPod";
+        } else if (deviceIdentifier.startsWith("iPad")) {
+            return "iPad";
+        } else if (deviceIdentifier.startsWith("AppleTV")) {
+            return "AppleTV";
+        }
+        throw new IllegalArgumentException("Not found: " + deviceIdentifier);
+    }
+
+    static boolean doesRequireBoardConfig(String deviceIdentifier) {
+        return getRequiresBoardConfigMap().containsKey(deviceIdentifier) ||
+                !getDeviceModelIdentifiersMap().containsKey(deviceIdentifier);
+    }
+
+    static boolean doesRequireApnonce(String deviceIdentifier) {
+        return deviceIdentifier.startsWith("iPhone11,") || deviceIdentifier.startsWith("iPhone12,") ||
+                deviceIdentifier.startsWith("iPad8,") || deviceIdentifier.startsWith("iPad11,");
     }
 }

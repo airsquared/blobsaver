@@ -16,9 +16,8 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver;
+package airsquared.blobsaver.app;
 
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Priority;
@@ -31,8 +30,8 @@ import java.io.PrintStream;
 class DebugWindow {
 
     private static final PrintStream sysOut = System.out;
-    private static Stage debugStage = new Stage();
-    private static PrintStream myPrintStream;
+    private static final Stage debugStage = new Stage();
+    private static final PrintStream myPrintStream;
 
     static {
         VBox vBox = new VBox();
@@ -51,18 +50,10 @@ class DebugWindow {
         });
 
         myPrintStream = new PrintStream(new OutputStream() {
-            void appendText(String valueOf) {
-                if (Platform.isFxApplicationThread()) {
-                    textArea.appendText(valueOf);
-                } else {
-                    Platform.runLater(() -> textArea.appendText(valueOf));
-                }
-            }
-
             @Override
             public void write(int b) {
                 sysOut.write(b);
-                appendText(String.valueOf((char) b));
+                Utils.runSafe(() -> textArea.appendText(String.valueOf((char) b)));
             }
         });
     }
@@ -79,12 +70,16 @@ class DebugWindow {
         System.setErr(sysOut);
     }
 
-    static Stage getDebugStage() {
-        return debugStage;
-    }
-
     static boolean isShowing() {
         return debugStage.isShowing();
+    }
+
+    static void toggleShowing() {
+        if (isShowing()) {
+            hide();
+        } else {
+            show();
+        }
     }
 
 }

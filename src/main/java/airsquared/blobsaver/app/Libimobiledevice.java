@@ -16,21 +16,16 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver;
+package airsquared.blobsaver.app;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.PointerByReference;
+import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-
-import static com.airsquared.blobsaver.Utils.exceptionToString;
-import static com.airsquared.blobsaver.Utils.newReportableError;
-import static com.airsquared.blobsaver.Utils.newUnreportableError;
-import static com.airsquared.blobsaver.Utils.openURL;
-import static com.airsquared.blobsaver.Utils.runSafe;
 
 /**
  * This class provides access to functions in the native library libimobiledevice.
@@ -47,7 +42,7 @@ import static com.airsquared.blobsaver.Utils.runSafe;
 @SuppressWarnings("WeakerAccess")
 public class Libimobiledevice {
 
-    public static long getEcid(boolean showErrorAlert) {
+    public static long getECID(boolean showErrorAlert) {
         return Long.parseLong(getKeyFromConnectedDevice("UniqueChipID", PlistType.INTEGER, showErrorAlert));
     }
 
@@ -120,6 +115,50 @@ public class Libimobiledevice {
         throwIfNeeded(Libirecovery.irecv_close(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
     }
 
+    public static Task<String> createGetApnonceTask() {
+        return new Task<String>() {
+            @Override
+            protected String call() {
+                updateMessage("Entering recovery mode...\n\nThis can take up to 60 seconds");
+                System.out.println("Entering recovery mode");
+                Libimobiledevice.enterRecovery(true);
+                PointerByReference irecvClient = new PointerByReference();
+                long endTime = System.currentTimeMillis() + 60_000; // timeout is 60 seconds
+                int errorCode = -3;
+                while (errorCode == -3 && System.currentTimeMillis() < endTime) {
+                    if (!sleep(1000)) {
+                        return null;
+                    }
+                    errorCode = Libimobiledevice.Libirecovery.irecv_open_with_ecid(irecvClient, 0);
+                }
+                throwIfNeeded(errorCode, true, Libimobiledevice.ErrorCodeType.irecv_error_t);
+                Libirecovery.irecv_device_info deviceInfo = Libimobiledevice.Libirecovery.irecv_get_device_info(irecvClient.getValue());
+                final StringBuilder apnonce = new StringBuilder();
+                for (byte b : deviceInfo.ap_nonce.getByteArray(0, deviceInfo.ap_nonce_size)) {
+                    apnonce.append(String.format("%02x", b));
+                }
+                System.out.println("Got apnonce");
+                updateMessage("Successfully got apnonce, exiting recovery mode...");
+                System.out.println("Exiting recovery mode");
+                Libimobiledevice.exitRecovery(irecvClient.getValue(), true);
+                sleep(3000);
+                return apnonce.toString();
+            }
+
+            /**
+             * @return false if task was cancelled during the Thread.sleep
+             */
+            private boolean sleep(long millis) {
+                try {
+                    Thread.sleep(millis);
+                } catch (InterruptedException e) {
+                    return false;
+                }
+                return true;
+            }
+        };
+    }
+
     enum PlistType {
         STRING, INTEGER
     }
@@ -163,7 +202,7 @@ public class Libimobiledevice {
         private static native void plist_to_xml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
 
         static {
-            Native.register("plist");
+            Native.register(Libplist.class, "plist");
         }
     }
 
@@ -195,7 +234,7 @@ public class Libimobiledevice {
         }
 
         static {
-            Native.register("irecovery");
+            Native.register(Libirecovery.class, "irecovery");
         }
     }
 
@@ -215,14 +254,20 @@ public class Libimobiledevice {
                 exceptionMessage = "idevice error: no device found/connected (IDEVICE_E_NO_DEVICE)";
                 alertMessage = "Error: No devices found/connected. Make sure your device is connected via USB and unlocked.";
                 if (PlatformUtil.isWindows()) {
-                    alertMessage = alertMessage + "\n\nEnsure iTunes or Apple's iOS Drivers are installed.";
+                    alertMessage += "\n\nEnsure iTunes or Apple's iOS Drivers are installed.";
                 }
                 if (showAlert) {
-                    ButtonType downloadItunes = new ButtonType("Download iTunes");
-                    Alert alert = new Alert(Alert.AlertType.ERROR, alertMessage, downloadItunes, ButtonType.OK);
-                    if (downloadItunes.equals(alert.showAndWait().orElse(null))) {
-                        openURL("https://www.apple.com/itunes/download/win64");
-                    }
+                    String finalAlertMessage1 = alertMessage;
+                    Utils.runSafe(() -> {
+                        ButtonType downloadItunes = new ButtonType("Download iTunes");
+                        Alert alert = new Alert(Alert.AlertType.ERROR, finalAlertMessage1, ButtonType.OK);
+                        if (PlatformUtil.isWindows()) {
+                            alert.getButtonTypes().add(0, downloadItunes);
+                        }
+                        if (downloadItunes.equals(alert.showAndWait().orElse(null))) {
+                            Utils.openURL("https://www.apple.com/itunes/download/win64");
+                        }
+                    });
                     showAlert = false;
                 }
             } else {
@@ -264,11 +309,11 @@ public class Libimobiledevice {
             // temporary final variables are required because of the lambda
             final boolean finalReportableError = reportableError;
             final String finalAlertMessage = alertMessage;
-            runSafe(() -> {
+            Utils.runSafe(() -> {
                 if (finalReportableError) {
-                    newReportableError(finalAlertMessage);
+                    Utils.showReportableError(finalAlertMessage);
                 } else {
-                    newUnreportableError(finalAlertMessage);
+                    Utils.showUnreportableError(finalAlertMessage);
                 }
             });
         }
@@ -277,9 +322,9 @@ public class Libimobiledevice {
 
     static {
         try {
-            Native.register("imobiledevice");
+            Native.register(Libimobiledevice.class, "imobiledevice");
         } catch (Throwable e) { // need to catch UnsatisfiedLinkError
-            newReportableError("Error: unable to register native methods", exceptionToString(e));
+            Utils.showReportableError("Error: unable to register native methods", Utils.exceptionToString(e));
             throw new LibimobiledeviceException("Unable to register native methods", e);
         }
     }

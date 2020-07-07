@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver;
+package airsquared.blobsaver.app;
 
 import javafx.concurrent.Task;
 
@@ -30,18 +30,23 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.airsquared.blobsaver.Utils.containsIgnoreCase;
-import static com.airsquared.blobsaver.Utils.executeProgram;
-import static com.airsquared.blobsaver.Utils.extractBuildManifest;
-import static com.airsquared.blobsaver.Utils.getFirmwareList;
-import static com.airsquared.blobsaver.Utils.getSignedFirmwares;
+import static airsquared.blobsaver.app.Utils.containsIgnoreCase;
+import static airsquared.blobsaver.app.Utils.executeProgram;
+import static airsquared.blobsaver.app.Utils.extractBuildManifest;
+import static airsquared.blobsaver.app.Utils.getFirmwareList;
+import static airsquared.blobsaver.app.Utils.getSignedFirmwares;
 
 public class TSS extends Task<List<String>> {
+
+    // note: Matcher is NOT thread safe
+    private static final Matcher ipswURLMatcher = Pattern.compile("https?://.*apple.*\\.ipsw").matcher("");
+    private static final Matcher versionMatcher = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)").matcher("");
+
+    private static ExecutorService executorService;
 
     private final String deviceIdentifier;
     private final String ecid;
@@ -65,15 +70,6 @@ public class TSS extends Task<List<String>> {
         this.manualVersion = manualVersion;
         this.manualIpswURL = manualIpswURL;
         this.apnonce = apnonce;
-    }
-
-    private static ExecutorService executorService;
-
-    public void executeInThreadPool() {
-        if (executorService == null) {
-            executorService = Executors.newCachedThreadPool();
-        }
-        executorService.execute(this);
     }
 
     /**
@@ -109,10 +105,6 @@ public class TSS extends Task<List<String>> {
         return versionStrings;
     }
 
-    // note: Matcher is NOT thread safe
-    private static final Matcher ipswURLPattern = Pattern.compile("https?://.*apple.*\\.ipsw").matcher("");
-    private static final Matcher versionPattern = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)").matcher("");
-
     private void checkValues() throws TSSException {
         boolean hasCorrectIdentifierPrefix = deviceIdentifier.startsWith("iPad") || deviceIdentifier.startsWith("iPod")
                 || deviceIdentifier.startsWith("iPhone") || deviceIdentifier.startsWith("AppleTV");
@@ -121,14 +113,14 @@ public class TSS extends Task<List<String>> {
         }
         if (manualIpswURL != null) { // check URL
             try {
-                if (!ipswURLPattern.reset(manualIpswURL).matches()) {
+                if (!ipswURLMatcher.reset(manualIpswURL).matches()) {
                     throw new MalformedURLException("Doesn't match ipsw URL regex");
                 }
                 new URL(manualIpswURL);
             } catch (MalformedURLException e) {
                 throw new TSSException("The IPSW URL is not valid.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"", false, e);
             }
-        } else if (manualVersion != null && !versionPattern.reset(manualVersion).matches()) {
+        } else if (manualVersion != null && !versionMatcher.reset(manualVersion).matches()) {
             throw new TSSException("Invalid version. Make sure it follows the convention X.X.X or X.X, like \"13.1\" or \"13.5.5\"", false);
         }
     }
@@ -262,7 +254,7 @@ public class TSS extends Task<List<String>> {
         public TSS build() {
             // only manualVersion, manualIPSW, boardconfig, and apnonce can be null
             if (device == null || ecid == null || savePath == null) {
-                throw new NullPointerException();
+                throw new IllegalStateException();
             }
             return new TSS(device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce);
         }

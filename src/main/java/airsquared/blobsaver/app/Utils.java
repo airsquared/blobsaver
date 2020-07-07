@@ -16,7 +16,7 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.airsquared.blobsaver;
+package airsquared.blobsaver.app;
 
 import com.sun.javafx.PlatformUtil;
 import com.sun.jna.Native;
@@ -24,11 +24,18 @@ import com.sun.jna.Pointer;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Window;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,26 +50,40 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
-import static com.airsquared.blobsaver.Main.appPrefs;
-import static com.airsquared.blobsaver.Main.appVersion;
-
-// code shared by Controller and Background
-//@SuppressWarnings("ResultOfMethodCallIgnored")
 final class Utils {
 
     static final ButtonType redditPM = new ButtonType("PM on Reddit");
     static final ButtonType githubIssue = new ButtonType("Create Issue on Github");
 
+    static final DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
+    static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
+
+    private static File tsschecker;
+    private static File licenseFile, librariesUsedFile;
+
+    private static ExecutorService threadPool;
+
+    public static void executeInThreadPool(Runnable command) {
+        if (threadPool == null) {
+            threadPool = Executors.newCachedThreadPool();
+        }
+        threadPool.execute(command);
+    }
+
     static void checkForUpdates(boolean forceCheck) {
-        new Thread(() -> {
+        executeInThreadPool(() -> {
             String response;
             try {
                 response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
             } catch (IOException e) {
-                Platform.runLater(() -> newReportableError("Unable to check for updates.", e.toString()));
+                Platform.runLater(() -> showReportableError("Unable to check for updates.", e.toString()));
                 throw new RuntimeException(e);
             }
             String newVersion;
@@ -74,13 +95,13 @@ final class Utils {
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-            if (!appVersion.equals(newVersion) &&
-                    (forceCheck || !appPrefs.get("Ignore Version", "").equals(newVersion))) {
+            if (!Main.appVersion.equals(newVersion) &&
+                    (forceCheck || !Main.appPrefs.get("Ignore Version", "").equals(newVersion))) {
                 Platform.runLater(() -> {
                     ButtonType downloadNow = new ButtonType("Download");
                     ButtonType ignore = new ButtonType("Ignore this update");
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
-                            + appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
+                            + Main.appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
                     alert.setHeaderText("New Update Available: " + newVersion);
                     alert.setTitle("New Update Available for blobsaver");
                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
@@ -90,11 +111,18 @@ final class Utils {
                     if (alert.getResult().equals(downloadNow)) {
                         openURL("https://github.com/airsquared/blobsaver/releases");
                     } else if (alert.getResult().equals(ignore)) {
-                        appPrefs.put("Ignore Version", newVersion);
+                        Main.appPrefs.put("Ignore Version", newVersion);
                     }
                 });
+            } else if (forceCheck) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(AlertType.INFORMATION, "You are on the latest version: " + Main.appVersion);
+                    alert.setHeaderText("No updates available");
+                    alert.setTitle("No Updates Available");
+                    alert.showAndWait();
+                });
             }
-        }).start();
+        });
     }
 
     private static String makeRequest(URL url) throws IOException {
@@ -109,14 +137,16 @@ final class Utils {
         return response.toString();
     }
 
-    static File tsschecker;
-
     static File getTsschecker() {
         if (tsschecker != null) return tsschecker;
 
         if (!Main.runningFromJar) {
             // temporarily set tsschecker to the dist directory
-            tsschecker = new File(Main.jarDirectory.getParentFile().getParentFile(), "dist/");
+            tsschecker = Main.jarDirectory.getParentFile().getParentFile();
+            if (tsschecker.getName().equals("build")) {
+                tsschecker = tsschecker.getParentFile();
+            }
+            tsschecker = new File(tsschecker, "dist/");
             if (PlatformUtil.isMac()) {
                 tsschecker = new File(tsschecker, "macos/tsschecker");
             } else if (PlatformUtil.isWindows()) {
@@ -137,12 +167,50 @@ final class Utils {
         return tsschecker;
     }
 
+    static File getLicenseFile() {
+        if (licenseFile != null) return licenseFile;
+
+        if (!Main.runningFromJar) {
+            licenseFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
+                    PlatformUtil.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
+        } else if (PlatformUtil.isMac()) {
+            licenseFile = new File(Main.jarDirectory.getParentFile(), "Resources/LICENSE");
+        } else { // if Linux or Windows
+            licenseFile = new File(Main.jarDirectory, "LICENSE");
+        }
+        licenseFile.setReadOnly();
+        return licenseFile;
+    }
+
+    static File getLibrariesUsedFile() {
+        if (librariesUsedFile != null) return librariesUsedFile;
+
+        if (!Main.runningFromJar) {
+            librariesUsedFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
+                    PlatformUtil.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
+        } else if (PlatformUtil.isMac()) {
+            librariesUsedFile = new File(Main.jarDirectory.getParentFile(), "Resources/libraries_used.txt");
+        } else { // if Linux or Windows
+            librariesUsedFile = new File(Main.jarDirectory, "libraries_used.txt");
+        }
+        librariesUsedFile.setReadOnly();
+        return librariesUsedFile;
+    }
+
+    static void resetAppPrefs() throws BackingStoreException {
+        Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver");
+        prefs.flush();
+        prefs.clear();
+        prefs.removeNode();
+        prefs.flush();
+    }
+
     static void newGithubIssue() {
         openURL("https://github.com/airsquared/blobsaver/issues/new/choose");
     }
 
     static void sendRedditPM() {
-        openURL("https://www.reddit.com//message/compose?to=01110101_00101111&subject=Blobsaver+Bug+Report");
+        openURL("https://www.reddit.com/message/compose?to=01110101_00101111&subject=Blobsaver%20Bug%20Report");
     }
 
     static void openURL(String url) {
@@ -179,19 +247,19 @@ final class Utils {
         reportError(alert);
     }
 
-    static void newReportableError(String msg) {
+    static void showReportableError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit.", githubIssue, redditPM, ButtonType.CANCEL);
         alert.showAndWait();
         reportError(alert);
     }
 
-    static void newReportableError(String msg, String toCopy) {
+    static void showReportableError(String msg, String toCopy) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.", githubIssue, redditPM, ButtonType.CANCEL);
         alert.showAndWait();
         reportError(alert, toCopy);
     }
 
-    static void newUnreportableError(String msg) {
+    static void showUnreportableError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
         alert.showAndWait();
     }
@@ -208,6 +276,39 @@ final class Utils {
 
     static void forEachButton(Alert alert, Consumer<? super Node> action) {
         runSafe(() -> alert.getDialogPane().getButtonTypes().stream().map(alert.getDialogPane()::lookupButton).forEach(action));
+    }
+
+    static File showFilePickerDialog(Window window, File initialDirectory) {
+        DirectoryChooser dirChooser = new DirectoryChooser();
+        dirChooser.setTitle("Choose a folder to save Blobs in");
+        if (initialDirectory.exists()) {
+            dirChooser.setInitialDirectory(initialDirectory);
+        } else if (initialDirectory.getParentFile().exists()) {
+            dirChooser.setInitialDirectory(initialDirectory.getParentFile());
+        } else {
+            dirChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        }
+        return dirChooser.showDialog(window);
+    }
+
+    static String jsonStringFromList(List<String> list) {
+        return new JSONArray(list).toString();
+    }
+
+    static boolean isFieldEmpty(CheckBox checkBox, TextField textField) {
+        return isFieldEmpty(checkBox.isSelected(), textField.getText(), textField);
+    }
+
+    static boolean isFieldEmpty(boolean isFieldRequired, TextField textField) {
+        return isFieldEmpty(isFieldRequired, textField.getText(), textField);
+    }
+
+    static boolean isFieldEmpty(boolean isFieldRequired, String fieldValue, Node node) {
+        if (isFieldRequired && Utils.isEmptyOrNull(fieldValue)) {
+            node.setEffect(errorBorder);
+            return true;
+        }
+        return false;
     }
 
     static void runSafe(Runnable runnable) {
@@ -249,7 +350,6 @@ final class Utils {
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static class Libfragmentzip {
 
         public static Pointer open(String url) {
@@ -280,7 +380,7 @@ final class Utils {
         private static native void fragmentzip_close(Pointer fragmentzip_t);
 
         static {
-            Native.register("fragmentzip");
+            Native.register(Libfragmentzip.class, "fragmentzip");
         }
     }
 
@@ -294,60 +394,25 @@ final class Utils {
         return s == null || s.isEmpty();
     }
 
+    static void addListenerToSetNullEffect(TextField... textFields) {
+        for (TextField textField : textFields) {
+            textField.textProperty().addListener((x, y, z) -> textField.setEffect(null));
+        }
+    }
+
     // temporary until ProGuard is implemented
-    static boolean containsIgnoreCase(final CharSequence str, final CharSequence searchStr) {
+    static boolean containsIgnoreCase(final String str, final String searchStr) {
         if (str == null || searchStr == null) {
             return false;
         }
         final int len = searchStr.length();
         final int max = str.length() - len;
         for (int i = 0; i <= max; i++) {
-            if (regionMatches(str, i, searchStr, len)) {
+            if (str.regionMatches(true, i, searchStr, 0, len)) {
                 return true;
             }
         }
         return false;
     }
 
-    // temporary until ProGuard is implemented
-    private static boolean regionMatches(final CharSequence cs, final int thisStart,
-                                         final CharSequence substring, final int length) {
-        if (cs instanceof String && substring instanceof String) {
-            return ((String) cs).regionMatches(true, thisStart, (String) substring, 0, length);
-        }
-        int index1 = thisStart;
-        int index2 = 0;
-        int tmpLen = length;
-
-        // Extract these first so we detect NPEs the same as the java.lang.String version
-        final int srcLen = cs.length() - thisStart;
-        final int otherLen = substring.length();
-
-        // Check for invalid parameters
-        if (thisStart < 0 || length < 0) {
-            return false;
-        }
-
-        // Check that the regions are long enough
-        if (srcLen < length || otherLen < length) {
-            return false;
-        }
-
-        while (tmpLen-- > 0) {
-            final char c1 = cs.charAt(index1++);
-            final char c2 = substring.charAt(index2++);
-
-            if (c1 == c2) {
-                continue;
-            }
-
-            // The same check as in String.regionMatches():
-            if (Character.toUpperCase(c1) != Character.toUpperCase(c2)
-                    && Character.toLowerCase(c1) != Character.toLowerCase(c2)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }

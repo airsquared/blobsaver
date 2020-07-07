@@ -16,6 +16,18 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-.label {
-    -fx-font-size: 15;
+package airsquared.blobsaver.app;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+
+public class TSSTest extends BlobsaverTest {
+
+    @Test
+    public void call() throws TSS.TSSException {
+        TSS tss = new TSS.Builder().setDevice("iPhone8,4").setEcid("1")
+                .setSavePath(System.getProperty("user.home") + File.separator + "Blobs").setBoardConfig("n69ap").build();
+        tss.call(); // don't create another thread
+    }
 }
