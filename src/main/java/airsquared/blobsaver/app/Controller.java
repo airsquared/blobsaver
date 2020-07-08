@@ -71,6 +71,7 @@ public class Controller {
     @FXML private Button goButton;
 
     private Alert runningAlert;
+    private DialogPane aboutStage;
 
     private final SimpleBooleanProperty getBoardConfig = new SimpleBooleanProperty();
     private boolean editingPresets = false;
@@ -405,29 +406,28 @@ public class Controller {
         ButtonType customOK = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "", openURL, customOK);
         ((Button) alert.getDialogPane().lookupButton(customOK)).setDefaultButton(true);
+        String url;
         switch (labelID) {
             case "ipswURLHelp":
                 alert.setContentText("Get the IPSW download URL for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here.");
                 alert.setTitle("Help: IPSW URL");
                 alert.setHeaderText("Help");
-                alert.showAndWait();
-                if (openURL.equals(alert.getResult())) {
-                    Utils.openURL("https://www.theiphonewiki.com/wiki/Beta_Firmware");
-                }
+                url = "https://www.theiphonewiki.com/wiki/Beta_Firmware";
                 break;
             case "locationHelp":
                 alert.setContentText("Click \"Open URL\" to see how to automatically upload blobs you save to the cloud.");
                 alert.setTitle("Tip: Saving Blobs to the Cloud");
                 alert.setHeaderText("Tip");
-                alert.showAndWait();
-                if (openURL.equals(alert.getResult())) {
-                    Utils.openURL("https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud");
-                }
+                url = "https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud";
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value for labelID: " + labelID);
+        }
+        alert.showAndWait();
+        if (openURL.equals(alert.getResult())) {
+            Utils.openURL(url);
         }
     }
-
-    private DialogPane aboutStage = null;
 
     public void aboutMenuHandler(Event ignored) {
         if (aboutStage != null) { // prevent opening multiple "About" windows

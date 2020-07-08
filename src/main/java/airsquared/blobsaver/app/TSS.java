@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -45,8 +44,6 @@ public class TSS extends Task<List<String>> {
     // note: Matcher is NOT thread safe
     private static final Matcher ipswURLMatcher = Pattern.compile("https?://.*apple.*\\.ipsw").matcher("");
     private static final Matcher versionMatcher = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)").matcher("");
-
-    private static ExecutorService executorService;
 
     private final String deviceIdentifier;
     private final String ecid;
@@ -158,6 +155,7 @@ public class TSS extends Task<List<String>> {
     private String[] constructArgs() {
         ArrayList<String> argsList = new ArrayList<>(13);
         String tsscheckerPath = Utils.getTsschecker().getAbsolutePath();
+        //noinspection ResultOfMethodCallIgnored
         new File(savePath).mkdirs();
         Collections.addAll(argsList, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
         if (boardConfig != null) {

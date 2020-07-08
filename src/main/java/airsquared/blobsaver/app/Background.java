@@ -29,7 +29,6 @@ import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
 import java.awt.AWTException;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
@@ -68,94 +67,94 @@ class Background {
         if (!presetsToSave.isEmpty()) {
             presetsToSave.forEach(preset -> presetsToSaveNames.add(Main.appPrefs.get("Name Preset" + preset, "")));
         } else {
-            inBackground = false;
             return;
         }
-        if (!runOnlyOnce && Platform.isFxApplicationThread()) {
+        if (runOnlyOnce && !presetsToSave.isEmpty()) {
+            System.out.println("there are some presets to save");
+            presetsToSave.forEach(Background::saveBackgroundBlobs);
+        } else {
             if (Main.primaryStage.isShowing()) {
                 Main.hideStage();
             }
             Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
             Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for\nthe icon."
                     + presetsToSaveNames.toString().substring(1, presetsToSaveNames.toString().length() - 1));
-        }
-        if (!runOnlyOnce) {
+
+
             inBackground = true;
             executor = Executors.newScheduledThreadPool(1);
-            SystemTray tray = SystemTray.getSystemTray();
 
-            Image image = null;
             try {
-                image = ImageIO.read(Background.class.getResourceAsStream("blob_emoji.png"));
+                trayIcon = createTrayIcon();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-
-            //noinspection ConstantConditions
-            trayIcon = new TrayIcon(image, "blobsaver " + Main.appVersion);
-            trayIcon.setImageAutoSize(true);
-
-            ActionListener showListener = event -> Platform.runLater(Main::showStage);
-            MenuItem openItem = new MenuItem("Open window");
-            openItem.addActionListener(showListener);
-            openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
-
-            MenuItem exitItem = new MenuItem("Quit");
-            exitItem.addActionListener(event -> Platform.runLater(Platform::exit));
-
-            // setup the popup menu for the application.
-            final PopupMenu popup = new PopupMenu();
-            popup.add(openItem);
-            popup.addSeparator();
-            popup.add(exitItem);
-            if (Main.SHOW_BREAKPOINT) {
-                MenuItem breakpointItem = new MenuItem("Breakpoint");
-                breakpointItem.addActionListener(e -> System.out.println("breakpoint"));
-                popup.add(breakpointItem);
-            }
-            trayIcon.setPopupMenu(popup);
-            trayIcon.addActionListener(showListener);
 
             // add the application tray icon to the system tray.
             try {
-                tray.add(trayIcon);
+                SystemTray.getSystemTray().add(trayIcon);
                 System.out.println("in tray");
             } catch (AWTException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
+
+            startExecutor(presetsToSave);
         }
-        if (runOnlyOnce) {
+    }
+
+    private static TrayIcon createTrayIcon() throws IOException {
+        TrayIcon trayIcon = new TrayIcon(ImageIO.read(Background.class.getResourceAsStream("blob_emoji.png")),
+                "blobsaver " + Main.appVersion);
+        trayIcon.setImageAutoSize(true);
+
+        ActionListener showListener = event -> Platform.runLater(Main::showStage);
+        MenuItem openItem = new MenuItem("Open window");
+        openItem.addActionListener(showListener);
+        openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
+
+        MenuItem exitItem = new MenuItem("Quit");
+        exitItem.addActionListener(event -> Platform.runLater(Platform::exit));
+
+        // setup the popup menu for the application.
+        final PopupMenu popup = new PopupMenu();
+        popup.add(openItem);
+        popup.addSeparator();
+        popup.add(exitItem);
+        if (Main.SHOW_BREAKPOINT) {
+            MenuItem breakpointItem = new MenuItem("Breakpoint");
+            breakpointItem.addActionListener(e -> System.out.println("breakpoint"));
+            popup.add(breakpointItem);
+        }
+        trayIcon.setPopupMenu(popup);
+        trayIcon.addActionListener(showListener);
+        return trayIcon;
+    }
+
+    private static void startExecutor(ArrayList<Integer> presetsToSave) {
+        TimeUnit timeUnit;
+        int timeAmount = Main.appPrefs.getInt("Time to run", 1);
+        switch (Main.appPrefs.get("Time unit for background", "Days")) {
+            case "Minutes":
+                timeUnit = TimeUnit.MINUTES;
+                break;
+            case "Hours":
+                timeUnit = TimeUnit.HOURS;
+                break;
+            case "Weeks":
+                timeAmount *= 7;
+            case "Days":
+            default:
+                timeUnit = TimeUnit.DAYS;
+                break;
+        }
+        executor.scheduleAtFixedRate(() -> {
             if (!presetsToSave.isEmpty()) {
                 System.out.println("there are some presets to save");
                 presetsToSave.forEach(Background::saveBackgroundBlobs);
             }
-            inBackground = false;
-        } else {
-            TimeUnit timeUnit;
-            int timeAmount = Main.appPrefs.getInt("Time to run", 1);
-            switch (Main.appPrefs.get("Time unit for background", "Days")) {
-                case "Minutes":
-                    timeUnit = TimeUnit.MINUTES;
-                    break;
-                case "Hours":
-                    timeUnit = TimeUnit.HOURS;
-                    break;
-                case "Weeks":
-                    timeAmount *= 7;
-                case "Days":
-                default:
-                    timeUnit = TimeUnit.DAYS;
-                    break;
-            }
-            executor.scheduleAtFixedRate(() -> {
-                if (!presetsToSave.isEmpty()) {
-                    System.out.println("there are some presets to save");
-                    presetsToSave.forEach(Background::saveBackgroundBlobs);
-                }
-                System.out.println("done with executor");
-            }, 0, timeAmount, timeUnit);
-            executor.scheduleAtFixedRate(() -> Utils.checkForUpdates(false), 1, 1, TimeUnit.DAYS);
-        }
+            System.out.println("done with executor");
+        }, 0, timeAmount, timeUnit);
+        executor.scheduleAtFixedRate(() -> Utils.checkForUpdates(false), 1, 1, TimeUnit.DAYS);
     }
 
     private static void saveBackgroundBlobs(int preset) {
