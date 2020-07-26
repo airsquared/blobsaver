@@ -10,7 +10,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
@@ -18,10 +18,22 @@ jobs:
           java-package: jdk+fx
       - name: Create macOS app
         if: matrix.os == 'macOS-latest'
-        run: gradle createApp
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: createApp
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
       - name: Create Linux tar.gz
         if: matrix.os == 'ubuntu-latest'
-        run: gradle createLinuxTargz
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: createLinuxTargz
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
       - name: Create Windows exe
         if: matrix.os == 'windows-latest'
-        run: gradle createWindowsInstaller
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: createWindowsInstaller
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
