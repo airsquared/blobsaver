@@ -20,7 +20,7 @@ jobs:
         if: matrix.os == 'macOS-latest'
         uses: eskatos/gradle-command-action@v1
         with:
-          arguments: createApp
+          arguments: createMacApp
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
       - name: Create Linux tar.gz

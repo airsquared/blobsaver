@@ -65,6 +65,7 @@ final class Utils {
     static final DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
     static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
 
+    private static File platformDistDir; // only used when running from IDE
     private static File tsschecker;
     private static File licenseFile, librariesUsedFile;
 
@@ -137,22 +138,31 @@ final class Utils {
         return response.toString();
     }
 
+    static File getPlatformDistDir() {
+        if (platformDistDir != null) return platformDistDir;
+
+        platformDistDir = Main.jarDirectory.getParentFile().getParentFile();
+        if (platformDistDir.getName().equals("build")) {
+            platformDistDir = platformDistDir.getParentFile();
+        }
+        if (PlatformUtil.isMac()) {
+            platformDistDir = new File(platformDistDir, "dist/macos");
+        } else if (PlatformUtil.isWindows()) {
+            platformDistDir = new File(platformDistDir, "dist/windows");
+        } else {
+            platformDistDir = new File(platformDistDir, "dist/linux");
+        }
+        return platformDistDir;
+    }
+
     static File getTsschecker() {
         if (tsschecker != null) return tsschecker;
 
         if (!Main.runningFromJar) {
-            // temporarily set tsschecker to the dist directory
-            tsschecker = Main.jarDirectory.getParentFile().getParentFile();
-            if (tsschecker.getName().equals("build")) {
-                tsschecker = tsschecker.getParentFile();
-            }
-            tsschecker = new File(tsschecker, "dist/");
-            if (PlatformUtil.isMac()) {
-                tsschecker = new File(tsschecker, "macos/tsschecker");
-            } else if (PlatformUtil.isWindows()) {
-                tsschecker = new File(tsschecker, "windows/tsschecker.exe");
+            if (PlatformUtil.isWindows()) {
+                tsschecker = new File(getPlatformDistDir(), "tsschecker.exe");
             } else {
-                tsschecker = new File(tsschecker, "linux/tsschecker");
+                tsschecker = new File(getPlatformDistDir(), "tsschecker");
             }
         } else if (PlatformUtil.isMac()) {
             tsschecker = new File(Main.jarDirectory.getParentFile(), "MacOS/tsschecker");
@@ -171,7 +181,7 @@ final class Utils {
         if (licenseFile != null) return licenseFile;
 
         if (!Main.runningFromJar) {
-            licenseFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
+            licenseFile = new File(getPlatformDistDir().getParentFile(),
                     PlatformUtil.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
         } else if (PlatformUtil.isMac()) {
             licenseFile = new File(Main.jarDirectory.getParentFile(), "Resources/LICENSE");
@@ -186,7 +196,7 @@ final class Utils {
         if (librariesUsedFile != null) return librariesUsedFile;
 
         if (!Main.runningFromJar) {
-            librariesUsedFile = new File(Main.jarDirectory.getParentFile().getParentFile(),
+            librariesUsedFile = new File(getPlatformDistDir().getParentFile(),
                     PlatformUtil.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
         } else if (PlatformUtil.isMac()) {
             librariesUsedFile = new File(Main.jarDirectory.getParentFile(), "Resources/libraries_used.txt");

@@ -117,8 +117,7 @@ public class Main {
         }
         File path;
         if (!runningFromJar) {
-            path = new File(jarDirectory.getParentFile().getParentFile(),
-                    PlatformUtil.isMac() ? "dist/macos/Frameworks" : "dist/windows/lib");
+            path = new File(Utils.getPlatformDistDir(), PlatformUtil.isMac() ? "Frameworks" : "lib");
         } else if (PlatformUtil.isMac()) {
             path = new File(jarDirectory.getParentFile(), "Frameworks/");
         } else { // if Windows
