@@ -16,24 +16,31 @@ jobs:
         with:
           java-version: '1.8'
           java-package: jdk+fx
-      - name: Create macOS app
-        if: matrix.os == 'macOS-latest'
+      - name: Fix macOS AppleScript permissions
+        run: sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db "insert into access (service, client, client_type, allowed, prompt_count, indirect_object_identifier_type, indirect_object_identifier) values ('kTCCServiceAppleEvents', '`which java`', 1, 1, 1, 0, 'com.apple.finder')"
+        if: runner.os == 'macOS'
+      - name: Create macOS dmg
+        if: runner.os == 'macOS'
         uses: eskatos/gradle-command-action@v1
         with:
-          arguments: createMacApp
+          arguments: createDmg
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
       - name: Create Linux tar.gz
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         uses: eskatos/gradle-command-action@v1
         with:
           arguments: createLinuxTargz
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
       - name: Create Windows exe
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         uses: eskatos/gradle-command-action@v1
         with:
           arguments: createWindowsInstaller
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ runner.os }}
+          path: build/distributions/*
