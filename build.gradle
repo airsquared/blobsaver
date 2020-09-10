@@ -22,7 +22,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 plugins {
     id 'java'
     id 'application'
-    id 'edu.sc.seis.launch4j' version '2.4.6' // for bundling into .exe
+    id 'edu.sc.seis.launch4j' version '2.4.8' // for bundling into .exe
     id 'com.github.johnrengelman.shadow' version '6.0.0' // for fat jar
     id 'com.github.ben-manes.versions' version '0.29.0'
 }
