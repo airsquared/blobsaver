@@ -212,8 +212,8 @@ class TSSChecker {
                     || containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] parsed APNoncelen != requiredAPNoncelen")) {
                 newUnreportableError("\"" + apnonce + "\" is not a valid apnonce");
                 controller.apnonceField.setEffect(errorBorder);
-            } else if (containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Erase")
-                    && containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Update")
+            } else if (containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Erase")
+                    && containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Update")
                     && containsIgnoreCase(tsscheckerLog, "checking tss status failed")) {
                 Alert alert = new Alert(Alert.AlertType.ERROR,
                         "Saving blobs failed. Check the board configuration or try again later.\n\nIf this doesn't work, please create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.\n\nIf this was done to test whether the preset works in the background, please cancel that preset, fix the error, and try again.",
