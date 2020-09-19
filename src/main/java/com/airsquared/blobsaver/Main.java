@@ -38,7 +38,7 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.5.3";
+    static final String appVersion = "v2.5.4";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     static Stage primaryStage;
     static final File jarDirectory;
@@ -153,7 +153,7 @@ public class Main {
             primaryStage.setTitle("blobsaver " + Main.appVersion);
             primaryStage.setScene(new Scene(root));
             primaryStage.getScene().getStylesheets().add(getClass().getResource("app.css").toExternalForm());
-            if (!PlatformUtil.isMac()) {
+            if (PlatformUtil.isWindows()) {
                 primaryStage.getIcons().clear();
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
             }
