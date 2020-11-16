@@ -42,7 +42,7 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'org.json', name: 'json', version: '20200518'
+    implementation group: 'org.json', name: 'json', version: '20201115'
     implementation fileTree(dir: 'libs', include: ['*.jar'], excludes: ['**/sources/**'])
     implementation group: 'it.sauronsoftware', name: 'junique', version: '1.0.4'
     implementation "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.7"
