@@ -68,20 +68,13 @@ public class Main {
             Class.forName("javafx.application.Application");
             if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
                 try {
-                    JUnique.acquireLock("airsquared.blobsaver.app.blobsaver");
+                    JUnique.acquireLock("airsquared.blobsaver.app");
                 } catch (AlreadyLockedException e) {
                     javax.swing.JOptionPane.showMessageDialog(null, "blobsaver already running, exiting");
                     System.exit(-1);
                 }
             }
             setJNALibraryPath();
-            if (!PlatformUtil.isMac() && !PlatformUtil.isWindows() && !PlatformUtil.isLinux()) {
-                int result = javax.swing.JOptionPane.showOptionDialog(null, "Cannot detect the OS. Assuming it is Linux. Continue?",
-                        "Warning", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE, null, null, null);
-                if (result == javax.swing.JOptionPane.CANCEL_OPTION) {
-                    System.exit(0);
-                }
-            }
             JavaFxApplication.launch(JavaFxApplication.class, args);
         } catch (ClassNotFoundException e) {
             javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. " +

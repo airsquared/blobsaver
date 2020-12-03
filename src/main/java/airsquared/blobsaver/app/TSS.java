@@ -26,12 +26,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static airsquared.blobsaver.app.Utils.containsIgnoreCase;
 import static airsquared.blobsaver.app.Utils.executeProgram;
@@ -39,7 +37,7 @@ import static airsquared.blobsaver.app.Utils.extractBuildManifest;
 import static airsquared.blobsaver.app.Utils.getFirmwareList;
 import static airsquared.blobsaver.app.Utils.getSignedFirmwares;
 
-public class TSS extends Task<List<String>> {
+public class TSS extends Task<String> {
 
     // note: Matcher is NOT thread safe
     private static final Matcher ipswURLMatcher = Pattern.compile("https?://.*apple.*\\.ipsw").matcher("");
@@ -70,39 +68,44 @@ public class TSS extends Task<List<String>> {
     }
 
     /**
-     * @return a list of versions that blobs have been saved for
-     * (an empty list if a build manifest was manually supplied)
+     * @return a printable multiline string describing the blobs saved
      * @throws TSSException if blobs were not saved successfully
      */
     @Override
-    protected List<String> call() throws TSSException {
-        checkValues();
+    protected String call() throws TSSException {
+        checkInputs();
 
-        ArrayList<String> ipswURLs = new ArrayList<>();
-        ArrayList<String> versionStrings = new ArrayList<>();
-        getIpswURLS(ipswURLs, versionStrings);
+        List<Utils.IOSVersion> iosVersions = getIOSVersions();
+        System.out.println("iosVersions = " + iosVersions);
+        ArrayList<String> args = constructArgs();
 
-        String[] args = constructArgs();
+        StringBuilder sb = new StringBuilder("Successfully saved blobs in\n").append(savePath);
+        if (manualIpswURL == null) {
+            sb.append(iosVersions.size() == 1 ? "\n\nFor version " : "\n\nFor versions ");
+        }
 
         // can't use forEach() because exception won't be caught
-        for (String ipswURL : ipswURLs) {
+        for (Utils.IOSVersion iosVersion : iosVersions) {
             try {
-                args[args.length - 1] = extractBuildManifest(ipswURL).getAbsolutePath();
+                args.set(args.size() - 1, extractBuildManifest(iosVersion.ipswURL).getAbsolutePath());
             } catch (IOException e) {
                 throw new TSSException("Unable to extract BuildManifest.", true, e);
             }
             try {
-                System.out.println("Running: " + Arrays.toString(args));
+                System.out.println("Running: " + args);
                 String tssLog = executeProgram(args);
                 parseTSSLog(tssLog);
             } catch (IOException e) {
                 throw new TSSException("There was an error starting tsschecker.", true, e);
             }
+
+            if (iosVersion.versionString != null) sb.append(iosVersion.versionString).append(", ");
         }
-        return versionStrings;
+
+        return sb.substring(0, sb.length() - 2);
     }
 
-    private void checkValues() throws TSSException {
+    private void checkInputs() throws TSSException {
         boolean hasCorrectIdentifierPrefix = deviceIdentifier.startsWith("iPad") || deviceIdentifier.startsWith("iPod")
                 || deviceIdentifier.startsWith("iPhone") || deviceIdentifier.startsWith("AppleTV");
         if (!deviceIdentifier.contains(",") || !hasCorrectIdentifierPrefix) {
@@ -126,24 +129,19 @@ public class TSS extends Task<List<String>> {
      * Adds to the arraylists, depending on the fields {@link #manualIpswURL} and {@link #manualVersion}.
      * <p>
      * If both of those fields are null, it adds all signed versions.
-     * If {@link #manualIpswURL} is specified, the parameter {@code versionStrings} will not be modified.
      *
-     * @param ipswURLS       an empty list that will be filled with URLs to IPSW(s)
-     * @param versionStrings an empty list that will be filled with strings of iOS versions to be displayed to the user
+     * @return a list of {@link Utils.IOSVersion} to save blobs for
      */
-    private void getIpswURLS(ArrayList<String> ipswURLS, ArrayList<String> versionStrings) throws TSSException {
+    private List<Utils.IOSVersion> getIOSVersions() throws TSSException {
         try {
             if (manualVersion != null) {
-                ipswURLS.add(getFirmwareList(deviceIdentifier).stream().filter(stringObjectMap ->
-                        manualVersion.equals(stringObjectMap.get("version")))
-                        .collect(Collectors.toList()).get(0).get("url").toString());
+                return Collections.singletonList(getFirmwareList(deviceIdentifier).stream().filter(iosVersion ->
+                        manualVersion.equals(iosVersion.versionString)).findFirst()
+                        .orElseThrow(() -> new TSSException("No versions found.", false)));
             } else if (manualIpswURL != null) {
-                ipswURLS.add(manualIpswURL);
+                return Collections.singletonList(new Utils.IOSVersion(null, manualIpswURL, null));
             } else { // all signed firmwares
-                getSignedFirmwares(deviceIdentifier).forEach(firmware -> {
-                    ipswURLS.add(firmware.get("url").toString());
-                    versionStrings.add(firmware.get("version").toString());
-                });
+                return getSignedFirmwares(deviceIdentifier);
             }
         } catch (FileNotFoundException e) {
             throw new TSSException("The device \"" + deviceIdentifier + "\" could not be found.", false, e);
@@ -152,23 +150,23 @@ public class TSS extends Task<List<String>> {
         }
     }
 
-    private String[] constructArgs() {
-        ArrayList<String> argsList = new ArrayList<>(13);
+    private ArrayList<String> constructArgs() {
+        ArrayList<String> args = new ArrayList<>(15);
         String tsscheckerPath = Utils.getTsschecker().getAbsolutePath();
         //noinspection ResultOfMethodCallIgnored
         new File(savePath).mkdirs();
-        Collections.addAll(argsList, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
+        Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
         if (boardConfig != null) {
-            Collections.addAll(argsList, "--boardconfig", boardConfig);
+            Collections.addAll(args, "--boardconfig", boardConfig);
         }
         if (apnonce != null) {
-            Collections.addAll(argsList, "--apnonce", apnonce);
+            Collections.addAll(args, "--apnonce", apnonce);
         } else {
-            Collections.addAll(argsList, "--generator", "0x1111111111111111");
+            Collections.addAll(args, "--generator", "0x1111111111111111");
         }
-        Collections.addAll(argsList, "--build-manifest", "");
+        Collections.addAll(args, "--build-manifest", "");
 
-        return argsList.toArray(new String[0]);
+        return args;
     }
 
     private void parseTSSLog(String tsscheckerLog) throws TSSException {

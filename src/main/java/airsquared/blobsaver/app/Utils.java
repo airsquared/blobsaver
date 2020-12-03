@@ -48,14 +48,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
-import java.util.stream.Collectors;
 
 final class Utils {
 
@@ -146,9 +146,9 @@ final class Utils {
             platformDistDir = platformDistDir.getParentFile();
         }
         if (PlatformUtil.isMac()) {
-            platformDistDir = new File(platformDistDir, "dist/macos");
+            platformDistDir = new File(platformDistDir, "dist/macos/Contents");
         } else if (PlatformUtil.isWindows()) {
-            platformDistDir = new File(platformDistDir, "dist/windows");
+            platformDistDir = new File(platformDistDir, "dist/windows/files");
         } else {
             platformDistDir = new File(platformDistDir, "dist/linux");
         }
@@ -160,9 +160,9 @@ final class Utils {
 
         if (!Main.runningFromJar) {
             if (PlatformUtil.isWindows()) {
-                tsschecker = new File(getPlatformDistDir(), "tsschecker.exe");
+                tsschecker = new File(getPlatformDistDir(), "lib/tsschecker.exe");
             } else {
-                tsschecker = new File(getPlatformDistDir(), "tsschecker");
+                tsschecker = new File(getPlatformDistDir(), "MacOS/tsschecker");
             }
         } else if (PlatformUtil.isMac()) {
             tsschecker = new File(Main.jarDirectory.getParentFile(), "MacOS/tsschecker");
@@ -227,7 +227,7 @@ final class Utils {
         Main.JavaFxApplication.getInstance().getHostServices().showDocument(url);
     }
 
-    static String executeProgram(String... command) throws IOException {
+    static String executeProgram(List<String> command) throws IOException {
         Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
         StringBuilder logBuilder = new StringBuilder();
 
@@ -329,15 +329,47 @@ final class Utils {
         }
     }
 
-    static List<Map<String, Object>> getFirmwareList(String deviceIdentifier) throws IOException {
+    static List<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
         String response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + deviceIdentifier));
         JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
-        @SuppressWarnings("unchecked") List<Map<String, Object>> firmwareList = (List) firmwareListJson.toList();
-        return firmwareList;
+        ArrayList<IOSVersion> iosVersions = new ArrayList<>(firmwareListJson.length());
+        firmwareListJson.forEach(o -> {
+            JSONObject jo = (JSONObject) o;
+            iosVersions.add(new IOSVersion(jo.getString("version"), jo.getString("url"), jo.getBoolean("signed")));
+        });
+
+        return iosVersions;
     }
 
-    static List<Map<String, Object>> getSignedFirmwares(String deviceIdentifier) throws IOException {
-        return getFirmwareList(deviceIdentifier).stream().filter(map -> Boolean.TRUE.equals(map.get("signed"))).collect(Collectors.toList());
+    static List<IOSVersion> getSignedFirmwares(String deviceIdentifier) throws IOException {
+        List<IOSVersion> iosVersions = getFirmwareList(deviceIdentifier);
+        iosVersions.removeIf(iosVersion -> !iosVersion.signed);
+        return iosVersions;
+    }
+
+    public static final class IOSVersion {
+        public final String versionString, ipswURL;
+        public final Boolean signed;
+
+        public IOSVersion(String versionString, String ipswURL, Boolean signed) {
+            this.versionString = versionString;
+            this.ipswURL = Objects.requireNonNull(ipswURL, "ipsw url cannot be null");
+            this.signed = signed;
+        }
+
+        @Override
+        public String toString() {
+            if (versionString == null) {
+                return "IOSVersion{" +
+                        '\'' + ipswURL + '\'' +
+                        '}';
+            }
+            return "IOSVersion{" +
+                    '\'' + versionString + '\'' +
+                    ", '" + ipswURL + '\'' +
+                    ", signed=" + signed +
+                    '}';
+        }
     }
 
 //    static List<String> getAllSignedVersions(String deviceIdentifier) throws IOException {

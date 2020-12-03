@@ -121,7 +121,7 @@
             <VBox.margin>
                 <Insets left="10.0" top="5.0"/>
             </VBox.margin>
-            <CheckBox fx:id="versionCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler"
+            <CheckBox fx:id="allSignedVersionsCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler"
                       selected="true" text="All Signed Versions"/>
             <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler" text="Beta version">
                 <HBox.margin>

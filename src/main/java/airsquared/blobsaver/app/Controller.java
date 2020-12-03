@@ -55,7 +55,7 @@ public class Controller {
     @FXML private TextField ecidField, boardConfigField, apnonceField, versionField, identifierField,
             pathField, ipswField;
 
-    @FXML private CheckBox apnonceCheckBox, versionCheckBox, identifierCheckBox, betaCheckBox;
+    @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox;
 
     @FXML private Label versionLabel;
 
@@ -192,7 +192,7 @@ public class Controller {
     }
 
     public void versionCheckBoxHandler() {
-        if (versionCheckBox.isSelected()) {
+        if (allSignedVersionsCheckBox.isSelected()) {
             versionField.setDisable(true);
             versionField.setEffect(null);
             versionField.setText("");
@@ -218,16 +218,16 @@ public class Controller {
     public void betaCheckBoxHandler() {
         if (betaCheckBox.isSelected()) {
             ipswField.setEffect(Utils.borderGlow);
-            if (!versionCheckBox.isSelected()) {
-                versionCheckBox.fire(); // disable version field
+            if (!allSignedVersionsCheckBox.isSelected()) {
+                allSignedVersionsCheckBox.fire(); // disable version field
             }
-            versionCheckBox.setSelected(false); // turn latest version off without enabling version field
-            versionCheckBox.setDisable(true);
+            allSignedVersionsCheckBox.setSelected(false); // turn latest version off without enabling version field
+            allSignedVersionsCheckBox.setDisable(true);
         } else {
             ipswField.setEffect(null);
             ipswField.setText("");
-            versionCheckBox.setDisable(false);
-            versionCheckBox.setSelected(true);
+            allSignedVersionsCheckBox.setDisable(false);
+            allSignedVersionsCheckBox.setSelected(true);
         }
     }
 
@@ -296,7 +296,7 @@ public class Controller {
             } else {
                 loadPreset(preset);
                 if (betaCheckBox.isSelected()) betaCheckBox.fire();
-                if (!versionCheckBox.isSelected()) versionCheckBox.fire();
+                if (!allSignedVersionsCheckBox.isSelected()) allSignedVersionsCheckBox.fire();
                 TSS tss = createTSS();
                 EventHandler<WorkerStateEvent> oldEventHandler = tss.getOnSucceeded();
                 tss.setOnSucceeded(event -> {
@@ -720,7 +720,7 @@ public class Controller {
         incorrect |= Utils.isFieldEmpty(getBoardConfig.get(), boardConfigField);
         incorrect |= Utils.isFieldEmpty(apnonceCheckBox, apnonceField);
         incorrect |= Utils.isFieldEmpty(true, pathField);
-        incorrect |= Utils.isFieldEmpty(!versionCheckBox.isSelected(), versionField);
+        incorrect |= Utils.isFieldEmpty(!allSignedVersionsCheckBox.isSelected() && !betaCheckBox.isSelected(), versionField);
         incorrect |= Utils.isFieldEmpty(betaCheckBox, ipswField);
         return incorrect;
     }
@@ -734,7 +734,7 @@ public class Controller {
         if (getBoardConfig.get()) {
             builder.setBoardConfig(boardConfigField.getText());
         }
-        if (!versionCheckBox.isSelected() && !betaCheckBox.isSelected()) {
+        if (!allSignedVersionsCheckBox.isSelected() && !betaCheckBox.isSelected()) {
             builder.setManualVersion(versionField.getText());
         } else if (betaCheckBox.isSelected()) {
             builder.setManualIpswURL(ipswField.getText());
@@ -747,23 +747,14 @@ public class Controller {
 
         tss.setOnSucceeded(event -> {
             runningAlert.close();
-            int versionsSavedAmt = tss.getValue().size();
-            String versionsSavedString = tss.getValue().toString();
-            versionsSavedString = versionsSavedString.substring(1, versionsSavedString.length() - 1);
-            if (versionsSavedAmt > 1) {
-                versionsSavedString = "\n\nFor versions " + versionsSavedString;
-            } else if (versionsSavedAmt == 1) {
-                versionsSavedString = "\n\nFor version " + versionsSavedString;
-            } else {
-                versionsSavedString = "";
-            }
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "Successfully saved blobs in\n" + pathField.getText() + versionsSavedString);
+            runningAlert = null;
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, tss.getValue());
             alert.setHeaderText("Success!");
             alert.showAndWait();
         });
         tss.setOnFailed(event -> {
             runningAlert.close();
+            runningAlert = null;
             tss.getException().printStackTrace();
             parseException(tss.getException());
         });
@@ -773,7 +764,7 @@ public class Controller {
     private void showRunningAlert(String title) {
         runningAlert = new Alert(Alert.AlertType.INFORMATION);
         runningAlert.setTitle(title);
-        runningAlert.setHeaderText("Saving blobs...            ");
+        runningAlert.setHeaderText("Saving blobs...              ");
         runningAlert.getDialogPane().setContent(new ProgressBar());
         Utils.forEachButton(runningAlert, button -> button.setDisable(true));
         runningAlert.getDialogPane().getScene().getWindow().setOnCloseRequest(Event::consume);
@@ -798,7 +789,7 @@ public class Controller {
             } else if (message.contains("not being signed")) {
                 if (betaCheckBox.isSelected()) {
                     ipswField.setEffect(Utils.errorBorder);
-                } else if (!versionCheckBox.isSelected()) {
+                } else if (!allSignedVersionsCheckBox.isSelected()) {
                     versionField.setEffect(Utils.errorBorder);
                 }
             }
