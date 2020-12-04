@@ -18,33 +18,33 @@
 
 package airsquared.blobsaver.app;
 
+import airsquared.blobsaver.app.natives.Libirecovery;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static airsquared.blobsaver.app.Libimobiledevice.Libirecovery;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Disabled("disable tests unless device is connected")
 public class LibimobiledeviceTest extends BlobsaverTest {
 
     @Test
-    public void getECID() {
-        long ecid = Libimobiledevice.getECID(false);
+    public void getECID() throws LibimobiledeviceUtil.LibimobiledeviceException {
+        long ecid = LibimobiledeviceUtil.getECID(false);
         assertEquals(0L, ecid);  // change to your device's ecid
     }
 
     @Test
-    public void enterRecovery() {
-        Libimobiledevice.enterRecovery(false);
+    public void enterRecovery() throws LibimobiledeviceUtil.LibimobiledeviceException {
+        LibimobiledeviceUtil.enterRecovery(false);
     }
 
     @Test
     public void getNonce() {
         PointerByReference irecvClient = new PointerByReference();
-        assertEquals(0, Libirecovery.irecv_open_with_ecid(irecvClient, 0));
-        Libirecovery.irecv_device_info deviceInfo = Libirecovery.irecv_get_device_info(irecvClient.getValue());
+        assertEquals(0, Libirecovery.open(irecvClient));
+        Libirecovery.irecv_device_info deviceInfo = Libirecovery.getDeviceInfo(irecvClient.getValue());
         StringBuilder apnonce = new StringBuilder();
         System.out.println("deviceInfo.ap_nonce = " + deviceInfo.ap_nonce);
         for (byte b : ((Pointer) deviceInfo.readField("ap_nonce")).getByteArray(0, deviceInfo.ap_nonce_size)) {
@@ -52,10 +52,10 @@ public class LibimobiledeviceTest extends BlobsaverTest {
         }
 //        assertEquals("", apnonce.toString());                                   // change to your device's apnonce
         System.out.println("apnonce = " + apnonce);
-        assertEquals(0, Libirecovery.irecv_setenv(irecvClient.getValue(), "auto-boot", "true"));
-        assertEquals(0, Libirecovery.irecv_saveenv(irecvClient.getValue()));
-        assertEquals(0, Libirecovery.irecv_reboot(irecvClient.getValue()));
-        assertEquals(0, Libirecovery.irecv_close(irecvClient.getValue()));
+        assertEquals(0, Libirecovery.setEnv(irecvClient.getValue(), "auto-boot", "true"));
+        assertEquals(0, Libirecovery.saveEnv(irecvClient.getValue()));
+        assertEquals(0, Libirecovery.reboot(irecvClient.getValue()));
+        assertEquals(0, Libirecovery.close(irecvClient.getValue()));
     }
 
 }

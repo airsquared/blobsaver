@@ -30,11 +30,8 @@ public class BlobsaverTest {
         if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
             return;
         }
-        File path = Main.jarDirectory.getParentFile().getParentFile();
-        if (path.getName().equals("build")) {
-            path = path.getParentFile();
-        }
-        path = new File(path, PlatformUtil.isMac() ? "dist/macos/Frameworks" : "dist/windows/lib");
+        File path = Utils.getPlatformDistDir();
+        path = new File(path, PlatformUtil.isMac() ? "Frameworks" : "lib");
         System.out.println("path = " + path.getAbsolutePath());
         System.setProperty("jna.boot.library.path", path.getAbsolutePath()); // path for jnidispatch lib
         System.setProperty("jna.library.path", path.getAbsolutePath());

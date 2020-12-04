@@ -18,43 +18,39 @@
 
 package airsquared.blobsaver.app;
 
+import airsquared.blobsaver.app.natives.Libirecovery;
+import airsquared.blobsaver.app.natives.Libplist;
 import com.sun.javafx.PlatformUtil;
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
 import com.sun.jna.ptr.PointerByReference;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
-/**
- * This class provides access to functions in the native library libimobiledevice.
- * <p>
- * See the libimobiledevice docs for
- * <a href="https://www.libimobiledevice.org/docs/html/lockdown_8h.html">lockdown.h</a>
- * and
- * <a href="https://www.libimobiledevice.org/docs/html/libimobiledevice_8h.html">libimobiledevice.h</a>
- * for information on the native functions. For information on the libplist functions,
- * look at the source code(files plist.c and xplist.c).
- *
- * @author airsquared
- */
-@SuppressWarnings("WeakerAccess")
-public class Libimobiledevice {
+import static airsquared.blobsaver.app.natives.Libimobiledevice.idevice_free;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.idevice_new;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_client_free;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_client_new;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_enter_recovery;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_get_value;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_pair;
 
-    public static long getECID(boolean showErrorAlert) {
+
+public class LibimobiledeviceUtil {
+
+    public static long getECID(boolean showErrorAlert) throws LibimobiledeviceException {
         return Long.parseLong(getKeyFromConnectedDevice("UniqueChipID", PlistType.INTEGER, showErrorAlert));
     }
 
-    public static String getDeviceModelIdentifier(boolean showErrorAlert) {
+    public static String getDeviceModelIdentifier(boolean showErrorAlert) throws LibimobiledeviceException {
         return getKeyFromConnectedDevice("ProductType", PlistType.STRING, showErrorAlert);
     }
 
-    public static String getBoardConfig(boolean showErrorAlert) {
+    public static String getBoardConfig(boolean showErrorAlert) throws LibimobiledeviceException {
         return getKeyFromConnectedDevice("HardwareModel", PlistType.STRING, showErrorAlert);
     }
 
-    public static String getKeyFromConnectedDevice(String key, PlistType plistType, boolean showErrorAlert) {
+    public static String getKeyFromConnectedDevice(String key, PlistType plistType, boolean showErrorAlert) throws LibimobiledeviceException {
         if (plistType == null) {
             plistType = PlistType.STRING;
         }
@@ -89,7 +85,7 @@ public class Libimobiledevice {
         }
     }
 
-    public static Pointer lockdowndClientFromConnectedDevice(boolean showErrorAlert) {
+    public static Pointer lockdowndClientFromConnectedDevice(boolean showErrorAlert) throws LibimobiledeviceException {
         PointerByReference device = new PointerByReference();
         throwIfNeeded(idevice_new(device, Pointer.NULL), showErrorAlert, ErrorCodeType.idevice_error_t);
         PointerByReference client = new PointerByReference();
@@ -102,26 +98,26 @@ public class Libimobiledevice {
         return client.getValue();
     }
 
-    public static void enterRecovery(boolean showErrorAlert) {
+    public static void enterRecovery(boolean showErrorAlert) throws LibimobiledeviceException {
         Pointer client = lockdowndClientFromConnectedDevice(true);
         throwIfNeeded(lockdownd_enter_recovery(client), showErrorAlert, ErrorCodeType.lockdownd_error_t);
         lockdownd_client_free(client);
     }
 
-    public static void exitRecovery(Pointer irecvClient, boolean showErrorAlert) {
-        throwIfNeeded(Libirecovery.irecv_setenv(irecvClient, "auto-boot", "true"), showErrorAlert, ErrorCodeType.irecv_error_t);
-        throwIfNeeded(Libirecovery.irecv_saveenv(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
-        throwIfNeeded(Libirecovery.irecv_reboot(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
-        throwIfNeeded(Libirecovery.irecv_close(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
+    public static void exitRecovery(Pointer irecvClient, boolean showErrorAlert) throws LibimobiledeviceException {
+        throwIfNeeded(Libirecovery.setEnv(irecvClient, "auto-boot", "true"), showErrorAlert, ErrorCodeType.irecv_error_t);
+        throwIfNeeded(Libirecovery.saveEnv(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
+        throwIfNeeded(Libirecovery.reboot(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
+        throwIfNeeded(Libirecovery.close(irecvClient), showErrorAlert, ErrorCodeType.irecv_error_t);
     }
 
     public static Task<String> createGetApnonceTask() {
         return new Task<String>() {
             @Override
-            protected String call() {
+            protected String call() throws LibimobiledeviceException {
                 updateMessage("Entering recovery mode...\n\nThis can take up to 60 seconds");
                 System.out.println("Entering recovery mode");
-                Libimobiledevice.enterRecovery(true);
+                LibimobiledeviceUtil.enterRecovery(true);
                 PointerByReference irecvClient = new PointerByReference();
                 long endTime = System.currentTimeMillis() + 60_000; // timeout is 60 seconds
                 int errorCode = -3;
@@ -129,10 +125,10 @@ public class Libimobiledevice {
                     if (!sleep(1000)) {
                         return null;
                     }
-                    errorCode = Libimobiledevice.Libirecovery.irecv_open_with_ecid(irecvClient, 0);
+                    errorCode = Libirecovery.open(irecvClient);
                 }
-                throwIfNeeded(errorCode, true, Libimobiledevice.ErrorCodeType.irecv_error_t);
-                Libirecovery.irecv_device_info deviceInfo = Libimobiledevice.Libirecovery.irecv_get_device_info(irecvClient.getValue());
+                throwIfNeeded(errorCode, true, ErrorCodeType.irecv_error_t);
+                Libirecovery.irecv_device_info deviceInfo = Libirecovery.getDeviceInfo(irecvClient.getValue());
                 final StringBuilder apnonce = new StringBuilder();
                 for (byte b : deviceInfo.ap_nonce.getByteArray(0, deviceInfo.ap_nonce_size)) {
                     apnonce.append(String.format("%02x", b));
@@ -140,7 +136,7 @@ public class Libimobiledevice {
                 System.out.println("Got apnonce");
                 updateMessage("Successfully got apnonce, exiting recovery mode...");
                 System.out.println("Exiting recovery mode");
-                Libimobiledevice.exitRecovery(irecvClient.getValue(), true);
+                LibimobiledeviceUtil.exitRecovery(irecvClient.getValue(), true);
                 sleep(3000);
                 return apnonce.toString();
             }
@@ -167,78 +163,7 @@ public class Libimobiledevice {
         idevice_error_t, lockdownd_error_t, irecv_error_t
     }
 
-    public static native int lockdownd_get_value(Pointer client, Pointer domain, String key, PointerByReference value);
-
-    public static native int lockdownd_enter_recovery(Pointer client);
-
-    public static native int idevice_new(PointerByReference device, Pointer udid);
-
-    public static native int lockdownd_client_new(Pointer device, PointerByReference client, String label);
-
-    public static native int lockdownd_pair(Pointer lockdownd_client, Pointer lockdownd_pair_record);
-
-    public static native void lockdownd_client_free(Pointer client);
-
-    public static native void idevice_free(Pointer idevice);
-
-    public static class Libplist {
-
-        public static void getStringVal(Pointer plist, PointerByReference value) {
-            plist_get_string_val(plist, value);
-        }
-
-        public static void free(Pointer plist) {
-            plist_free(plist);
-        }
-
-        public static void toXml(Pointer plist, PointerByReference plist_xml, PointerByReference length) {
-            plist_to_xml(plist, plist_xml, length);
-        }
-
-        private static native void plist_get_string_val(Pointer plist, PointerByReference value);
-
-        private static native void plist_free(Pointer plist);
-
-        private static native void plist_to_xml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
-
-        static {
-            Native.register(Libplist.class, "plist");
-        }
-    }
-
-    public static class Libirecovery {
-
-        public static native int irecv_open_with_ecid(PointerByReference irecv_client, long ecid);
-
-        public static native int irecv_close(Pointer irecv_client);
-
-        public static native int irecv_setenv(Pointer irecv_client, String variable, String value);
-
-        public static native int irecv_saveenv(Pointer irecv_client);
-
-        public static native int irecv_reboot(Pointer irecv_client);
-
-        public static native irecv_device_info irecv_get_device_info(Pointer irecv_client);
-
-        @SuppressWarnings({"unused", "SpellCheckingInspection"})
-        @Structure.FieldOrder({"cpid", "cprv", "cpfm", "scep", "bdid", "ecid", "ibfl", "srnm", "imei", "srtg", "serial_string", "ap_nonce", "ap_nonce_size", "sep_nonce", "sep_nonce_size"})
-        public static class irecv_device_info extends Structure {
-            public int cpid, cprv, cpfm, scep, bdid;
-            public long ecid;
-            public int ibfl;
-            public String srnm, imei, srtg, serial_string;
-            public Pointer ap_nonce;
-            public int ap_nonce_size;
-            public Pointer sep_nonce;
-            public int sep_nonce_size;
-        }
-
-        static {
-            Native.register(Libirecovery.class, "irecovery");
-        }
-    }
-
-    public static void throwIfNeeded(int errorCode, boolean showAlert, ErrorCodeType errorType) {
+    public static void throwIfNeeded(int errorCode, boolean showAlert, ErrorCodeType errorType) throws LibimobiledeviceException {
         if (errorCode == 0) {
             return;
         }
@@ -320,17 +245,8 @@ public class Libimobiledevice {
         throw new LibimobiledeviceException(exceptionMessage);
     }
 
-    static {
-        try {
-            Native.register(Libimobiledevice.class, "imobiledevice");
-        } catch (Throwable e) { // need to catch UnsatisfiedLinkError
-            Utils.showReportableError("Error: unable to register native methods", Utils.exceptionToString(e));
-            throw new LibimobiledeviceException("Unable to register native methods", e);
-        }
-    }
-
     @SuppressWarnings("unused")
-    public static class LibimobiledeviceException extends RuntimeException {
+    public static class LibimobiledeviceException extends Exception {
         public LibimobiledeviceException() {
             super();
         }

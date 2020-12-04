@@ -18,6 +18,7 @@
 
 package airsquared.blobsaver.app;
 
+import airsquared.blobsaver.app.natives.Libirecovery;
 import com.sun.javafx.PlatformUtil;
 import com.sun.javafx.scene.control.skin.LabeledText;
 import com.sun.jna.ptr.PointerByReference;
@@ -560,8 +561,7 @@ public class Controller {
         });
         ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList("Minutes", "Hours", "Days", "Weeks"));
         choiceBox.setValue(Main.appPrefs.get("Time unit for background", "Days"));
-        HBox hBox = new HBox();
-        hBox.getChildren().addAll(textField, choiceBox);
+        HBox hBox = new HBox(textField, choiceBox);
         alert.getDialogPane().setContent(hBox);
         alert.showAndWait();
         if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Utils.isEmptyOrNull(textField.getText()) && !Utils.isEmptyOrNull(choiceBox.getValue())) {
@@ -640,9 +640,9 @@ public class Controller {
     public void readInfo() {
         try {
             // read ECID
-            ecidField.setText(Long.toHexString(Libimobiledevice.getECID(true)).toUpperCase());
+            ecidField.setText(Long.toHexString(LibimobiledeviceUtil.getECID(true)).toUpperCase());
             // read device model
-            String deviceIdentifier = Libimobiledevice.getDeviceModelIdentifier(true);
+            String deviceIdentifier = LibimobiledeviceUtil.getDeviceModelIdentifier(true);
             try {
                 deviceTypeChoiceBox.setValue(Devices.getDeviceType(deviceIdentifier));
                 deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(deviceIdentifier));
@@ -652,9 +652,9 @@ public class Controller {
             }
             // read board config
             if (!boardConfigField.isDisabled()) {
-                boardConfigField.setText(Libimobiledevice.getBoardConfig(true));
+                boardConfigField.setText(LibimobiledeviceUtil.getBoardConfig(true));
             }
-        } catch (Libimobiledevice.LibimobiledeviceException e) {
+        } catch (LibimobiledeviceUtil.LibimobiledeviceException e) {
             e.printStackTrace(); // error alert should have already been shown to user
         } catch (Throwable e) {
             e.printStackTrace();
@@ -677,7 +677,7 @@ public class Controller {
         alert2.setHeaderText("Reading apnonce from connected device...");
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
-        Task<String> getApnonceTask = Libimobiledevice.createGetApnonceTask();
+        Task<String> getApnonceTask = LibimobiledeviceUtil.createGetApnonceTask();
         getApnonceTask.setOnSucceeded(event -> Utils.forEachButton(alert2, button -> button.setDisable(false)));
         getApnonceTask.setOnFailed(event -> {
             getApnonceTask.getException().printStackTrace();
@@ -692,12 +692,16 @@ public class Controller {
 
     public void exitRecoveryHandler() {
         PointerByReference irecvClient = new PointerByReference();
-        int errorCode = Libimobiledevice.Libirecovery.irecv_open_with_ecid(irecvClient, 0);
+        int errorCode = Libirecovery.open(irecvClient);
         if (errorCode != 0) {
             Utils.showReportableError("irecovery error: code=" + errorCode + "\n\nUnable to find a device, try using another tool to exit recovery mode.");
             return;
         }
-        Libimobiledevice.exitRecovery(irecvClient.getValue(), true);
+        try {
+            LibimobiledeviceUtil.exitRecovery(irecvClient.getValue(), true);
+        } catch (LibimobiledeviceUtil.LibimobiledeviceException e) {
+            e.printStackTrace();
+        }
     }
 
     public void donate() { Utils.openURL("https://www.paypal.me/airsqrd"); }
