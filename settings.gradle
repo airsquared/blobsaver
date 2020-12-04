@@ -16,5 +16,11 @@
  * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-rootProject.name = 'blobsaver'
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
 
+rootProject.name = 'blobsaver'
