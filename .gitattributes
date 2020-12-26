@@ -5,3 +5,6 @@ libraries_used.txt text eol=lf
 libraries_used_windows.txt text eol=crlf
 gradlew.bat text eol=crlf
 gradlew text eol=lf
+
+# Tell GitHub’s linguist which files to ignore
+gradle/InnoSetup6/* linguist-vendored
