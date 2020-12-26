@@ -41,6 +41,10 @@ repositories {
     mavenCentral()
 }
 
+test {
+    useJUnitPlatform()
+}
+
 dependencies {
     implementation group: 'org.json', name: 'json', version: '20201115'
     implementation fileTree(dir: 'libs', include: ['*.jar'], excludes: ['**/sources/**'])
