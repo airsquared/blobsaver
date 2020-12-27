@@ -31,7 +31,7 @@ plugins {
  * REMEMBER: also update the version string in:
  *  - Main.java
  */
-version "v2.5.3"
+version "v2.5.4"
 sourceCompatibility = 1.8
 mainClassName = "airsquared.blobsaver.app.Main"
 String appIdentifier = "airsquared.blobsaver.app"
@@ -88,14 +88,12 @@ task createMacApp(dependsOn: shadowJar) {
 
     doLast {
         copy {
-            from "${projectDir}/dist/macos/Contents"
-            into "${buildDir}/macApp/blobsaver.app/Contents"
+            from "${projectDir}/dist/macos/Contents" into "${buildDir}/macApp/blobsaver.app/Contents"
         }
         copy {
-            from "${projectDir}/dist/macos/Info.plist"
+            from "${projectDir}/dist/macos/Info.plist" into "${buildDir}/macApp/blobsaver.app/Contents"
             expand(CFBundleIdentifier: appIdentifier, NSHumanReadableCopyright: copyright, JVMMainClassName: mainClassName, CFBundleName: project.name,
                     version: version)
-            into "${buildDir}/macApp/blobsaver.app/Contents"
         }
         copy {
             from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
@@ -175,11 +173,10 @@ task createLinuxTargz(type: Tar, dependsOn: shadowJar, group: "build") {
 }
 
 launch4j { // Windows only, don't use this, use createWindowsInstaller
-    mainClassName = "airsquared.blobsaver.app.Main"
     launch4j.copyright = copyright
     downloadUrl = "https://github.com/airsquared/blobsaver/wiki/Making-sure-you-have-the-right-Java-version"
     icon = "${projectDir}/dist/windows/blob.ico"
-    mutexName = "airsquared.blobsaver.app"
+    mutexName = appIdentifier
     windowTitle = "blobsaver"
     jar = "${buildDir}/libs/blobsaver.jar"
     jreRuntimeBits = "64"
@@ -198,15 +195,13 @@ task createWindowsInstaller(dependsOn: createExe, group: "build") {
     doFirst {
         delete "${buildDir}/tmp/innosetup"
         copy {
-            from "${projectDir}/dist/windows"
-            into "${buildDir}/tmp/innosetup"
+            from "${projectDir}/dist/windows" into "${buildDir}/tmp/innosetup"
             rename "LICENSE_windows", "LICENSE"
             rename "libraries_used_windows.txt", "libraries_used.txt"
         }
         copy {
-            from "${projectDir}/dist/windows/blobsaver.iss"
-            filter(ReplaceTokens, tokens: [MyAppName: project.name, MyAppVersion: version, AppMutex: appIdentifier])
-            into "${buildDir}/tmp/innosetup"
+            from "${projectDir}/dist/windows/blobsaver.iss" into "${buildDir}/tmp/innosetup"
+            filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright, AppMutex: appIdentifier])
         }
         copy {
             from "${buildDir}/launch4j/blobsaver.exe" into "${buildDir}/tmp/innosetup/files"

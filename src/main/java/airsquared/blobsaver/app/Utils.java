@@ -161,8 +161,10 @@ final class Utils {
         if (!Main.runningFromJar) {
             if (PlatformUtil.isWindows()) {
                 tsschecker = new File(getPlatformDistDir(), "lib/tsschecker.exe");
-            } else {
+            } else if (PlatformUtil.isMac()) {
                 tsschecker = new File(getPlatformDistDir(), "MacOS/tsschecker");
+            } else {
+                tsschecker = new File(getPlatformDistDir(), "tsschecker");
             }
         } else if (PlatformUtil.isMac()) {
             tsschecker = new File(Main.jarDirectory.getParentFile(), "MacOS/tsschecker");

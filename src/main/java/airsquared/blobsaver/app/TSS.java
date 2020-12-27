@@ -177,8 +177,8 @@ public class TSS extends Task<String> {
         } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")
                 || containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] parsed APNoncelen != requiredAPNoncelen")) {
             throw new TSSException("\"" + apnonce + "\" is not a valid apnonce", false);
-        } else if (containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Erase")
-                && containsIgnoreCase(tsscheckerLog, "could not get id0 for installType=Update")
+        } else if (containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Erase")
+                && containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Update")
                 && containsIgnoreCase(tsscheckerLog, "checking tss status failed")) {
             throw new TSSException("Saving blobs failed. Check the board configuration or try again later.", true, tsscheckerLog);
         } else if (containsIgnoreCase(tsscheckerLog, "Could not resolve host")) {
