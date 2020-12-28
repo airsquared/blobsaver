@@ -38,7 +38,7 @@ import java.util.prefs.Preferences;
 
 public class Main {
 
-    static final String appVersion = "v2.5.4";
+    static final String appVersion = "v2.5.5";
     static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     static Stage primaryStage;
     static final File jarDirectory;

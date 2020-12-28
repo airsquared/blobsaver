@@ -31,7 +31,7 @@ plugins {
  * REMEMBER: also update the version string in:
  *  - Main.java
  */
-version "v2.5.4"
+version "v2.5.5"
 sourceCompatibility = 1.8
 mainClassName = "airsquared.blobsaver.app.Main"
 String appIdentifier = "airsquared.blobsaver.app"

@@ -37,7 +37,8 @@ public class Devices {
             "iPhone 8+ (iPhone10,5)", "iPhone X (iPhone10,6)", "iPhone XS (Global) (iPhone11,2)",
             "iPhone XS Max (China) (iPhone11,4)", "iPhone XS Max (iPhone11,6)", "iPhone XR (iPhone11,8)",
             "iPhone 11 (iPhone12,1)", "iPhone 11 Pro (iPhone12,3)", "iPhone 11 Pro Max (iPhone12,5)",
-            "iPhone SE 2 (iPhone12,8)");
+            "iPhone SE 2 (iPhone12,8)", "iPhone 12 mini (iPhone13,1)", "iPhone 12 (iPhone13,2)",
+            "iPhone 12 Pro (iPhone13,3)", "iPhone 12 Pro Max (iPhone13,4)");
 
     private static final ObservableList<String> iPods =
             FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6",
@@ -71,6 +72,10 @@ public class Devices {
     private static HashMap<String, String> deviceModelIdentifiers = null;
 
     static {
+        requiresBoardConfig.put("iPhone13,4", "D54pAP");
+        requiresBoardConfig.put("iPhone13,3", "D53pAP");
+        requiresBoardConfig.put("iPhone13,2", "D53gAP");
+        requiresBoardConfig.put("iPhone13,1", "D52gAP");
         requiresBoardConfig.put("iPhone12,8", "D79AP");
         requiresBoardConfig.put("iPad8,9", "J417AP");
         requiresBoardConfig.put("iPad8,10", "J418AP");
@@ -81,6 +86,7 @@ public class Devices {
         requiresBoardConfig.put("iPhone8,1", "");
         requiresBoardConfig.put("iPhone8,2", "");
         requiresBoardConfig.put("iPhone8,4", "");
+        requiresBoardConfig.put("iPad7,11", "");
         requiresBoardConfig.put("iPad6,11", "");
         requiresBoardConfig.put("iPad6,12", "");
     }
