@@ -54,8 +54,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 
 final class Utils {
 
@@ -97,7 +95,7 @@ final class Utils {
                 throw new RuntimeException(e);
             }
             if (!Main.appVersion.equals(newVersion) &&
-                    (forceCheck || !Main.appPrefs.get("Ignore Version", "").equals(newVersion))) {
+                    (forceCheck || !Prefs.appPrefs.get("Ignore Version", "").equals(newVersion))) {
                 Platform.runLater(() -> {
                     ButtonType downloadNow = new ButtonType("Download");
                     ButtonType ignore = new ButtonType("Ignore this update");
@@ -112,7 +110,7 @@ final class Utils {
                     if (alert.getResult().equals(downloadNow)) {
                         openURL("https://github.com/airsquared/blobsaver/releases");
                     } else if (alert.getResult().equals(ignore)) {
-                        Main.appPrefs.put("Ignore Version", newVersion);
+                        Prefs.appPrefs.put("Ignore Version", newVersion);
                     }
                 });
             } else if (forceCheck) {
@@ -207,14 +205,6 @@ final class Utils {
         }
         librariesUsedFile.setReadOnly();
         return librariesUsedFile;
-    }
-
-    static void resetAppPrefs() throws BackingStoreException {
-        Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver");
-        prefs.flush();
-        prefs.clear();
-        prefs.removeNode();
-        prefs.flush();
     }
 
     static void newGithubIssue() {
@@ -321,6 +311,12 @@ final class Utils {
             return true;
         }
         return false;
+    }
+
+    static void setSelectedFire(CheckBox box, boolean selected) {
+        if (box.isSelected() != selected) {
+            box.fire();
+        }
     }
 
     static void runSafe(Runnable runnable) {

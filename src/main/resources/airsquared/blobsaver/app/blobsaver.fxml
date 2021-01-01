@@ -221,67 +221,68 @@
             </VBox.margin>
         </Button>
     </VBox>
-    <VBox fx:id="presetVBox" prefHeight="580.0" prefWidth="180.0" minHeight="560.0" style="-fx-background-color: white;"
+    <VBox fx:id="savedDevicesVBox" prefHeight="580.0" prefWidth="180.0" minHeight="560.0"
+          style="-fx-background-color: white;"
           HBox.hgrow="ALWAYS">
         <padding>
             <Insets left="10.0" right="10.0"/>
         </padding>
-        <Button fx:id="preset1Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 1" onAction="#presetButtonHandler">
+        <Button fx:id="device1Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 1" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset2Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 2" onAction="#presetButtonHandler">
+        <Button fx:id="device2Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 2" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset3Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 3" onAction="#presetButtonHandler">
+        <Button fx:id="device3Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 3" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset4Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 4" onAction="#presetButtonHandler">
+        <Button fx:id="device4Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 4" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset5Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 5" onAction="#presetButtonHandler">
+        <Button fx:id="device5Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 5" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset6Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 6" onAction="#presetButtonHandler">
+        <Button fx:id="device6Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 6" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset7Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 7" onAction="#presetButtonHandler">
+        <Button fx:id="device7Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 7" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset8Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 8" onAction="#presetButtonHandler">
+        <Button fx:id="device8Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 8" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset9Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 9" onAction="#presetButtonHandler">
+        <Button fx:id="device9Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 9" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="preset10Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
-                text="Load Preset 10" onAction="#presetButtonHandler">
+        <Button fx:id="device10Button" maxWidth="Infinity" mnemonicParsing="false" prefWidth="Infinity"
+                text="Load Device 10" onAction="#savedDeviceButtonHandler">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
@@ -305,7 +306,7 @@
                 <Insets bottom="10.0"/>
             </VBox.margin>
         </Button>
-        <Button fx:id="savePresetButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#savePresetHandler"
+        <Button fx:id="saveDeviceButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#saveDeviceHandler"
                 prefWidth="Infinity" text="Save">
             <VBox.margin>
                 <Insets bottom="10.0"/>

@@ -34,12 +34,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
-import java.util.prefs.Preferences;
 
 public class Main {
 
     static final String appVersion = "v2.5.5";
-    static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
     static Stage primaryStage;
     static final File jarDirectory;
     static final boolean runningFromJar;
@@ -157,7 +155,7 @@ public class Main {
             Utils.checkForUpdates(false);
             Platform.setImplicitExit(false);
             showStage();
-            if (appPrefs.getBoolean("Start background immediately", false)) {
+            if (Prefs.appPrefs.getBoolean("Start background immediately", false)) {
                 /* I have to show the stage then hide it again in Platform.runLater() otherwise
                  * the needed initialization code won't run at the right time when starting the background
                  * (for example, the macOS menu bar won't work properly if I don't do this)
@@ -176,7 +174,7 @@ public class Main {
                     Platform.exit();
                 }
             });
-            appPrefs.put("App version", appVersion);
+            Prefs.appPrefs.put("App version", appVersion);
         }
 
         @Override

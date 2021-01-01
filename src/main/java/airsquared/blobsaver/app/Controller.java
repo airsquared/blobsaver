@@ -38,12 +38,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 
 public class Controller {
 
@@ -61,13 +59,13 @@ public class Controller {
     @FXML private Label versionLabel;
 
     @FXML private Button readApnonceButton, startBackgroundButton, chooseTimeToRunButton, forceCheckForBlobs,
-            backgroundSettingsButton, savePresetButton;
+            backgroundSettingsButton, saveDeviceButton;
 
-    @FXML private Button preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button,
-            preset7Button, preset8Button, preset9Button, preset10Button;
-    private List<Button> presetButtons;
+    @FXML private Button device1Button, device2Button, device3Button, device4Button, device5Button, device6Button,
+            device7Button, device8Button, device9Button, device10Button;
+    private List<Button> savedDeviceButtons;
 
-    @FXML private VBox presetVBox;
+    @FXML private VBox savedDevicesVBox;
 
     @FXML private Button goButton;
 
@@ -75,7 +73,7 @@ public class Controller {
     private DialogPane aboutStage;
 
     private final SimpleBooleanProperty getBoardConfig = new SimpleBooleanProperty();
-    private boolean editingPresets = false;
+    private boolean editingSavedDevices = false;
     private boolean choosingRunInBackground = false;
 
 
@@ -120,12 +118,10 @@ public class Controller {
         Utils.addListenerToSetNullEffect(ecidField, versionField, boardConfigField, apnonceField, pathField, ipswField);
         setBindings();
 
-        presetButtons = Arrays.asList(preset1Button, preset2Button, preset3Button, preset4Button, preset5Button, preset6Button, preset7Button, preset8Button, preset9Button, preset10Button);
-        for (int i = 1; i <= 10; i++) { // sets the names for the presets
-            if (!Utils.isEmptyOrNull(Main.appPrefs.get("Name Preset" + i, ""))) {
-                Button btn = presetButtons.get(i - 1);
-                btn.setText("Load " + Main.appPrefs.get("Name Preset" + i, ""));
-            }
+        savedDeviceButtons = Arrays.asList(device1Button, device2Button, device3Button, device4Button, device5Button, device6Button, device7Button, device8Button, device9Button, device10Button);
+        for (int i = 1; i <= 10; i++) { // sets the names for the device buttons
+            Button btn = savedDeviceButtons.get(i - 1); // needed so it's 'effectively final'
+            Prefs.savedDevice(i).ifPresent(savedDevice -> btn.setText(savedDevice.getName()));
         }
 
         pathField.setText(System.getProperty("user.home") + File.separator + "Blobs");
@@ -239,90 +235,67 @@ public class Controller {
         }
     }
 
-    private void loadPreset(int preset) {
-        Preferences prefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
-        if (!prefs.getBoolean("Exists", false)) {
-            return;
-        }
-        ecidField.setText(prefs.get("ECID", ""));
-        if (!Utils.isEmptyOrNull(prefs.get("Path", ""))) {
-            pathField.setText(prefs.get("Path", ""));
-        }
-        if ("none".equals(prefs.get("Device Model", ""))) {
-            identifierCheckBox.setSelected(true);
-            identifierCheckBoxHandler();
-            identifierField.setText(prefs.get("Device Identifier", ""));
+    private void loadSavedDevice(Prefs.SavedDevice savedDevice) {
+        ecidField.setText(savedDevice.getEcid());
+        pathField.setText(savedDevice.getEcid());
+        String identifier = savedDevice.getIdentifier();
+        if (Devices.getDeviceModelIdentifiersMap().containsKey(identifier)) {
+            Utils.setSelectedFire(identifierCheckBox, false);
+            deviceTypeChoiceBox.setValue(Devices.getDeviceType(identifier));
+            deviceModelChoiceBox.setValue(Devices.getDeviceModelIdentifiersMap().get(identifier));
         } else {
-            identifierCheckBox.setSelected(false);
-            identifierCheckBoxHandler();
-            deviceTypeChoiceBox.setValue(prefs.get("Device Type", ""));
-            deviceModelChoiceBox.setValue(prefs.get("Device Model", ""));
+            Utils.setSelectedFire(identifierCheckBox, true);
+            identifierField.setText(identifier);
         }
-        if (!"none".equals(prefs.get("Board Config", "")) && getBoardConfig.get()) {
-            boardConfigField.setText(prefs.get("Board Config", ""));
-        }
-        if (!Utils.isEmptyOrNull(prefs.get("Apnonce", ""))) {
-            if (!apnonceCheckBox.isSelected()) {
-                apnonceCheckBox.fire();
-            }
-            apnonceField.setText(prefs.get("Apnonce", ""));
-        } else {
-            if (apnonceCheckBox.isSelected()) {
-                apnonceCheckBox.fire();
-            }
-        }
+        savedDevice.getBoardConfig().ifPresent(b -> boardConfigField.setText(b));
+        savedDevice.getApnonce().ifPresent(a -> {
+            Utils.setSelectedFire(apnonceCheckBox, true);
+            apnonceField.setText(a);
+        });
     }
 
-    public void presetButtonHandler(Event evt) {
+    public void savedDeviceButtonHandler(Event evt) {
         Button btn = (Button) evt.getTarget();
-        int preset = presetButtons.indexOf(btn) + 1;
-        if (editingPresets) {
-            savePreset(preset);
-            savePresetButton.fire();
+        int presNum = savedDeviceButtons.indexOf(btn) + 1;
+        if (editingSavedDevices) {
+            saveDevice(presNum);
+            saveDeviceButton.fire();
         } else if (choosingRunInBackground) {
-            Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
-            if (!presetPrefs.getBoolean("Exists", false)) {
-                Utils.showUnreportableError("Preset doesn't have anything");
+            Optional<Prefs.SavedDevice> savedDevice = Prefs.savedDevice(presNum);
+            if (!savedDevice.isPresent()) {
+                Utils.showUnreportableError("Device " + presNum + " doesn't exist");
                 return;
             }
             if (btn.getText().startsWith("Cancel ")) {
-                ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
-                presetsToSaveFor.remove(Integer.toString(preset));
-                if (presetsToSaveFor.isEmpty()) {
-                    Main.appPrefs.putBoolean("Background setup", false);
-                }
-                System.out.println("removed preset" + preset + " from list");
+                savedDevice.get().setBackground(false);
+                System.out.println("removed device" + presNum + " from list");
                 btn.setText("Use " + btn.getText().substring("Cancel ".length()));
-                Main.appPrefs.put("Presets to save in background", Utils.jsonStringFromList(presetsToSaveFor));
             } else {
-                loadPreset(preset);
-                if (betaCheckBox.isSelected()) betaCheckBox.fire();
-                if (!allSignedVersionsCheckBox.isSelected()) allSignedVersionsCheckBox.fire();
+                loadSavedDevice(savedDevice.get());
+                Utils.setSelectedFire(betaCheckBox, false);
+                Utils.setSelectedFire(allSignedVersionsCheckBox, true);
                 TSS tss = createTSS();
                 EventHandler<WorkerStateEvent> oldEventHandler = tss.getOnSucceeded();
                 tss.setOnSucceeded(event -> {
-                    ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
-                    presetsToSaveFor.add(Integer.toString(preset));
-                    Main.appPrefs.put("Presets to save in background", Utils.jsonStringFromList(presetsToSaveFor));
-                    Main.appPrefs.putBoolean("Background setup", true);
+                    savedDevice.get().setBackground(true);
                     btn.setText("Cancel " + btn.getText().substring("Use ".length()));
                     startBackgroundButton.setDisable(false);
                     forceCheckForBlobs.setDisable(false);
                     chooseTimeToRunButton.setDisable(false);
-                    System.out.println("added preset" + preset + " to list");
+                    System.out.println("added device" + presNum + " to list");
 
                     oldEventHandler.handle(event);
                 });
                 Utils.executeInThreadPool(tss);
-                showRunningAlert("Testing preset...");
+                showRunningAlert("Testing device...");
             }
         } else {
-            loadPreset(preset);
+            Prefs.savedDevice(presNum).ifPresent(this::loadSavedDevice);
         }
     }
 
     @SuppressWarnings("Duplicates")
-    private void savePreset(int preset) {
+    private void saveDevice(int num) {
         boolean doReturn = Utils.isFieldEmpty(!identifierCheckBox.isSelected(), deviceModelChoiceBox.getValue(), deviceModelChoiceBox);
         doReturn |= Utils.isFieldEmpty(true, ecidField);
         doReturn |= Utils.isFieldEmpty(identifierCheckBox, identifierField);
@@ -330,62 +303,54 @@ public class Controller {
         doReturn |= Utils.isFieldEmpty(apnonceCheckBox, apnonceField);
         if (doReturn) return;
 
-        TextInputDialog textInputDialog = new TextInputDialog(Main.appPrefs.get("Name Preset" + preset, "Preset " + preset));
-        textInputDialog.setTitle("Name Preset " + preset);
-        textInputDialog.setHeaderText("Name Preset");
-        textInputDialog.setContentText("Please enter a name for the preset:");
+        Prefs.SavedDevice pres = Prefs.createSavedDevice(num);
+        TextInputDialog textInputDialog = new TextInputDialog(pres.getName());
+        textInputDialog.setTitle("Name Device " + num);
+        textInputDialog.setHeaderText("Name Device");
+        textInputDialog.setContentText("Please enter a name for the device:");
         textInputDialog.showAndWait();
 
         String result = textInputDialog.getResult();
         if (!Utils.isEmptyOrNull(result)) {
-            Main.appPrefs.put("Name Preset" + preset, textInputDialog.getResult());
-            presetButtons.get(preset - 1).setText("Save in " + textInputDialog.getResult());
+            pres.setName(textInputDialog.getResult());
+            savedDeviceButtons.get(num - 1).setText("Save in " + textInputDialog.getResult());
         } else {
             return;
         }
 
-        Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + preset);
-        presetPrefs.putBoolean("Exists", true);
-        presetPrefs.put("ECID", ecidField.getText());
-        presetPrefs.put("Path", pathField.getText());
-        if (identifierCheckBox.isSelected()) {
-            presetPrefs.put("Device Type", "none");
-            presetPrefs.put("Device Model", "none");
-            presetPrefs.put("Device Identifier", identifierField.getText());
-        } else {
-            presetPrefs.put("Device Type", deviceTypeChoiceBox.getValue());
-            presetPrefs.put("Device Model", deviceModelChoiceBox.getValue());
-        }
+        pres.setEcid(ecidField.getText());
+        pres.setSavePath(pathField.getText());
+        pres.setIdentifier(identifierCheckBox.isSelected() ?
+                identifierField.getText() : Devices.textToIdentifier(deviceModelChoiceBox.getValue()));
+
         if (getBoardConfig.get()) {
-            presetPrefs.put("Board Config", boardConfigField.getText());
-        } else {
-            presetPrefs.put("Board Config", "none");
+            pres.setBoardConfig(boardConfigField.getText());
         }
         if (apnonceCheckBox.isSelected()) {
-            presetPrefs.put("Apnonce", apnonceField.getText());
+            pres.setApnonce(apnonceField.getText());
         }
     }
 
-    public void savePresetHandler() {
-        editingPresets = !editingPresets;
-        if (editingPresets) {
-            savePresetButton.setText("Back");
-            presetVBox.setEffect(Utils.borderGlow);
-            presetButtons.forEach(btn -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
+    public void saveDeviceHandler() {
+        editingSavedDevices = !editingSavedDevices;
+        if (editingSavedDevices) {
+            saveDeviceButton.setText("Back");
+            savedDevicesVBox.setEffect(Utils.borderGlow);
+            savedDeviceButtons.forEach(btn -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
             goButton.setDefaultButton(false);
             goButton.setDisable(true);
             backgroundSettingsButton.setVisible(false);
             backgroundSettingsButton.setManaged(false);
-            savePresetButton.setDefaultButton(true);
+            saveDeviceButton.setDefaultButton(true);
         } else {
-            savePresetButton.setDefaultButton(false);
+            saveDeviceButton.setDefaultButton(false);
             goButton.setDefaultButton(true);
             goButton.setDisable(false);
             backgroundSettingsButton.setVisible(true);
             backgroundSettingsButton.setManaged(true);
-            presetVBox.setEffect(null);
-            savePresetButton.setText("Save");
-            presetButtons.forEach(btn -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
+            savedDevicesVBox.setEffect(null);
+            saveDeviceButton.setText("Save");
+            savedDeviceButtons.forEach(btn -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
         }
     }
 
@@ -470,8 +435,8 @@ public class Controller {
         ((VBox) menuBar.getParent()).setMinHeight(560.0);
         ((VBox) menuBar.getParent()).setPrefHeight(560.0);
         ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
-        presetVBox.setMinHeight(560.0);
-        presetVBox.setPrefHeight(560.0);
+        savedDevicesVBox.setMinHeight(560.0);
+        savedDevicesVBox.setPrefHeight(560.0);
         menuBar.getMenus().get(0).getItems().clear(); // clear old options menu
 
         MenuToolkit tk = MenuToolkit.toolkit();
@@ -504,10 +469,9 @@ public class Controller {
         choosingRunInBackground = !choosingRunInBackground;
         if (choosingRunInBackground) {
             backgroundSettingsButton.setText("Back");
-            presetVBox.setEffect(Utils.borderGlow);
-            presetButtons.forEach(btn -> {
-                ArrayList<String> presetsToSaveFor = Background.getPresetsToSaveFor();
-                if (presetsToSaveFor.contains(Integer.toString(presetButtons.indexOf(btn) + 1))) {
+            savedDevicesVBox.setEffect(Utils.borderGlow);
+            savedDeviceButtons.forEach(btn -> {
+                if (Prefs.isDeviceInBackground(savedDeviceButtons.indexOf(btn) + 1)) {
                     btn.setText("Cancel " + btn.getText().substring("Load ".length()));
                 } else {
                     btn.setText("Use " + btn.getText().substring("Load ".length()));
@@ -519,9 +483,9 @@ public class Controller {
             setShowBackgroundSettings(true);
         } else {
             setShowBackgroundSettings(false);
-            presetVBox.setEffect(null);
+            savedDevicesVBox.setEffect(null);
             backgroundSettingsButton.setText("Background settings");
-            presetButtons.forEach(btn -> {
+            savedDeviceButtons.forEach(btn -> {
                 if (btn.getText().startsWith("Cancel ")) {
                     btn.setText("Load " + btn.getText().substring("Cancel ".length()));
                 } else {
@@ -534,14 +498,14 @@ public class Controller {
     private void setShowBackgroundSettings(boolean showBackgroundSettings) {
         goButton.setDefaultButton(!showBackgroundSettings);
         goButton.setDisable(showBackgroundSettings);
-        savePresetButton.setDisable(showBackgroundSettings);
-        savePresetButton.setVisible(!showBackgroundSettings);
-        savePresetButton.setManaged(!showBackgroundSettings);
+        saveDeviceButton.setDisable(showBackgroundSettings);
+        saveDeviceButton.setVisible(!showBackgroundSettings);
+        saveDeviceButton.setManaged(!showBackgroundSettings);
         backgroundSettingsButton.setDefaultButton(showBackgroundSettings);
         chooseTimeToRunButton.setVisible(showBackgroundSettings);
         forceCheckForBlobs.setVisible(showBackgroundSettings);
         startBackgroundButton.setVisible(showBackgroundSettings);
-        if (!showBackgroundSettings || !Main.appPrefs.getBoolean("Background setup", false)) {
+        if (!showBackgroundSettings || !Prefs.anyBackgroundDevices()) {
             startBackgroundButton.setDisable(showBackgroundSettings);
             forceCheckForBlobs.setDisable(showBackgroundSettings);
             chooseTimeToRunButton.setDisable(showBackgroundSettings);
@@ -552,7 +516,7 @@ public class Controller {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Frequency to check for new blobs");
         alert.setHeaderText("Frequency to check");
-        TextField textField = new TextField(Integer.toString(Main.appPrefs.getInt("Time to run", 1)));
+        TextField textField = new TextField(Integer.toString(Prefs.appPrefs.getInt("Time to run", 1)));
         // make it so user can only enter integers
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*")) {
@@ -560,13 +524,13 @@ public class Controller {
             }
         });
         ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList("Minutes", "Hours", "Days", "Weeks"));
-        choiceBox.setValue(Main.appPrefs.get("Time unit for background", "Days"));
+        choiceBox.setValue(Prefs.appPrefs.get("Time unit for background", "Days"));
         HBox hBox = new HBox(textField, choiceBox);
         alert.getDialogPane().setContent(hBox);
         alert.showAndWait();
         if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Utils.isEmptyOrNull(textField.getText()) && !Utils.isEmptyOrNull(choiceBox.getValue())) {
-            Main.appPrefs.putInt("Time to run", Integer.parseInt(textField.getText()));
-            Main.appPrefs.put("Time unit for background", choiceBox.getValue());
+            Prefs.appPrefs.putInt("Time to run", Integer.parseInt(textField.getText()));
+            Prefs.appPrefs.put("Time unit for background", choiceBox.getValue());
         } else {
             backgroundSettingsButton.fire(); //goes back to main menu
             return;
@@ -586,21 +550,16 @@ public class Controller {
         }
         if (Background.inBackground) { //stops background if already in background
             Background.stopBackground(true);
-            Main.appPrefs.putBoolean("Show background startup message", true);
-            Main.appPrefs.putBoolean("Start background immediately", false);
+            Prefs.appPrefs.putBoolean("Start background immediately", false);
             startBackgroundButton.setText("Start background");
-        } else if (Main.appPrefs.getBoolean("Show background startup message", true)) {
+        } else {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
                             + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
             alert.showAndWait();
-            Main.appPrefs.putBoolean("Show background startup message", false);
-            Main.appPrefs.putBoolean("Start background immediately", true);
+            Prefs.appPrefs.putBoolean("Start background immediately", true);
             startBackgroundButton.setText("Stop background");
             Background.startBackground(false);
-        } else {
-            Background.startBackground(false);
-            startBackgroundButton.setText("Stop Background");
         }
     }
 
@@ -620,7 +579,7 @@ public class Controller {
             if (confirmationAlert.getResult() == null || ButtonType.CANCEL.equals(confirmationAlert.getResult())) {
                 return;
             }
-            Utils.resetAppPrefs();
+            Prefs.resetPrefs();
             Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall from your programs/applications manager. Otherwise, you may just delete the app.\nThe application will now exit.", ButtonType.OK);
             applicationCloseAlert.showAndWait();
             Platform.exit();
