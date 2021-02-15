@@ -105,22 +105,8 @@ class Background {
     }
 
     private static void startExecutor() {
-        TimeUnit timeUnit;
-        int timeAmount = Prefs.appPrefs.getInt("Time to run", 1);
-        switch (Prefs.appPrefs.get("Time unit for background", "Days")) {
-            case "Minutes":
-                timeUnit = TimeUnit.MINUTES;
-                break;
-            case "Hours":
-                timeUnit = TimeUnit.HOURS;
-                break;
-            case "Weeks":
-                timeAmount *= 7;
-            case "Days":
-            default:
-                timeUnit = TimeUnit.DAYS;
-                break;
-        }
+        long timeAmount = Prefs.getBackgroundInterval();
+        TimeUnit timeUnit = Prefs.getBackgroundIntervalTimeUnit();
         executor.scheduleAtFixedRate(Background::saveAllBackgroundBlobs, 0, timeAmount, timeUnit);
         executor.scheduleAtFixedRate(() -> Utils.checkForUpdates(false), 1, 1, TimeUnit.DAYS);
     }

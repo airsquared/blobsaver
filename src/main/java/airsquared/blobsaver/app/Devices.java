@@ -28,7 +28,7 @@ import java.util.Properties;
 
 public class Devices {
 
-    private static final ObservableList<String> iPhones = FXCollections.observableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
+    private static final ObservableList<String> iPhones = unmodifiableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
             "iPhone 4 (GSM 2012)", "iPhone 4 (CDMA)", "iPhone 4[S]", "iPhone 5 (GSM)", "iPhone 5 (Global)",
             "iPhone 5c (GSM)", "iPhone 5c (Global)", "iPhone 5s (GSM)", "iPhone 5s (Global)",
             "iPhone 6+", "iPhone 6", "iPhone 6s", "iPhone 6s+", "iPhone SE", "iPhone 7 (Global)(iPhone9,1)",
@@ -41,11 +41,11 @@ public class Devices {
             "iPhone 12 Pro (iPhone13,3)", "iPhone 12 Pro Max (iPhone13,4)");
 
     private static final ObservableList<String> iPods =
-            FXCollections.observableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6",
+            unmodifiableArrayList("iPod Touch 3", "iPod Touch 4", "iPod Touch 5", "iPod Touch 6",
                     "iPod Touch 7 (iPod9,1)");
 
     private static final ObservableList<String> iPads =
-            FXCollections.observableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
+            unmodifiableArrayList("iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
                     "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
                     "iPad 3 (WiFi)", "iPad 3 (CDMA)", "iPad 3 (GSM)", "iPad 4 (WiFi)", "iPad 4 (GSM)", "iPad 4 (Global)",
                     "iPad Air (Wifi)", "iPad Air (Cellular)", "iPad Air (China)", "iPad Mini 2 (WiFi)", "iPad Mini 2 (Cellular)",
@@ -63,13 +63,27 @@ public class Devices {
                     "iPad Air 3 (WiFi)(iPad11,3)", "iPad Air 3 (Cellular)(iPad11,4)");
 
     private static final ObservableList<String> AppleTVs =
-            FXCollections.observableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
+            unmodifiableArrayList("Apple TV 2G", "Apple TV 3", "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
 
-    private static final ObservableList<String> deviceTypes = FXCollections.observableArrayList("iPhone", "iPod", "iPad", "AppleTV");
+    private static final ObservableList<String> deviceTypes = unmodifiableArrayList("iPhone", "iPod", "iPad", "AppleTV");
 
     private static final HashMap<String, String> requiresBoardConfig = new HashMap<>();
 
-    private static HashMap<String, String> deviceModelIdentifiers = null;
+    private static final Map<String, String> deviceModelIdentifiers;
+
+    private static final Map<String, String> identifierDeviceModels = new HashMap<>();
+
+    static {
+        try {
+            Properties properties = new Properties();
+            properties.load(Devices.class.getResourceAsStream("devicemodels.properties"));
+            //noinspection unchecked,rawtypes
+            deviceModelIdentifiers = (Map) properties;
+            deviceModelIdentifiers.forEach((k, v) -> identifierDeviceModels.put(v, k));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     static {
         requiresBoardConfig.put("iPhone13,4", "D54pAP");
@@ -111,52 +125,84 @@ public class Devices {
         return deviceTypes;
     }
 
-    static HashMap<String, String> getRequiresBoardConfigMap() {
-        return requiresBoardConfig;
+    static boolean containsIdentifier(String identifier) {
+        return identifierDeviceModels.containsKey(identifier);
     }
 
-    static HashMap<String, String> getDeviceModelIdentifiersMap() {
-        if (deviceModelIdentifiers == null) {
-            try {
-                Properties properties = new Properties();
-                properties.load(Devices.class.getResourceAsStream("devicemodels.properties"));
-                @SuppressWarnings("unchecked") Map<String, String> prop = ((Map) properties);
-                deviceModelIdentifiers = new HashMap<>(prop);
-                prop.forEach((key, value) -> deviceModelIdentifiers.put(value, key));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    static String getBoardConfig(String identifier) {
+        return requiresBoardConfig.get(identifier);
+    }
+
+    static String identifierToModel(String identifier) {
+        if (identifier == null) {
+            return null;
         }
-        return deviceModelIdentifiers;
+        return identifierDeviceModels.get(identifier);
     }
 
-    static String textToIdentifier(String deviceModel) {
-        return Devices.getDeviceModelIdentifiersMap().getOrDefault(deviceModel, "");
+    static String modelToIdentifier(String deviceModel) {
+        if (deviceModel == null) {
+            return null;
+        }
+        return deviceModelIdentifiers.get(deviceModel);
     }
 
     /**
      * @return either "iPhone", "iPod", "iPad", or "AppleTV"
      */
-    static String getDeviceType(String deviceIdentifier) {
-        if (deviceIdentifier.startsWith("iPhone")) {
+    static String getDeviceType(String identifier) {
+        if (identifier.startsWith("iPhone")) {
             return "iPhone";
-        } else if (deviceIdentifier.startsWith("iPod")) {
+        } else if (identifier.startsWith("iPod")) {
             return "iPod";
-        } else if (deviceIdentifier.startsWith("iPad")) {
+        } else if (identifier.startsWith("iPad")) {
             return "iPad";
-        } else if (deviceIdentifier.startsWith("AppleTV")) {
+        } else if (identifier.startsWith("AppleTV")) {
             return "AppleTV";
         }
-        throw new IllegalArgumentException("Not found: " + deviceIdentifier);
+        throw new IllegalArgumentException("Not found: " + identifier);
+    }
+
+    static ObservableList<String> getModelsForType(String deviceType) {
+        switch (deviceType == null ? "" : deviceType) {
+            case "iPhone":
+                return iPhones;
+            case "iPod":
+                return iPods;
+            case "iPad":
+                return iPads;
+            case "AppleTV":
+                return AppleTVs;
+            default:
+                return FXCollections.emptyObservableList();
+        }
+    }
+
+    static String getOSNameForType(String deviceType) {
+        switch (deviceType == null ? "" : deviceType) {
+            case "iPhone":
+            case "iPod":
+                return "iOS";
+            case "iPad":
+                return "iOS/iPadOS";
+            case "AppleTV":
+                return "tvOS";
+            default:
+                return null;
+        }
     }
 
     static boolean doesRequireBoardConfig(String deviceIdentifier) {
-        return getRequiresBoardConfigMap().containsKey(deviceIdentifier) ||
-                !getDeviceModelIdentifiersMap().containsKey(deviceIdentifier);
+        return requiresBoardConfig.containsKey(deviceIdentifier) || !containsIdentifier(deviceIdentifier);
     }
 
     static boolean doesRequireApnonce(String deviceIdentifier) {
         return deviceIdentifier.startsWith("iPhone11,") || deviceIdentifier.startsWith("iPhone12,") ||
                 deviceIdentifier.startsWith("iPad8,") || deviceIdentifier.startsWith("iPad11,");
+    }
+
+    @SafeVarargs
+    private static <T> ObservableList<T> unmodifiableArrayList(T... items) {
+        return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(items));
     }
 }

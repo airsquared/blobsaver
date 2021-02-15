@@ -122,7 +122,7 @@ public class Main {
         System.setProperty("jna.nounpack", "true");
     }
 
-    public static class JavaFxApplication extends Application {
+    public static final class JavaFxApplication extends Application {
 
         private static Application INSTANCE;
 
@@ -155,7 +155,7 @@ public class Main {
             Utils.checkForUpdates(false);
             Platform.setImplicitExit(false);
             showStage();
-            if (Prefs.appPrefs.getBoolean("Start background immediately", false)) {
+            if (Prefs.getStartBackgroundImmediately()) {
                 /* I have to show the stage then hide it again in Platform.runLater() otherwise
                  * the needed initialization code won't run at the right time when starting the background
                  * (for example, the macOS menu bar won't work properly if I don't do this)
@@ -174,7 +174,7 @@ public class Main {
                     Platform.exit();
                 }
             });
-            Prefs.appPrefs.put("App version", appVersion);
+            Prefs.setLastAppVersion(appVersion);
         }
 
         @Override

@@ -23,6 +23,13 @@ import com.sun.jna.Pointer;
 
 public class Libfragmentzip {
 
+    public static int downloadFile(String url, String remotePath, String savePath) {
+        Pointer fragmentzip = open(url);
+        int err = downloadFile(fragmentzip, remotePath, savePath);
+        close(fragmentzip);
+        return err;
+    }
+
     public static Pointer open(String url) {
         return fragmentzip_open(url);
     }

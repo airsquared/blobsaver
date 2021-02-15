@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -189,7 +190,7 @@ public class TSS extends Task<String> {
             throw new TSSException("The iOS/tvOS is not being signed for device " + deviceIdentifier, false);
         } else if (containsIgnoreCase(tsscheckerLog, "failed to load manifest")) {
             if (manualIpswURL != null) {
-                throw new TSSException("Failed to load manifest. The IPSW URL might not be valid.\n\n" +
+                throw new TSSException("Failed to load manifest. The IPSW URL is not valid.\n\n" +
                         "Make sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"", false);
             } else {
                 throw new TSSException("Failed to load manifest.", true, tsscheckerLog);
@@ -202,13 +203,7 @@ public class TSS extends Task<String> {
 
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
-        private String device;
-        private String ecid;
-        private String savePath;
-        private String boardConfig;
-        private String manualVersion;
-        private String manualIpswURL;
-        private String apnonce;
+        private String device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce;
 
         public Builder setDevice(String device) {
             this.device = device;
@@ -248,11 +243,10 @@ public class TSS extends Task<String> {
         }
 
         public TSS build() {
-            // only manualVersion, manualIPSW, boardconfig, and apnonce can be null
-            if (device == null || ecid == null || savePath == null) {
-                throw new IllegalStateException();
-            }
-            return new TSS(device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce);
+            return new TSS(Objects.requireNonNull(device, "Device"),
+                    Objects.requireNonNull(ecid, "ECID"),
+                    Objects.requireNonNull(savePath, "Save Path"),
+                    boardConfig, manualVersion, manualIpswURL, apnonce);
         }
     }
 

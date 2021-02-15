@@ -20,7 +20,6 @@ package airsquared.blobsaver.app;
 
 import airsquared.blobsaver.app.natives.Libfragmentzip;
 import com.sun.javafx.PlatformUtil;
-import com.sun.jna.Pointer;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -30,6 +29,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -54,6 +54,8 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class Utils {
 
@@ -94,8 +96,7 @@ final class Utils {
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-            if (!Main.appVersion.equals(newVersion) &&
-                    (forceCheck || !Prefs.appPrefs.get("Ignore Version", "").equals(newVersion))) {
+            if (!Main.appVersion.equals(newVersion) && (forceCheck || !Prefs.shouldIgnoreVersion(newVersion))) {
                 Platform.runLater(() -> {
                     ButtonType downloadNow = new ButtonType("Download");
                     ButtonType ignore = new ButtonType("Ignore this update");
@@ -110,7 +111,7 @@ final class Utils {
                     if (alert.getResult().equals(downloadNow)) {
                         openURL("https://github.com/airsquared/blobsaver/releases");
                     } else if (alert.getResult().equals(ignore)) {
-                        Prefs.appPrefs.put("Ignore Version", newVersion);
+                        Prefs.setIgnoreVersion(newVersion);
                     }
                 });
             } else if (forceCheck) {
@@ -293,8 +294,9 @@ final class Utils {
         return dirChooser.showDialog(window);
     }
 
-    static String jsonStringFromList(List<String> list) {
-        return new JSONArray(list).toString();
+    static TextFormatter<String> intOnlyFormatter() {
+        final Matcher matcher = Pattern.compile("[0-9]*").matcher("");
+        return new TextFormatter<>(change -> matcher.reset(change.getText()).matches() ? change : null);
     }
 
     static boolean isFieldEmpty(CheckBox checkBox, TextField textField) {
@@ -358,32 +360,30 @@ final class Utils {
         @Override
         public String toString() {
             if (versionString == null) {
-                return "IOSVersion{" +
-                        '\'' + ipswURL + '\'' +
-                        '}';
+                return "IOSVersion{'" + ipswURL + "'}";
             }
-            return "IOSVersion{" +
-                    '\'' + versionString + '\'' +
-                    ", '" + ipswURL + '\'' +
-                    ", signed=" + signed +
-                    '}';
+            return "IOSVersion{'" + versionString + "', '" + ipswURL + "', signed=" + signed + '}';
         }
     }
 
     static File extractBuildManifest(String url) throws IOException {
         File buildManifest = File.createTempFile("BuildManifest", ".plist");
         System.out.println("Extracting build manifest from " + url);
-        Pointer fragmentzip = Libfragmentzip.open(url);
-        try {
-            int err = Libfragmentzip.downloadFile(fragmentzip, "BuildManifest.plist", buildManifest.getAbsolutePath());
-            if (err != 0) {
-                throw new IOException("problem with libfragmentzip download: code=" + err);
-            }
-            System.out.println("Extracted to " + buildManifest);
-            return buildManifest;
-        } finally {
-            Libfragmentzip.close(fragmentzip);
+        int err = Libfragmentzip.downloadFile(url, "BuildManifest.plist", buildManifest.getAbsolutePath());
+        if (err != 0) {
+            throw new IOException("problem with libfragmentzip download: code=" + err);
         }
+        System.out.println("Extracted to " + buildManifest);
+        return buildManifest;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked", "SameParameterValue"})
+    static <T> List<T> subList(List list, int endIndex) {
+        ArrayList<T> arrayList = new ArrayList<>();
+        for (int i = 0; i < endIndex; i++) {
+            arrayList.add((T) list.get(i));
+        }
+        return arrayList;
     }
 
     static String exceptionToString(Throwable t) {
@@ -396,13 +396,10 @@ final class Utils {
         return s == null || s.isEmpty();
     }
 
-    static void addListenerToSetNullEffect(TextField... textFields) {
-        for (TextField textField : textFields) {
-            textField.textProperty().addListener((x, y, z) -> textField.setEffect(null));
-        }
+    static <T> T defaultIfNull(T object, T def) {
+        return (object == null) ? def : object;
     }
 
-    // temporary until ProGuard is implemented
     static boolean containsIgnoreCase(final String str, final String searchStr) {
         if (str == null || searchStr == null) {
             return false;
