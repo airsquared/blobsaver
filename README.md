@@ -1,6 +1,6 @@
 Help support this project by ⭐️'ing it! [Donations](https://www.paypal.me/airsqrd) also appreciated!
 
-# blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/21c7f52476c948c9adc0439c0b6841ad)](https://app.codacy.com/app/airsquared/blobsaver?utm_source=github.com&utm_medium=referral&utm_content=airsquared/blobsaver&utm_campaign=Badge_Grade_Dashboard)
+# blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0d4fdc1daca5402a8c57efc3bef73d31)](https://www.codacy.com/gh/airsquared/blobsaver/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=airsquared/blobsaver&amp;utm_campaign=Badge_Grade)
 A GUI for saving SHSH blobs using [tsschecker](https://github.com/tihmstar/tsschecker). Supports macOS, Windows, and Linux.
 
 [Download here](https://github.com/airsquared/blobsaver/releases) (Requires [Java](https://java.com/en/download/manual.jsp))
