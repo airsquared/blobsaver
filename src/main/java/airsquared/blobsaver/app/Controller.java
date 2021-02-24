@@ -38,6 +38,7 @@ import javafx.stage.Modality;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.BackingStoreException;
@@ -365,11 +366,11 @@ public class Controller {
     }
 
     public void backgroundSettingsHandler() {
-        if (!backgroundSettingsButton.isSelected() || !Prefs.anyBackgroundDevices()) {
-            startBackgroundButton.setDisable(true);
-            forceCheckForBlobs.setDisable(true);
-            chooseTimeToRunButton.setDisable(true);
-        }
+        boolean disableBackgroundSettings = !Prefs.anyBackgroundDevices();
+        startBackgroundButton.setDisable(disableBackgroundSettings);
+        forceCheckForBlobs.setDisable(disableBackgroundSettings);
+        chooseTimeToRunButton.setDisable(disableBackgroundSettings);
+
         if (backgroundSettingsButton.isSelected()) {
             backgroundSettingsButton.setText("Back");
             savedDevicesVBox.setEffect(Utils.borderGlow);
@@ -380,7 +381,7 @@ public class Controller {
                     btn.setText("Use " + btn.getText().substring("Load ".length()));
                 }
             });
-            if (Background.inBackground) {
+            if (Background.isBackgroundEnabled()) {
                 startBackgroundButton.setText("Stop Background");
             }
         } else {
@@ -409,46 +410,34 @@ public class Controller {
         alert.getDialogPane().setContent(new HBox(textField, choiceBox));
         alert.showAndWait();
         if ((alert.getResult() != null) && !ButtonType.CANCEL.equals(alert.getResult()) && !Utils.isEmptyOrNull(textField.getText()) && !Utils.isEmptyOrNull(choiceBox.getValue())) {
-            Prefs.setBackgroundInterval(Long.parseLong(textField.getText()), TimeUnit.valueOf(choiceBox.getValue()));
+            Prefs.setBackgroundInterval(Long.parseLong(textField.getText()), TimeUnit.valueOf(choiceBox.getValue().toUpperCase(Locale.ENGLISH)));
         } else {
             backgroundSettingsButton.fire(); //goes back to main menu
             return;
         }
-        if (Background.inBackground) {
-            ButtonType stopBackgroundButtonType = new ButtonType("Stop Background");
+        if (Background.isBackgroundEnabled()) {
             Alert restartBackgroundAlert = new Alert(Alert.AlertType.INFORMATION,
-                    "You will need to restart the background for changes to take effect.", stopBackgroundButtonType);
+                    "You will need to restart the background for changes to take effect.", new ButtonType("Stop Background"));
             restartBackgroundAlert.showAndWait();
             startBackgroundButton.fire();
         }
     }
 
     public void startBackgroundHandler() {
-        if (!java.awt.SystemTray.isSupported()) {
-            Utils.showUnreportableError("System Tray is not supported on your OS/platform. Saving blobs in the background will not work without System Tray support.");
-        }
-        if (Background.inBackground) { //stops background if already in background
-            Background.stopBackground(true);
-            Prefs.setStartBackgroundImmediately(false);
+        if (Background.isBackgroundEnabled()) { //stops background if already in background
+            Background.stopBackground();
             startBackgroundButton.setText("Start background");
         } else {
+            Background.startBackground();
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "The application will now enter the background. By default, when you launch this application, it will start up in the background. "
-                            + "If you would like to show the window, find the icon in your system tray/status bar and click on \"Open Window\"", ButtonType.OK);
+                    "Background saving has been enabled. You can now close this application and it will continue saving blobs at the interval you set, and won't use any resources when it is not running.", ButtonType.OK);
             alert.showAndWait();
-            Prefs.setStartBackgroundImmediately(true);
             startBackgroundButton.setText("Stop background");
-            Background.startBackground(false);
         }
     }
 
     public void forceCheckForBlobsHandler() {
-        if (Background.inBackground) {
-            Background.stopBackground(false);
-            Background.startBackground(false);
-        } else {
-            Background.startBackground(true);
-        }
+        Background.runOnce();
     }
 
     public void resetAppHandler() {

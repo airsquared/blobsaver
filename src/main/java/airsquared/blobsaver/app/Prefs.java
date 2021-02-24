@@ -19,6 +19,7 @@
 package airsquared.blobsaver.app;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.BackingStoreException;
@@ -97,15 +98,7 @@ class Prefs {
     }
 
     public static TimeUnit getBackgroundIntervalTimeUnit() {
-        return TimeUnit.valueOf(appPrefs.get("Time unit for background", "Days"));
-    }
-
-    public static void setStartBackgroundImmediately(boolean b) {
-        appPrefs.putBoolean("Start background immediately", b);
-    }
-
-    public static boolean getStartBackgroundImmediately() {
-        return appPrefs.getBoolean("Start background immediately", false);
+        return TimeUnit.valueOf(appPrefs.get("Time unit for background", "DAYS"));
     }
 
     public static class SavedDevice {
@@ -220,14 +213,11 @@ class Prefs {
         }
 
         public SavedDevice save() {
-            if (name == null || ecid == null || savePath == null || identifier == null) {
-                throw new NullPointerException();
-            }
             SavedDevice device = new SavedDevice(number);
-            device.setName(name);
-            device.setEcid(ecid);
-            device.setSavePath(savePath);
-            device.setIdentifier(identifier);
+            device.setName(Objects.requireNonNull(name, "Device Name"));
+            device.setEcid(Objects.requireNonNull(ecid, "ECID"));
+            device.setSavePath(Objects.requireNonNull(savePath, "Save Path"));
+            device.setIdentifier(Objects.requireNonNull(identifier, "Identifier"));
             if (boardConfig != null) {
                 device.setBoardConfig(boardConfig);
             }

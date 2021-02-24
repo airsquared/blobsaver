@@ -22,6 +22,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -81,7 +82,7 @@ public class Devices {
             deviceModelIdentifiers = (Map) properties;
             deviceModelIdentifiers.forEach((k, v) -> identifierDeviceModels.put(v, k));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

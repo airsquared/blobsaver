@@ -22,13 +22,11 @@ import com.sun.javafx.PlatformUtil;
 import it.sauronsoftware.junique.AlreadyLockedException;
 import it.sauronsoftware.junique.JUnique;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import me.matetoes.libdockvisibility.DockVisibility;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +35,7 @@ import java.nio.file.Paths;
 
 public class Main {
 
-    static final String appVersion = "v2.5.5";
+    static final String appVersion = "v3.0b0";
     static Stage primaryStage;
     static final File jarDirectory;
     static final boolean runningFromJar;
@@ -62,6 +60,11 @@ public class Main {
     static final boolean SHOW_BREAKPOINT = false;
 
     public static void main(String[] args) {
+        setJNALibraryPath();
+        if (args.length == 1 && args[0].equals("--background-autosave")) {
+            Background.saveAllBackgroundBlobs(); // don't unnecessarily initialize any FX
+            return;
+        }
         try {
             Class.forName("javafx.application.Application");
             if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
@@ -72,33 +75,12 @@ public class Main {
                     System.exit(-1);
                 }
             }
-            setJNALibraryPath();
             JavaFxApplication.launch(JavaFxApplication.class, args);
         } catch (ClassNotFoundException e) {
             javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. " +
                     "Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx." +
                     "\nOn Linux, use sudo apt-get install openjfx", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
             System.exit(-1);
-        }
-    }
-
-    static void showStage() {
-        if (PlatformUtil.isMac()) {
-            DockVisibility.show();
-        }
-        try {
-            primaryStage.show();
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        primaryStage.centerOnScreen();
-        primaryStage.requestFocus();
-    }
-
-    static void hideStage() {
-        primaryStage.hide();
-        if (PlatformUtil.isMac()) {
-            DockVisibility.hide();
         }
     }
 
@@ -130,8 +112,8 @@ public class Main {
             return INSTANCE;
         }
 
-        @Override
-        public void init() {
+        public JavaFxApplication() {
+            super();
             INSTANCE = this;
         }
 
@@ -153,36 +135,9 @@ public class Main {
             }
             primaryStage.setResizable(false);
             Utils.checkForUpdates(false);
-            Platform.setImplicitExit(false);
-            showStage();
-            if (Prefs.getStartBackgroundImmediately()) {
-                /* I have to show the stage then hide it again in Platform.runLater() otherwise
-                 * the needed initialization code won't run at the right time when starting the background
-                 * (for example, the macOS menu bar won't work properly if I don't do this)
-                 */
-                Platform.runLater(() -> {
-                    hideStage();
-                    Background.startBackground(false);
-                });
-            }
-            //if in background, hide; else quit
-            primaryStage.setOnCloseRequest(event -> {
-                event.consume();
-                if (Background.inBackground) {
-                    hideStage();
-                } else {
-                    Platform.exit();
-                }
-            });
+            primaryStage.show();
             Prefs.setLastAppVersion(appVersion);
         }
 
-        @Override
-        public void stop() {
-            if (Background.inBackground) {
-                Background.stopBackground(false);
-            }
-            System.exit(0);
-        }
     }
 }

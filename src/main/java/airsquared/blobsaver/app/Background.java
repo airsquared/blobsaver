@@ -18,105 +18,107 @@
 
 package airsquared.blobsaver.app;
 
-import eu.hansolo.enzo.notification.Notification;
-import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.util.Duration;
+import com.sun.javafx.PlatformUtil;
 
-import javax.imageio.ImageIO;
-import javax.swing.SwingUtilities;
-import java.awt.AWTException;
-import java.awt.Font;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
-import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 
 class Background {
 
-    static boolean inBackground = false;
+    private static final String backgroundLabel = "airsquared.blobsaver.app.BackgroundService";
 
-    private static ScheduledExecutorService executor;
-    private static TrayIcon trayIcon;
+    private static final String plistFilePath = System.getProperty("user.home")
+            + "/Library/LaunchAgents/" + backgroundLabel + ".plist";
 
-    static void startBackground(boolean runOnlyOnce) {
-        if (runOnlyOnce) {
-            saveAllBackgroundBlobs();
+
+    private static void macosBackgroundFile() {
+//        String executablePath = Utils.getBlobsaverExecutable().getAbsolutePath();
+        String java = System.getProperty("java.home") + "/bin/java";
+        String executablePath = new File(Main.jarDirectory, "blobsaver.jar").getAbsolutePath();
+        long interval = Prefs.getBackgroundIntervalTimeUnit().toSeconds(Prefs.getBackgroundInterval());
+        // eventually replace with Java 15 text blocks
+        //language=XML
+        String plist = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" +
+                "<plist>" +
+                "<dict>" +
+                "<key>Label</key>" +
+                "<string>airsquared.blobsaver.app.BackgroundService</string>" +
+                "<key>ProgramArguments</key>" +
+                "<array>" +
+                "  <string>" + java + "</string>" +
+                "  <string>-jar</string>" +
+                "  <string>" + executablePath + "</string>" +
+                "  <string>--background-autosave</string>" +
+                "</array>" +
+                "<key>RunAtLoad</key>" +
+                "<true/>" +
+                "<key>StartInterval</key>" +
+                "<integer>" + interval + "</integer>" +
+                "</dict>" +
+                "</plist>";
+        try {
+            Files.write(Paths.get(plistFilePath), plist.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void startBackground() {
+        // TODO: throw exception and show to user if background is not available
+        if (PlatformUtil.isMac()) {
+            macosBackgroundFile();
+            launchctl("load", "-w", plistFilePath);
+        } else if (PlatformUtil.isWindows()) {
+            // TODO: schtasks
         } else {
-            if (Main.primaryStage.isShowing()) {
-                Main.hideStage();
-            }
-            Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
-            Notification.Notifier.INSTANCE.notifyInfo("Background process has started", "Check your system tray/status bar for\nthe icon.");
-
-            inBackground = true;
-            executor = Executors.newScheduledThreadPool(1);
-
-            try {
-                trayIcon = createTrayIcon();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            // add the application tray icon to the system tray.
-            try {
-                SystemTray.getSystemTray().add(trayIcon);
-                System.out.println("in tray");
-            } catch (AWTException e) {
-                throw new RuntimeException(e);
-            }
-
-            startExecutor();
+            // TODO: systemd timers
         }
     }
 
-    private static TrayIcon createTrayIcon() throws IOException {
-        TrayIcon trayIcon = new TrayIcon(ImageIO.read(Background.class.getResourceAsStream("blob_emoji.png")),
-                "blobsaver " + Main.appVersion);
-        trayIcon.setImageAutoSize(true);
+    public static void stopBackground() {
+        launchctl("unload", "-w", plistFilePath);
+    }
 
-        ActionListener showListener = event -> Platform.runLater(Main::showStage);
-        MenuItem openItem = new MenuItem("Open window");
-        openItem.addActionListener(showListener);
-        openItem.setFont(Font.decode(null).deriveFont(Font.BOLD)); // bold it
-
-        MenuItem exitItem = new MenuItem("Quit");
-        exitItem.addActionListener(event -> Platform.runLater(Platform::exit));
-
-        // setup the popup menu for the application.
-        final PopupMenu popup = new PopupMenu();
-        popup.add(openItem);
-        popup.addSeparator();
-        popup.add(exitItem);
-        if (Main.SHOW_BREAKPOINT) {
-            MenuItem breakpointItem = new MenuItem("Breakpoint");
-            breakpointItem.addActionListener(e -> System.out.println("breakpoint"));
-            popup.add(breakpointItem);
+    public static boolean isBackgroundEnabled() {
+        // don't use Utils.executeProgram() because don't need to print any output
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new ProcessBuilder("/bin/launchctl", "list").start().getInputStream()))) {
+            return reader.lines().anyMatch(s -> s.contains(backgroundLabel));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        trayIcon.setPopupMenu(popup);
-        trayIcon.addActionListener(showListener);
-        return trayIcon;
     }
 
-    private static void startExecutor() {
-        long timeAmount = Prefs.getBackgroundInterval();
-        TimeUnit timeUnit = Prefs.getBackgroundIntervalTimeUnit();
-        executor.scheduleAtFixedRate(Background::saveAllBackgroundBlobs, 0, timeAmount, timeUnit);
-        executor.scheduleAtFixedRate(() -> Utils.checkForUpdates(false), 1, 1, TimeUnit.DAYS);
+    private static void launchctl(String... args) {
+        ArrayList<String> arguments = new ArrayList<>(args.length + 1);
+        arguments.add("/bin/launchctl");
+        Collections.addAll(arguments, args);
+        try {
+            Utils.executeProgram(arguments);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
-    private static void saveAllBackgroundBlobs() {
-        Prefs.getBackgroundDevices().forEach(Background::saveBackgroundBlobs);
+    public static void runOnce() {
+        launchctl("start", backgroundLabel);
+    }
+
+    public static void saveAllBackgroundBlobs() {
+        Prefs.getBackgroundDevices().forEach(Background::saveBlobs);
         System.out.println("Done saving all background blobs");
     }
 
-    private static void saveBackgroundBlobs(Prefs.SavedDevice savedDevice) {
+    private static void saveBlobs(Prefs.SavedDevice savedDevice) {
         System.out.println("attempting to save for device " + savedDevice.number);
 
         TSS.Builder builder = new TSS.Builder().setDevice(savedDevice.getIdentifier())
@@ -124,55 +126,13 @@ class Background {
         savedDevice.getBoardConfig().ifPresent(builder::setBoardConfig);
         savedDevice.getApnonce().ifPresent(builder::setApnonce);
 
-        TSS tss = builder.build();
-        tss.setOnSucceeded(event -> {
-            Notification notification = new Notification("Successfully saved blobs for", savedDevice.getName(), Notification.SUCCESS_ICON);
-            Notification.Notifier.INSTANCE.setPopupLifetime(Duration.seconds(30));
-            Notification.Notifier.INSTANCE.notify(notification);
-        });
-        tss.setOnFailed(event -> {
-            Notification notification = new Notification("Saving blobs failed", "Click here to view more.", Notification.ERROR_ICON);
-            Notification.Notifier.INSTANCE.setPopupLifetime(Duration.minutes(1));
-            Notification.Notifier.INSTANCE.setOnNotificationPressed(event1 -> {
-                Notification.Notifier.INSTANCE.stop();
-                Main.showStage();
-                Throwable t = tss.getException();
-                t.printStackTrace();
-                if (t instanceof TSS.TSSException) {
-                    TSS.TSSException e = (TSS.TSSException) t;
-                    if (e.isReportable && e.tssLog != null) {
-                        Utils.showReportableError(e.getMessage(), e.tssLog);
-                    } else if (e.isReportable) {
-                        Utils.showReportableError(e.getMessage(), Utils.exceptionToString(e));
-                    } else {
-                        Utils.showUnreportableError(e.getMessage());
-                    }
-                } else {
-                    Utils.showReportableError("An unknown error occurred.", Utils.exceptionToString(t));
-                }
-                Notification.Notifier.INSTANCE.setOnNotificationPressed(null);
-            });
-            Notification.Notifier.INSTANCE.notify(notification);
-        });
-        Utils.executeInThreadPool(tss);
+        try {
+            builder.build().call();
+            // TODO: show a notification
+        } catch (Throwable t) {
+            t.printStackTrace();
+            // TODO: log it or show a notification
+        }
     }
 
-    static void stopBackground(boolean showAlert) {
-        inBackground = false;
-        executor.shutdownNow();
-        if (SwingUtilities.isEventDispatchThread()) {
-            SystemTray.getSystemTray().remove(trayIcon);
-        } else {
-            SwingUtilities.invokeLater(() -> SystemTray.getSystemTray().remove(trayIcon));
-        }
-        if (showAlert) {
-            Utils.runSafe(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                        "The background process has been cancelled",
-                        ButtonType.OK);
-                alert.showAndWait();
-            });
-        }
-        System.out.println("Stopped background");
-    }
 }

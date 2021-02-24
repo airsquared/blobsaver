@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -66,14 +67,18 @@ final class Utils {
     static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
 
     private static File platformDistDir; // only used when running from IDE
-    private static File tsschecker;
+    private static File tsschecker, blobsaverExecutable;
     private static File licenseFile, librariesUsedFile;
 
-    private static ExecutorService threadPool;
+    static ExecutorService threadPool;
 
     public static void executeInThreadPool(Runnable command) {
         if (threadPool == null) {
-            threadPool = Executors.newCachedThreadPool();
+            threadPool = Executors.newCachedThreadPool(r -> {
+                Thread t = new Thread(r);
+                t.setDaemon(true); // don't prevent application from exiting
+                return t;
+            });
         }
         threadPool.execute(command);
     }
@@ -85,7 +90,7 @@ final class Utils {
                 response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
             } catch (IOException e) {
                 Platform.runLater(() -> showReportableError("Unable to check for updates.", e.toString()));
-                throw new RuntimeException(e);
+                throw new UncheckedIOException(e);
             }
             String newVersion;
             String changelog;
@@ -176,6 +181,15 @@ final class Utils {
         tsschecker.setReadable(true, false);
         tsschecker.setExecutable(true, false);
         return tsschecker;
+    }
+
+    static File getBlobsaverExecutable() {
+        if (blobsaverExecutable != null) return blobsaverExecutable;
+
+        if (!Main.runningFromJar) {
+            throw new IllegalStateException();
+        }
+        return new File(Main.jarDirectory.getParentFile(), "MacOS/JavaAppLauncher");
     }
 
     static File getLicenseFile() {
