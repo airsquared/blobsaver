@@ -22,6 +22,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 plugins {
     id 'java'
     id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.9'
     id 'edu.sc.seis.launch4j' version '2.4.9' // for bundling into .exe
     id 'com.github.johnrengelman.shadow' version '6.1.0' // for fat jar
     id 'com.github.ben-manes.versions' version '0.36.0'
@@ -32,7 +33,6 @@ plugins {
  *  - Main.java
  */
 version "v3.0b0"
-sourceCompatibility = 1.8
 mainClassName = "airsquared.blobsaver.app.Main"
 String appIdentifier = "airsquared.blobsaver.app"
 String copyright = "Copyright (c) 2020 airsquared"
@@ -45,11 +45,16 @@ test {
     useJUnitPlatform()
 }
 
+javafx {
+    version = "15.0.1"
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
 dependencies {
     implementation group: 'org.json', name: 'json', version: '20201115'
     implementation fileTree(dir: 'libs', include: ['*.jar'], excludes: ['**/sources/**'])
     implementation group: 'it.sauronsoftware', name: 'junique', version: '1.0.4'
-    implementation "de.codecentric.centerdevice:centerdevice-nsmenufx:2.1.7"
+    implementation 'de.jangassen:nsmenufx:3.1.0'
     implementation 'net.java.dev.jna:jna:5.6.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
@@ -77,7 +82,6 @@ shadowJar {
             "**/darwin/*", "**/win32-x86/*", "**/win32-x86-64/*", "**/openbsd-x86/*", "**/openbsd-x86-64/*",
             "**/freebsd-x86/*", "**/freebsd-x86-64/*", "**/sunos-sparc/*", "**/sunos-sparcv9/*", "**/sunos-x86/*", "**/sunos-x86-64/*"
     includeEmptyDirs = false
-    minimize()
 }
 
 task createMacApp(dependsOn: shadowJar) {

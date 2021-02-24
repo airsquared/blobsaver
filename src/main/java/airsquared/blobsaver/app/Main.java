@@ -18,13 +18,14 @@
 
 package airsquared.blobsaver.app;
 
-import com.sun.javafx.PlatformUtil;
 import it.sauronsoftware.junique.AlreadyLockedException;
 import it.sauronsoftware.junique.JUnique;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
@@ -32,6 +33,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
+
+import static com.sun.jna.Platform.isMac;
+import static com.sun.jna.Platform.isWindows;
 
 public class Main {
 
@@ -65,33 +69,32 @@ public class Main {
             Background.saveAllBackgroundBlobs(); // don't unnecessarily initialize any FX
             return;
         }
-        try {
-            Class.forName("javafx.application.Application");
-            if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
-                try {
-                    JUnique.acquireLock("airsquared.blobsaver.app");
-                } catch (AlreadyLockedException e) {
-                    javax.swing.JOptionPane.showMessageDialog(null, "blobsaver already running, exiting");
+        if (!isMac() && !isWindows()) {
+            try {
+                JUnique.acquireLock("airsquared.blobsaver.app");
+            } catch (AlreadyLockedException e) {
+                Platform.startup(() -> {
+                    new Alert(Alert.AlertType.ERROR, "blobsaver is already running.").showAndWait();
                     System.exit(-1);
-                }
+                });
+                return;
             }
-            JavaFxApplication.launch(JavaFxApplication.class, args);
-        } catch (ClassNotFoundException e) {
-            javax.swing.JOptionPane.showMessageDialog(null, "JavaFX is not installed. " +
-                    "Either install Oracle Java or\nif you are using OpenJRE/OpenJDK, install openjfx." +
-                    "\nOn Linux, use sudo apt-get install openjfx", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
-            System.exit(-1);
         }
+        JavaFxApplication.launch(JavaFxApplication.class, args);
+    }
+
+    public static void exit() {
+        Platform.exit();
     }
 
     private static void setJNALibraryPath() {
-        if (!PlatformUtil.isMac() && !PlatformUtil.isWindows()) {
+        if (!isMac() && !isWindows()) {
             return;
         }
         File path;
         if (!runningFromJar) {
-            path = new File(Utils.getPlatformDistDir(), PlatformUtil.isMac() ? "Frameworks" : "lib");
-        } else if (PlatformUtil.isMac()) {
+            path = new File(Utils.getPlatformDistDir(), isMac() ? "Frameworks" : "lib");
+        } else if (isMac()) {
             path = new File(jarDirectory.getParentFile(), "Frameworks/");
         } else { // if Windows
             path = new File(jarDirectory, "lib/");
@@ -129,7 +132,7 @@ public class Main {
             }
             primaryStage.setTitle("blobsaver");
             primaryStage.setScene(new Scene(root));
-            if (PlatformUtil.isWindows()) {
+            if (isWindows()) {
                 primaryStage.getIcons().clear();
                 primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
             }

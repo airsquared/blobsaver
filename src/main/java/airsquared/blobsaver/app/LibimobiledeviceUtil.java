@@ -20,7 +20,7 @@ package airsquared.blobsaver.app;
 
 import airsquared.blobsaver.app.natives.Libirecovery;
 import airsquared.blobsaver.app.natives.Libplist;
-import com.sun.javafx.PlatformUtil;
+import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
 import javafx.concurrent.Task;
@@ -112,7 +112,7 @@ public class LibimobiledeviceUtil {
     }
 
     public static Task<String> createGetApnonceTask() {
-        return new Task<String>() {
+        return new Task<>() {
             @Override
             protected String call() throws LibimobiledeviceException {
                 updateMessage("Entering recovery mode...\n\nThis can take up to 60 seconds");
@@ -178,7 +178,7 @@ public class LibimobiledeviceUtil {
             if (errorCode == -3) { // IDEVICE_E_NO_DEVICE
                 exceptionMessage = "idevice error: no device found/connected (IDEVICE_E_NO_DEVICE)";
                 alertMessage = "Error: No devices found/connected. Make sure your device is connected via USB and unlocked.";
-                if (PlatformUtil.isWindows()) {
+                if (Platform.isWindows()) {
                     alertMessage += "\n\nEnsure iTunes or Apple's iOS Drivers are installed.";
                 }
                 if (showAlert) {
@@ -186,7 +186,7 @@ public class LibimobiledeviceUtil {
                     Utils.runSafe(() -> {
                         ButtonType downloadItunes = new ButtonType("Download iTunes");
                         Alert alert = new Alert(Alert.AlertType.ERROR, finalAlertMessage1, ButtonType.OK);
-                        if (PlatformUtil.isWindows()) {
+                        if (Platform.isWindows()) {
                             alert.getButtonTypes().add(0, downloadItunes);
                         }
                         if (downloadItunes.equals(alert.showAndWait().orElse(null))) {

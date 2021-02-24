@@ -18,7 +18,7 @@
 
 package airsquared.blobsaver.app;
 
-import com.sun.javafx.PlatformUtil;
+import com.sun.jna.Platform;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -74,10 +74,10 @@ class Background {
 
     public static void startBackground() {
         // TODO: throw exception and show to user if background is not available
-        if (PlatformUtil.isMac()) {
+        if (Platform.isMac()) {
             macosBackgroundFile();
             launchctl("load", "-w", plistFilePath);
-        } else if (PlatformUtil.isWindows()) {
+        } else if (Platform.isWindows()) {
             // TODO: schtasks
         } else {
             // TODO: systemd timers

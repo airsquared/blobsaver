@@ -19,8 +19,7 @@
 package airsquared.blobsaver.app;
 
 import airsquared.blobsaver.app.natives.Libfragmentzip;
-import com.sun.javafx.PlatformUtil;
-import javafx.application.Platform;
+import com.sun.jna.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -58,6 +57,9 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static javafx.application.Platform.isFxApplicationThread;
+import static javafx.application.Platform.runLater;
+
 final class Utils {
 
     static final ButtonType redditPM = new ButtonType("PM on Reddit");
@@ -89,7 +91,7 @@ final class Utils {
             try {
                 response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
             } catch (IOException e) {
-                Platform.runLater(() -> showReportableError("Unable to check for updates.", e.toString()));
+                runLater(() -> showReportableError("Unable to check for updates.", e.toString()));
                 throw new UncheckedIOException(e);
             }
             String newVersion;
@@ -102,7 +104,7 @@ final class Utils {
                 throw new RuntimeException(e);
             }
             if (!Main.appVersion.equals(newVersion) && (forceCheck || !Prefs.shouldIgnoreVersion(newVersion))) {
-                Platform.runLater(() -> {
+                runLater(() -> {
                     ButtonType downloadNow = new ButtonType("Download");
                     ButtonType ignore = new ButtonType("Ignore this update");
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
@@ -120,7 +122,7 @@ final class Utils {
                     }
                 });
             } else if (forceCheck) {
-                Platform.runLater(() -> {
+                runLater(() -> {
                     Alert alert = new Alert(AlertType.INFORMATION, "You are on the latest version: " + Main.appVersion);
                     alert.setHeaderText("No updates available");
                     alert.setTitle("No Updates Available");
@@ -149,9 +151,9 @@ final class Utils {
         if (platformDistDir.getName().equals("build")) {
             platformDistDir = platformDistDir.getParentFile();
         }
-        if (PlatformUtil.isMac()) {
+        if (Platform.isMac()) {
             platformDistDir = new File(platformDistDir, "dist/macos/Contents");
-        } else if (PlatformUtil.isWindows()) {
+        } else if (Platform.isWindows()) {
             platformDistDir = new File(platformDistDir, "dist/windows/files");
         } else {
             platformDistDir = new File(platformDistDir, "dist/linux");
@@ -163,16 +165,16 @@ final class Utils {
         if (tsschecker != null) return tsschecker;
 
         if (!Main.runningFromJar) {
-            if (PlatformUtil.isWindows()) {
+            if (Platform.isWindows()) {
                 tsschecker = new File(getPlatformDistDir(), "lib/tsschecker.exe");
-            } else if (PlatformUtil.isMac()) {
+            } else if (Platform.isMac()) {
                 tsschecker = new File(getPlatformDistDir(), "MacOS/tsschecker");
             } else {
                 tsschecker = new File(getPlatformDistDir(), "tsschecker");
             }
-        } else if (PlatformUtil.isMac()) {
+        } else if (Platform.isMac()) {
             tsschecker = new File(Main.jarDirectory.getParentFile(), "MacOS/tsschecker");
-        } else if (PlatformUtil.isWindows()) {
+        } else if (Platform.isWindows()) {
             tsschecker = new File(Main.jarDirectory, "lib/tsschecker.exe");
         } else {
             tsschecker = new File(Main.jarDirectory, "tsschecker");
@@ -197,8 +199,8 @@ final class Utils {
 
         if (!Main.runningFromJar) {
             licenseFile = new File(getPlatformDistDir().getParentFile(),
-                    PlatformUtil.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
-        } else if (PlatformUtil.isMac()) {
+                    Platform.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
+        } else if (Platform.isMac()) {
             licenseFile = new File(Main.jarDirectory.getParentFile(), "Resources/LICENSE");
         } else { // if Linux or Windows
             licenseFile = new File(Main.jarDirectory, "LICENSE");
@@ -212,8 +214,8 @@ final class Utils {
 
         if (!Main.runningFromJar) {
             librariesUsedFile = new File(getPlatformDistDir().getParentFile(),
-                    PlatformUtil.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
-        } else if (PlatformUtil.isMac()) {
+                    Platform.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
+        } else if (Platform.isMac()) {
             librariesUsedFile = new File(Main.jarDirectory.getParentFile(), "Resources/libraries_used.txt");
         } else { // if Linux or Windows
             librariesUsedFile = new File(Main.jarDirectory, "libraries_used.txt");
@@ -336,10 +338,10 @@ final class Utils {
     }
 
     static void runSafe(Runnable runnable) {
-        if (Platform.isFxApplicationThread()) {
+        if (isFxApplicationThread()) {
             runnable.run();
         } else {
-            Platform.runLater(runnable);
+            runLater(runnable);
         }
     }
 

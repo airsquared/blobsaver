@@ -19,10 +19,9 @@
 package airsquared.blobsaver.app;
 
 import airsquared.blobsaver.app.natives.Libirecovery;
-import com.sun.javafx.PlatformUtil;
+import com.sun.jna.Platform;
 import com.sun.jna.ptr.PointerByReference;
-import de.codecentric.centerdevice.MenuToolkit;
-import javafx.application.Platform;
+import de.jangassen.MenuToolkit;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -73,7 +72,7 @@ public class Controller {
             Button btn = savedDeviceButtons.get(i - 1); // needed so it's 'effectively final'
             Prefs.savedDevice(i).ifPresent(savedDevice -> btn.setText("Load " + savedDevice.getName()));
         }
-        if (PlatformUtil.isMac()) {
+        if (Platform.isMac()) {
             useMacOSMenuBar();
         }
     }
@@ -193,7 +192,7 @@ public class Controller {
             saveDeviceButton.fire();
         } else if (backgroundSettingsButton.isSelected()) {
             Optional<Prefs.SavedDevice> savedDevice = Prefs.savedDevice(presNum);
-            if (!savedDevice.isPresent()) {
+            if (savedDevice.isEmpty()) {
                 Utils.showUnreportableError("Device " + presNum + " doesn't exist");
                 return;
             }
@@ -450,7 +449,7 @@ public class Controller {
             Prefs.resetPrefs();
             Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall from your programs/applications manager. Otherwise, you may just delete the app.\nThe application will now exit.", ButtonType.OK);
             applicationCloseAlert.showAndWait();
-            Platform.exit();
+            Main.exit();
         } catch (BackingStoreException e) {
             Utils.showReportableError("There was an error resetting the application.", e.getMessage());
         }
@@ -482,7 +481,7 @@ public class Controller {
                 boardConfigField.setText(LibimobiledeviceUtil.getBoardConfig(true));
             }
         } catch (LibimobiledeviceUtil.LibimobiledeviceException e) {
-            e.printStackTrace(); // error alert should have already been shown to user
+            System.err.println(e.getMessage()); // don't need full stack trace
         } catch (Throwable e) {
             e.printStackTrace();
             Utils.showReportableError("Error: unable to register native methods", Utils.exceptionToString(e));
@@ -498,14 +497,17 @@ public class Controller {
                 "Please connect your device and hit \"OK\" to begin. Your device will enter recovery mode while retrieving the apnonce and will automatically reboot to normal mode when complete.\n\n" +
                 "NOTE: an apnonce is only required for devices with an A12 processor or newer.");
         Optional<ButtonType> result = alert1.showAndWait();
-        if (!result.isPresent() || !result.get().equals(ButtonType.OK)) return;
+        if (result.isEmpty() || !result.get().equals(ButtonType.OK)) return;
         final Alert alert2 = new Alert(Alert.AlertType.INFORMATION, "Entering recovery mode...\n\n" +
                 "This can take up to 60 seconds", ButtonType.FINISH);
         alert2.setHeaderText("Reading apnonce from connected device...");
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
         Task<String> getApnonceTask = LibimobiledeviceUtil.createGetApnonceTask();
-        getApnonceTask.setOnSucceeded(event -> Utils.forEachButton(alert2, button -> button.setDisable(false)));
+        getApnonceTask.setOnSucceeded(event -> {
+            apnonceField.setText(getApnonceTask.getValue());
+            Utils.forEachButton(alert2, button -> button.setDisable(false));
+        });
         getApnonceTask.setOnFailed(event -> {
             getApnonceTask.getException().printStackTrace();
             Utils.forEachButton(alert2, button -> button.setDisable(false));
