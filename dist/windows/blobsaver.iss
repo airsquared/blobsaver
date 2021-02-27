@@ -28,10 +28,9 @@ ArchitecturesInstallIn64BitMode=x64 arm64
 Uninstallable=not IsTaskSelected('portableMode')
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=files\LICENSE
-OutputDir=..\..\distributions
+OutputDir=.
 OutputBaseFilename=blobsaver-windows
-SetupIconFile=blob.ico
+SetupIconFile=blobsaver\blobsaver.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -43,7 +42,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "portableMode"; Description: "Portable Installation Mode"; Flags: unchecked
 
 [Files]
-Source: "files\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "blobsaver\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

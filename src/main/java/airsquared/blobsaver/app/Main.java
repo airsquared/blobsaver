@@ -28,6 +28,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import static com.sun.jna.Platform.isMac;
 import static com.sun.jna.Platform.isWindows;
@@ -37,7 +38,15 @@ public class Main {
     static final String appVersion = "v3.0b0";
     static Stage primaryStage;
     // make sure to set system property before running (automatically set if running from gradle)
-    static final File jarDirectory = new File(System.getProperty("jar.directory")).getAbsoluteFile(); //TODO do correct parent file stuff
+    static final File jarDirectory;
+
+    static {
+        try {
+            jarDirectory = new File(System.getProperty("jar.directory")).getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     /**
      * Enables a menu item in the system tray to activate a breakpoint when in background and

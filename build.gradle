@@ -38,10 +38,7 @@ String appIdentifier = "airsquared.blobsaver.app"
 String copyright = "Copyright (c) 2020 airsquared"
 def os = DefaultNativePlatform.currentOperatingSystem
 
-startScripts.enabled = false
-distZip.enabled = false
-distTar.enabled = false
-assemble.dependsOn jpackage
+startScripts.enabled = distZip.enabled = distTar.enabled = false
 
 repositories {
     mavenCentral()
@@ -105,14 +102,21 @@ jlink {
         noConsole = true
     }
     jpackage {
+        icon = "${projectDir}/${icon}"
+        imageOptions = [ '--copyright', copyright, '--vendor', 'airsquared']
+
         if (os.isMacOsX()) {
             installerType = "dmg"
+            imageOptions.addAll '--mac-package-identifier', appIdentifier
             icon = "dist/macos/Contents/Resources/blob.icns"
-        } else if (os.isWindows()) icon = "dist/windows/blob.ico"
-        else icon = "src/main/resources/airsquared/blobsaver/app/blob_emoji.png"
-
-        icon = "${projectDir}/${icon}"
-        imageOptions = [ '--copyright', copyright]
+        } else if (os.isWindows()) {
+            installerOptions.addAll '--win-dir-chooser', '--win-menu', '--win-shortcut'
+            icon = "dist/windows/blob.ico"
+        } else {
+            installerOptions.addAll '--linux-shortcut', '--linux-menu-group', 'Utility;Archiving;Java',
+                    '--linux-rpm-license-type', 'GPLv3'
+            icon = "src/main/resources/airsquared/blobsaver/app/blob_emoji.png"
+        }
     }
     if (os.isMacOsX()) jpackageImage.doLast {
         copy {
@@ -125,44 +129,32 @@ jlink {
             from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
             into "${buildDir}/jpackage/blobsaver.app/Contents/Resources"
         }
-    }
-
-    /* Need to figure out how to exclude the following unnecessary files/directories: "about.fxml", "about.css",
-            "aix-ppc/*", "aix-ppc64/*", "linux-ppc/*", "linux-ppc64le/*", "linux-s390x/*", "linux-mips64el/*",
-            "darwin/*", "win32-x86/*", "win32-x86-64/*", "openbsd-x86/*", "openbsd-x86-64/*", "freebsd-x86/*",
-            "freebsd-x86-64/*", "sunos-sparc/*", "sunos-sparcv9/*", "sunos-x86/*", "sunos-x86-64/*"
-     */
-}
-
-// if your platform isn't Windows, wine is required to run this task
-task createWindowsInstaller() {
-    inputs.dir("${projectDir}/dist/windows/")
-    inputs.file("${buildDir}/launch4j/blobsaver.exe")
-    outputs.file("${buildDir}/distributions/blobsaver-windows.exe")
-
-    doFirst {
-        delete "${buildDir}/tmp/innosetup"
+    } else if (os.isWindows()) jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/windows" into "${buildDir}/tmp/innosetup"
+            from "${projectDir}/dist/windows/files" from "${buildDir}/jpackage/blobsaver/runtime/bin/zip.dll"
             rename "LICENSE_windows", "LICENSE"
             rename "libraries_used_windows.txt", "libraries_used.txt"
+            into "${buildDir}/jpackage/blobsaver"
         }
+    } else jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/windows/blobsaver.iss" into "${buildDir}/tmp/innosetup"
-            filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright, AppMutex: appIdentifier])
-        }
-        copy {
-            from "${buildDir}/launch4j/blobsaver.exe" into "${buildDir}/tmp/innosetup/files"
-        }
-        mkdir "${buildDir}/distributions/"
-        println "running Inno Setup Compiler"
-        exec {
-            workingDir = projectDir
-            if (os.isWindows()) {
-                commandLine "gradle\\InnoSetup6\\ISCC.exe", "/Qp", "${buildDir}\\tmp\\innosetup\\blobsaver.iss"
-            } else {
-                commandLine "wine", "gradle/InnoSetup6/ISCC.exe", "/Qp", "${buildDir}/tmp/innosetup/blobsaver.iss"
-            }
+            from "${projectDir}/dist/linux" into "${buildDir}/jpackage/blobsaver/lib"
         }
     }
+
 }
+
+task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be installed
+    doFirst {
+        copy {
+            from "${projectDir}/dist/windows/blobsaver.iss" into "${buildDir}/jpackage"
+            filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright, AppMutex: appIdentifier])
+        }
+        exec {
+            commandLine "iscc", "/Qp", "${buildDir}\\jpackage\\blobsaver.iss"
+        }
+        delete "${buildDir}/jpackage/blobsaver.iss"
+    }
+}
+
+assemble.dependsOn os.isWindows() ? windowsInstaller : jpackage
