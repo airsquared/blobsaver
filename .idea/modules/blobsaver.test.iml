@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id="blobsaver:test" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="v3.0b0" type="JAVA_MODULE" version="4">
+<module external.linked.project.id="blobsaver:test" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="3.0" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager">
     <output-test url="file://$MODULE_DIR$/../../out/test/classes" />
     <exclude-output />
@@ -20,13 +20,11 @@
     <orderEntry type="library" name="Gradle: org.openjfx:javafx-base:15.0.1" level="project" />
     <orderEntry type="library" name="Gradle: org.openjfx:javafx-base:mac:15.0.1" level="project" />
     <orderEntry type="library" name="Gradle: org.json:json:20201115" level="project" />
-    <orderEntry type="library" name="Gradle: it.sauronsoftware:junique:1.0.4" level="project" />
-    <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:5.7.0" level="project" />
-    <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:jpms:5.7.0" level="project" />
     <orderEntry type="library" name="Gradle: org.junit.jupiter:junit-jupiter:5.7.0" level="project" />
     <orderEntry type="library" name="Gradle: de.jangassen:jfa:1.2.0" level="project" />
     <orderEntry type="library" name="Gradle: org.junit.jupiter:junit-jupiter-params:5.7.0" level="project" />
     <orderEntry type="library" name="Gradle: org.junit.jupiter:junit-jupiter-api:5.7.0" level="project" />
+    <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:jpms:5.7.0" level="project" />
     <orderEntry type="library" name="Gradle: org.apiguardian:apiguardian-api:1.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.junit.platform:junit-platform-commons:1.7.0" level="project" />
     <orderEntry type="library" name="Gradle: org.opentest4j:opentest4j:1.2.0" level="project" />

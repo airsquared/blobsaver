@@ -21,7 +21,6 @@ package airsquared.blobsaver.app;
 import com.sun.jna.Platform;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
@@ -41,8 +40,7 @@ class Background {
 
     private static void macosBackgroundFile() {
 //        String executablePath = Utils.getBlobsaverExecutable().getAbsolutePath();
-        String java = System.getProperty("java.home") + "/bin/java";
-        String executablePath = new File(Main.jarDirectory, "blobsaver.jar").getAbsolutePath();
+        String executablePath = Utils.getBlobsaverExecutable().getAbsolutePath();
         long interval = Prefs.getBackgroundIntervalTimeUnit().toSeconds(Prefs.getBackgroundInterval());
         // eventually replace with Java 15 text blocks
         //language=XML
@@ -54,8 +52,6 @@ class Background {
                 "<string>airsquared.blobsaver.app.BackgroundService</string>" +
                 "<key>ProgramArguments</key>" +
                 "<array>" +
-                "  <string>" + java + "</string>" +
-                "  <string>-jar</string>" +
                 "  <string>" + executablePath + "</string>" +
                 "  <string>--background-autosave</string>" +
                 "</array>" +

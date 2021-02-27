@@ -17,181 +17,125 @@
  */
 
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.9'
-    id 'edu.sc.seis.launch4j' version '2.4.9' // for bundling into .exe
-    id 'com.github.johnrengelman.shadow' version '6.1.0' // for fat jar
     id 'com.github.ben-manes.versions' version '0.36.0'
+    id 'org.beryx.jlink' version '2.23.3'
+
+    id 'idea'
 }
+idea.module.outputDir file("out/production/classes") // fix running via IntelliJ
 
 /*
  * REMEMBER: also update the version string in:
  *  - Main.java
  */
-version "v3.0b0"
-mainClassName = "airsquared.blobsaver.app.Main"
+version "3.0"
 String appIdentifier = "airsquared.blobsaver.app"
 String copyright = "Copyright (c) 2020 airsquared"
+def os = DefaultNativePlatform.currentOperatingSystem
+
+startScripts.enabled = false
+distZip.enabled = false
+distTar.enabled = false
+assemble.dependsOn jpackage
 
 repositories {
     mavenCentral()
 }
 
-test {
-    useJUnitPlatform()
-}
-
-javafx {
-    version = "15.0.1"
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
-}
-
 dependencies {
+    String fxPlatform = ""
+    if (os.isMacOsX()) fxPlatform = 'mac'
+    else if (os.isWindows()) fxPlatform = 'win'
+    else if (os.isLinux()) fxPlatform = 'linux'
+
+    implementation "org.openjfx:javafx-base:15.0.1:$fxPlatform"
+    implementation "org.openjfx:javafx-controls:15.0.1:$fxPlatform"
+    implementation "org.openjfx:javafx-graphics:15.0.1:$fxPlatform"
+    implementation "org.openjfx:javafx-fxml:15.0.1:$fxPlatform"
+
     implementation group: 'org.json', name: 'json', version: '20201115'
-    implementation fileTree(dir: 'libs', include: ['*.jar'], excludes: ['**/sources/**'])
-    implementation group: 'it.sauronsoftware', name: 'junique', version: '1.0.4'
     implementation 'de.jangassen:nsmenufx:3.1.0'
-    implementation 'net.java.dev.jna:jna:5.6.0'
+//    implementation 'net.java.dev.jna:jna:jpms:5.7.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
 }
 
-disableTasks jar, startScripts, distTar, distZip, startShadowScripts, shadowDistTar, shadowDistZip
-
-private static void disableTasks(Task... tasks) {
-    for (Task task : tasks)
-        task.enabled = false
-}
-private ExecResult exec(String... args) {
-    exec { commandLine args }
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(15)
+    }
 }
 
-jar {
-    finalizedBy shadowJar // make shadowJar always overwrite the jar task
+compileJava {
+    options.compilerArgs = ['--module-path', classpath.asPath]
 }
 
-shadowJar {
-    archiveFileName.set "blobsaver.jar"
-    // the jna libraries are bundled separately to reduce application size
-    exclude "about.fxml", "about.css",
-            "**/aix-ppc/*", "**/aix-ppc64/*", "**/linux-ppc/*", "**/linux-ppc64le/*", "**/linux-s390x/*", "**/linux-mips64el/*",
-            "**/darwin/*", "**/win32-x86/*", "**/win32-x86-64/*", "**/openbsd-x86/*", "**/openbsd-x86-64/*",
-            "**/freebsd-x86/*", "**/freebsd-x86-64/*", "**/sunos-sparc/*", "**/sunos-sparcv9/*", "**/sunos-x86/*", "**/sunos-x86-64/*"
-    includeEmptyDirs = false
+application {
+    mainModule = "airsquared.blobsaver"
+    mainClass = "airsquared.blobsaver.app.Main"
 }
 
-task createMacApp(dependsOn: shadowJar) {
-    inputs.files(shadowJar.outputs)
-    inputs.dir("${projectDir}/dist/macos")
-    inputs.files("${projectDir}/LICENSE", "${projectDir}/libraries_used.txt")
-    outputs.dir("${buildDir}/macApp/blobsaver.app")
+private String getJarDirectory() {
+    String dir = ""
+    if (DefaultNativePlatform.currentOperatingSystem.isMacOsX()) dir = "macos/Contents"
+    else if (DefaultNativePlatform.currentOperatingSystem.isWindows()) dir = "windows/files"
+    else if (DefaultNativePlatform.currentOperatingSystem.isLinux()) dir = "linux"
+    return "${projectDir}/dist/${dir}";
+}
 
-    doLast {
+run {
+    systemProperty "jar.directory", getJarDirectory()
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty "jar.directory", getJarDirectory()
+}
+
+jlink {
+    addOptions '--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--strip-native-commands',
+            '--dedup-legal-notices=error-if-not-same-content'
+    launcher {
+        jvmArgs = [ '-Djar.directory={{BIN_DIR}}' ]
+        noConsole = true
+    }
+    jpackage {
+        if (os.isMacOsX()) {
+            installerType = "dmg"
+            icon = "dist/macos/Contents/Resources/blob.icns"
+        } else if (os.isWindows()) icon = "dist/windows/blob.ico"
+        else icon = "src/main/resources/airsquared/blobsaver/app/blob_emoji.png"
+
+        icon = "${projectDir}/${icon}"
+        imageOptions = [ '--copyright', copyright]
+    }
+    if (os.isMacOsX()) jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/macos/Contents" into "${buildDir}/macApp/blobsaver.app/Contents"
+            from "${projectDir}/dist/macos/Contents/MacOS" into "${buildDir}/jpackage/blobsaver.app/Contents/MacOS"
         }
         copy {
-            from "${projectDir}/dist/macos/Info.plist" into "${buildDir}/macApp/blobsaver.app/Contents"
-            expand(CFBundleIdentifier: appIdentifier, NSHumanReadableCopyright: copyright, JVMMainClassName: mainClassName, CFBundleName: project.name,
-                    version: version)
+            from "${projectDir}/dist/macos/Contents/Frameworks" into "${buildDir}/jpackage/blobsaver.app/Contents/Frameworks"
         }
         copy {
             from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
-            into "${buildDir}/macApp/blobsaver.app/Contents/Resources"
-        }
-        copy {
-            from shadowJar.archiveFile into "${buildDir}/macApp/blobsaver.app/Contents/Java"
+            into "${buildDir}/jpackage/blobsaver.app/Contents/Resources"
         }
     }
-}
 
-task createDmg(dependsOn: createMacApp, group: "build") {
-    inputs.files(createMacApp.outputs)
-    inputs.dir("${buildDir}/macApp")
-    inputs.dir("${projectDir}/dist/macos")
-
-    doLast {
-        copy {
-            from "${projectDir}/dist/macos/dmg_background.png" into "${buildDir}/macApp/.background"
-        }
-        def tmpDmgFile = "${buildDir}/tmp/dmg/blobsaver-macos.dmg"
-        mkdir "${buildDir}/tmp/dmg"
-        mkdir "${buildDir}/distributions"
-        if (new File("/Volumes/blobsaver").exists()) {
-            // if volume already mounted, maybe due to previous build, unmount
-            exec "hdiutil", "detach", "/Volumes/blobsaver"
-        }
-        exec "hdiutil", "create", "-srcfolder", "${buildDir}/macApp", "-format", "UDRW", "-fs", "HFS+",
-                "-volname", "blobsaver", "-attach", "-ov", tmpDmgFile
-
-        if (!new File("/Volumes/blobsaver").exists()) {
-            throw new GradleException("Unable to find volume mount point to set background image.")
-        }
-        // https://stackoverflow.com/a/1513578
-        exec "osascript", "-e", """
-            tell application "Finder"
-                 tell disk "blobsaver"
-                       open
-                       set current view of container window to icon view
-                       set toolbar visible of container window to false
-                       set statusbar visible of container window to false
-                       set the bounds of container window to {0, 0, 453, 478}
-                       set viewOptions to the icon view options of container window
-                       set arrangement of viewOptions to not arranged
-                       set icon size of viewOptions to 72
-                       set background picture of viewOptions to file ".background:dmg_background.png"
-                       make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
-                       set position of item "blobsaver.app" of container window to {160, 205}
-                       set position of item "Applications" of container window to {360, 205}
-                       set position of item ".background" of container window to {100, 550}
-                       set position of item ".fseventsd" of container window to {120, 550}
-                       update without registering applications
-                       close
-                 end tell
-            end tell
-            """
-//        sleep 4000
-        exec "hdiutil", "detach", "/Volumes/blobsaver"
-        exec "hdiutil", "convert", tmpDmgFile, "-format", "UDZO", "-imagekey", "zlib-level=9", "-ov", "-quiet",
-                "-o", "${buildDir}/distributions/blobsaver-macos.dmg"
-    }
-    assemble.dependsOn createDmg
-}
-
-task createLinuxTargz(type: Tar, dependsOn: shadowJar, group: "build") {
-    inputs.files(shadowJar.outputs)
-    inputs.file("${buildDir}/libs/blobsaver.jar")
-    inputs.dir("${projectDir}/dist/linux/")
-    outputs.file("${buildDir}/distributions/blobsaver-linux.tar.gz")
-
-    archiveFileName = "blobsaver-linux.tar.gz"
-    compression = Compression.GZIP
-    destinationDirectory = file("${buildDir}/distributions/")
-    from "${buildDir}/libs/blobsaver.jar", "${projectDir}/dist/linux/"
-
-    assemble.dependsOn createLinuxTargz
-}
-
-launch4j { // Windows only, don't use this, use createWindowsInstaller
-    launch4j.copyright = copyright
-    downloadUrl = "https://github.com/airsquared/blobsaver/wiki/Making-sure-you-have-the-right-Java-version"
-    icon = "${projectDir}/dist/windows/blob.ico"
-    mutexName = appIdentifier
-    windowTitle = "blobsaver"
-    jar = "${buildDir}/libs/blobsaver.jar"
-    jreRuntimeBits = "64"
-    jreMinVersion = "1.8.0"
-    jreMaxVersion = "1.8.0_999"
-    createExe.dependsOn shadowJar
+    /* Need to figure out how to exclude the following unnecessary files/directories: "about.fxml", "about.css",
+            "aix-ppc/*", "aix-ppc64/*", "linux-ppc/*", "linux-ppc64le/*", "linux-s390x/*", "linux-mips64el/*",
+            "darwin/*", "win32-x86/*", "win32-x86-64/*", "openbsd-x86/*", "openbsd-x86-64/*", "freebsd-x86/*",
+            "freebsd-x86-64/*", "sunos-sparc/*", "sunos-sparcv9/*", "sunos-x86/*", "sunos-x86-64/*"
+     */
 }
 
 // if your platform isn't Windows, wine is required to run this task
-task createWindowsInstaller(dependsOn: createExe, group: "build") {
-    inputs.files(createExe.outputs)
+task createWindowsInstaller() {
     inputs.dir("${projectDir}/dist/windows/")
     inputs.file("${buildDir}/launch4j/blobsaver.exe")
     outputs.file("${buildDir}/distributions/blobsaver-windows.exe")
@@ -214,12 +158,11 @@ task createWindowsInstaller(dependsOn: createExe, group: "build") {
         println "running Inno Setup Compiler"
         exec {
             workingDir = projectDir
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            if (os.isWindows()) {
                 commandLine "gradle\\InnoSetup6\\ISCC.exe", "/Qp", "${buildDir}\\tmp\\innosetup\\blobsaver.iss"
             } else {
                 commandLine "wine", "gradle/InnoSetup6/ISCC.exe", "/Qp", "${buildDir}/tmp/innosetup/blobsaver.iss"
             }
         }
     }
-    assemble.dependsOn createWindowsInstaller
 }

@@ -68,7 +68,6 @@ final class Utils {
     static final DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
     static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
 
-    private static File platformDistDir; // only used when running from IDE
     private static File tsschecker, blobsaverExecutable;
     private static File licenseFile, librariesUsedFile;
 
@@ -144,36 +143,11 @@ final class Utils {
         return response.toString();
     }
 
-    static File getPlatformDistDir() {
-        if (platformDistDir != null) return platformDistDir;
-
-        platformDistDir = Main.jarDirectory.getParentFile().getParentFile();
-        if (platformDistDir.getName().equals("build")) {
-            platformDistDir = platformDistDir.getParentFile();
-        }
-        if (Platform.isMac()) {
-            platformDistDir = new File(platformDistDir, "dist/macos/Contents");
-        } else if (Platform.isWindows()) {
-            platformDistDir = new File(platformDistDir, "dist/windows/files");
-        } else {
-            platformDistDir = new File(platformDistDir, "dist/linux");
-        }
-        return platformDistDir;
-    }
-
     static File getTsschecker() {
         if (tsschecker != null) return tsschecker;
 
-        if (!Main.runningFromJar) {
-            if (Platform.isWindows()) {
-                tsschecker = new File(getPlatformDistDir(), "lib/tsschecker.exe");
-            } else if (Platform.isMac()) {
-                tsschecker = new File(getPlatformDistDir(), "MacOS/tsschecker");
-            } else {
-                tsschecker = new File(getPlatformDistDir(), "tsschecker");
-            }
-        } else if (Platform.isMac()) {
-            tsschecker = new File(Main.jarDirectory.getParentFile(), "MacOS/tsschecker");
+        if (Platform.isMac()) {
+            tsschecker = new File(Main.jarDirectory, "MacOS/tsschecker");
         } else if (Platform.isWindows()) {
             tsschecker = new File(Main.jarDirectory, "lib/tsschecker.exe");
         } else {
@@ -188,20 +162,15 @@ final class Utils {
     static File getBlobsaverExecutable() {
         if (blobsaverExecutable != null) return blobsaverExecutable;
 
-        if (!Main.runningFromJar) {
-            throw new IllegalStateException();
-        }
-        return new File(Main.jarDirectory.getParentFile(), "MacOS/JavaAppLauncher");
+        blobsaverExecutable = new File(Main.jarDirectory, "MacOS/blobsaver");
+        return blobsaverExecutable;
     }
 
     static File getLicenseFile() {
         if (licenseFile != null) return licenseFile;
 
-        if (!Main.runningFromJar) {
-            licenseFile = new File(getPlatformDistDir().getParentFile(),
-                    Platform.isWindows() ? "dist/windows/LICENSE_windows.txt" : "LICENSE");
-        } else if (Platform.isMac()) {
-            licenseFile = new File(Main.jarDirectory.getParentFile(), "Resources/LICENSE");
+        if (Platform.isMac()) {
+            licenseFile = new File(Main.jarDirectory, "Resources/LICENSE");
         } else { // if Linux or Windows
             licenseFile = new File(Main.jarDirectory, "LICENSE");
         }
@@ -212,11 +181,8 @@ final class Utils {
     static File getLibrariesUsedFile() {
         if (librariesUsedFile != null) return librariesUsedFile;
 
-        if (!Main.runningFromJar) {
-            librariesUsedFile = new File(getPlatformDistDir().getParentFile(),
-                    Platform.isWindows() ? "dist/windows/libraries_used_windows.txt" : "libraries_used.txt");
-        } else if (Platform.isMac()) {
-            librariesUsedFile = new File(Main.jarDirectory.getParentFile(), "Resources/libraries_used.txt");
+        if (Platform.isMac()) {
+            librariesUsedFile = new File(Main.jarDirectory, "Resources/libraries_used.txt");
         } else { // if Linux or Windows
             librariesUsedFile = new File(Main.jarDirectory, "libraries_used.txt");
         }

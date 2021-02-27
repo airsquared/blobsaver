@@ -515,7 +515,7 @@ public class Controller {
         });
 
         alert2.contentTextProperty().bind(getApnonceTask.messageProperty());
-        new Thread(getApnonceTask).start();
+        Utils.executeInThreadPool(getApnonceTask);
         alert2.show();
     }
 

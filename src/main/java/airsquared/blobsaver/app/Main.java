@@ -18,21 +18,16 @@
 
 package airsquared.blobsaver.app;
 
-import it.sauronsoftware.junique.AlreadyLockedException;
-import it.sauronsoftware.junique.JUnique;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
 
 import static com.sun.jna.Platform.isMac;
 import static com.sun.jna.Platform.isWindows;
@@ -41,20 +36,8 @@ public class Main {
 
     static final String appVersion = "v3.0b0";
     static Stage primaryStage;
-    static final File jarDirectory;
-    static final boolean runningFromJar;
-
-    static { // set jarDirectory and runningFromJar variables
-        final String url = Main.class.getResource("Main.class").toString();
-        String path = url.substring(0, url.length() - "airsquared/blobsaver/app/Main.class".length());
-        if (path.startsWith("jar:")) {
-            runningFromJar = true;
-            path = path.substring("jar:".length(), path.length() - 2);
-        } else {
-            runningFromJar = false;
-        }
-        jarDirectory = Paths.get(URI.create(path)).getParent().toFile();
-    }
+    // make sure to set system property before running (automatically set if running from gradle)
+    static final File jarDirectory = new File(System.getProperty("jar.directory")).getAbsoluteFile(); //TODO do correct parent file stuff
 
     /**
      * Enables a menu item in the system tray to activate a breakpoint when in background and
@@ -69,17 +52,6 @@ public class Main {
             Background.saveAllBackgroundBlobs(); // don't unnecessarily initialize any FX
             return;
         }
-        if (!isMac() && !isWindows()) {
-            try {
-                JUnique.acquireLock("airsquared.blobsaver.app");
-            } catch (AlreadyLockedException e) {
-                Platform.startup(() -> {
-                    new Alert(Alert.AlertType.ERROR, "blobsaver is already running.").showAndWait();
-                    System.exit(-1);
-                });
-                return;
-            }
-        }
         JavaFxApplication.launch(JavaFxApplication.class, args);
     }
 
@@ -87,21 +59,19 @@ public class Main {
         Platform.exit();
     }
 
-    private static void setJNALibraryPath() {
+    static void setJNALibraryPath() {
         if (!isMac() && !isWindows()) {
             return;
         }
-        File path;
-        if (!runningFromJar) {
-            path = new File(Utils.getPlatformDistDir(), isMac() ? "Frameworks" : "lib");
-        } else if (isMac()) {
-            path = new File(jarDirectory.getParentFile(), "Frameworks/");
+        String path;
+        if (isMac()) {
+            path = new File(jarDirectory, "Frameworks/").getAbsolutePath();
         } else { // if Windows
-            path = new File(jarDirectory, "lib/");
+            path = new File(jarDirectory, "lib/").getAbsolutePath();
         }
-        System.setProperty("jna.boot.library.path", path.getAbsolutePath()); // path for jnidispatch lib
-        System.setProperty("jna.library.path", path.getAbsolutePath());
-        System.out.println("path = " + path.getAbsolutePath());
+        System.setProperty("jna.boot.library.path", path); // path for jnidispatch lib
+        System.setProperty("jna.library.path", path);
+        System.out.println("path = " + path);
         // disable getting library w/ auto unpacking / classpath since it will never be in jar/classpath
         System.setProperty("jna.noclasspath", "true");
         System.setProperty("jna.nounpack", "true");
@@ -125,7 +95,7 @@ public class Main {
             Main.primaryStage = primaryStage;
             Parent root = null;
             try {
-                root = FXMLLoader.load(getClass().getResource("blobsaver.fxml"));
+                root = FXMLLoader.load(Main.class.getResource("blobsaver.fxml"));
             } catch (IOException e) {
                 e.printStackTrace();
                 System.exit(-1);

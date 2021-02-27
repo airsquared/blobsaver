@@ -7,43 +7,28 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 15
         uses: actions/setup-java@v1
         with:
-          java-version: '1.8'
-          java-package: jdk+fx
+          java-version: '15'
       - name: Install Linux dependencies
         run: sudo apt install libcurl4-openssl-dev libzip-dev && git clone --depth=1 https://github.com/tihmstar/libgeneral.git && cd libgeneral && ./autogen.sh && make && sudo make install && git clone --depth=1 https://github.com/tihmstar/libfragmentzip.git && cd libfragmentzip && sed -i '/LIBGENERAL_REQUIRES_STR/d' ./configure.ac && ./autogen.sh && make && sudo make install && sudo ln -s /usr/local/lib/libfragmentzip.so /usr/lib/
         if: runner.os == 'Linux'
       - name: Fix macOS AppleScript permissions
         run: sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db "insert into access (service, client, client_type, allowed, prompt_count, indirect_object_identifier_type, indirect_object_identifier) values ('kTCCServiceAppleEvents', '`which java`', 1, 1, 1, 0, 'com.apple.finder')"
         if: runner.os == 'macOS'
-      - name: Create macOS dmg
-        if: runner.os == 'macOS'
+      - name: gradle build
         uses: eskatos/gradle-command-action@v1
         with:
-          arguments: test createDmg
-          wrapper-cache-enabled: true
-          dependencies-cache-enabled: true
-      - name: Create Linux tar.gz
-        if: runner.os == 'Linux'
-        uses: eskatos/gradle-command-action@v1
-        with:
-          arguments: test createLinuxTargz
-          wrapper-cache-enabled: true
-          dependencies-cache-enabled: true
-      - name: Create Windows exe
-        if: runner.os == 'Windows'
-        uses: eskatos/gradle-command-action@v1
-        with:
-          arguments: test createWindowsInstaller --no-daemon
+          arguments: build
           wrapper-cache-enabled: true
           dependencies-cache-enabled: true
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ runner.os }}
-          path: build/distributions/*
+          path: build/jpackage/*

@@ -18,25 +18,12 @@
 
 package airsquared.blobsaver.app;
 
-import com.sun.jna.Platform;
 import org.junit.jupiter.api.BeforeEach;
-
-import java.io.File;
 
 public class BlobsaverTest {
 
     @BeforeEach
     public void setJNALibraryPath() {
-        if (!Platform.isMac() && !Platform.isWindows()) {
-            return;
-        }
-        File path = Utils.getPlatformDistDir();
-        path = new File(path, Platform.isMac() ? "Frameworks" : "lib");
-        System.out.println("path = " + path.getAbsolutePath());
-        System.setProperty("jna.boot.library.path", path.getAbsolutePath()); // path for jnidispatch lib
-        System.setProperty("jna.library.path", path.getAbsolutePath());
-        // disable getting library w/ auto unpacking / classpath since it will never be in jar/classpath
-        System.setProperty("jna.noclasspath", "true");
-        System.setProperty("jna.nounpack", "true");
+        Main.setJNALibraryPath();
     }
 }

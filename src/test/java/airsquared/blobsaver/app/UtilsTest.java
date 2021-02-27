@@ -32,7 +32,6 @@ public class UtilsTest extends BlobsaverTest {
     @Test
     public void extractBuildManifest() throws IOException {
         File buildManifest = Utils.extractBuildManifest(ipswUrl);
-        System.out.println(buildManifest.getAbsolutePath());
         assertTrue(buildManifest.exists());
         assertTrue(buildManifest.isFile());
     }

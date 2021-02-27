@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id="blobsaver:main" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="v3.0b0" type="JAVA_MODULE" version="4">
+<module external.linked.project.id="blobsaver:main" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="3.0" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/../../out/production/classes" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../src/main">
       <sourceFolder url="file://$MODULE_DIR$/../../src/main/java" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../src/main/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/../../src/main/resources" type="java-resource" relativeOutputPath="classes" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -19,9 +19,7 @@
     <orderEntry type="library" name="Gradle: org.openjfx:javafx-base:15.0.1" level="project" />
     <orderEntry type="library" name="Gradle: org.openjfx:javafx-base:mac:15.0.1" level="project" />
     <orderEntry type="library" name="Gradle: org.json:json:20201115" level="project" />
-    <orderEntry type="library" name="Gradle: it.sauronsoftware:junique:1.0.4" level="project" />
-    <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:5.7.0" level="project" />
-    <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:jpms:5.7.0" level="project" />
     <orderEntry type="library" name="Gradle: de.jangassen:jfa:1.2.0" level="project" />
+    <orderEntry type="library" name="Gradle: net.java.dev.jna:jna:jpms:5.7.0" level="project" />
   </component>
 </module>
