@@ -43,6 +43,7 @@ public class Main {
     static {
         try {
             jarDirectory = new File(System.getProperty("jar.directory")).getCanonicalFile();
+            System.out.println(jarDirectory);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

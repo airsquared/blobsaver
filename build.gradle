@@ -33,7 +33,8 @@ idea.module.outputDir file("out/production/classes") // fix running via IntelliJ
  * REMEMBER: also update the version string in:
  *  - Main.java
  */
-version "3.0"
+version = "3.0"
+description = "A cross-platform GUI app for saving SHSH blobs"
 String appIdentifier = "airsquared.blobsaver.app"
 String copyright = "Copyright (c) 2020 airsquared"
 def os = DefaultNativePlatform.currentOperatingSystem
@@ -102,20 +103,19 @@ jlink {
         noConsole = true
     }
     jpackage {
-        icon = "${projectDir}/${icon}"
-        imageOptions = [ '--copyright', copyright, '--vendor', 'airsquared']
+        imageOptions = [ '--copyright', copyright, '--description', description, '--vendor', 'airsquared']
 
         if (os.isMacOsX()) {
             installerType = "dmg"
             imageOptions.addAll '--mac-package-identifier', appIdentifier
-            icon = "dist/macos/Contents/Resources/blob.icns"
+            icon = "${projectDir}/dist/macos/Contents/Resources/blob.icns"
         } else if (os.isWindows()) {
             installerOptions.addAll '--win-dir-chooser', '--win-menu', '--win-shortcut'
-            icon = "dist/windows/blob.ico"
+            icon = "${projectDir}/dist/windows/blob.ico"
         } else {
             installerOptions.addAll '--linux-shortcut', '--linux-menu-group', 'Utility;Archiving;Java',
                     '--linux-rpm-license-type', 'GPLv3'
-            icon = "src/main/resources/airsquared/blobsaver/app/blob_emoji.png"
+            icon = "${projectDir}/src/main/resources/airsquared/blobsaver/app/blob_emoji.png"
         }
     }
     if (os.isMacOsX()) jpackageImage.doLast {
@@ -131,24 +131,36 @@ jlink {
         }
     } else if (os.isWindows()) jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/windows/files" from "${buildDir}/jpackage/blobsaver/runtime/bin/zip.dll"
+            from "${projectDir}/dist/windows/files", "${buildDir}/jpackage/blobsaver/runtime/bin/zip.dll"
             rename "LICENSE_windows", "LICENSE"
             rename "libraries_used_windows.txt", "libraries_used.txt"
             into "${buildDir}/jpackage/blobsaver"
         }
     } else jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/linux" into "${buildDir}/jpackage/blobsaver/lib"
+            from "${projectDir}/dist/linux", "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
+            into "${buildDir}/jpackage/blobsaver/lib"
         }
     }
 
+}
+
+task createLinuxTargz(type: Tar, dependsOn: jpackageImage) {
+    archiveFileName = "blobsaver-linux.tar.gz"
+    compression = Compression.GZIP
+    destinationDirectory = file("${buildDir}/distributions/")
+    from "${buildDir}/jpackage/blobsaver"
+
+    if (os.isLinux()) {
+        assemble.dependsOn createLinuxTargz
+    }
 }
 
 task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be installed
     doFirst {
         copy {
             from "${projectDir}/dist/windows/blobsaver.iss" into "${buildDir}/jpackage"
-            filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright, AppMutex: appIdentifier])
+            filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright])
         }
         exec {
             commandLine "iscc", "/Qp", "${buildDir}\\jpackage\\blobsaver.iss"

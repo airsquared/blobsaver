@@ -7,7 +7,6 @@
 #define MyAppURL "https://www.github.com/airsquared/blobsaver"
 #define MyAppExeName "blobsaver.exe"
 #define MyAppCopyright "@AppCopyright@"
-#define MyAppMutex "@AppMutex@"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -22,7 +21,6 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 AppCopyright={#MyAppCopyright}
-AppMutex={#MyAppMutex}
 ArchitecturesAllowed=x64 arm64
 ArchitecturesInstallIn64BitMode=x64 arm64
 Uninstallable=not IsTaskSelected('portableMode')

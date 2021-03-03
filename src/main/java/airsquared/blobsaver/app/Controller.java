@@ -404,7 +404,7 @@ public class Controller {
         textField.setTextFormatter(Utils.intOnlyFormatter());
 
         ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList("Minutes", "Hours", "Days", "Weeks"));
-        choiceBox.setValue(Prefs.getBackgroundIntervalTimeUnit().toString());
+        choiceBox.setValue(Prefs.getBackgroundTimeUnit().toString());
 
         alert.getDialogPane().setContent(new HBox(textField, choiceBox));
         alert.showAndWait();

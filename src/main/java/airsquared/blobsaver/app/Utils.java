@@ -107,7 +107,7 @@ final class Utils {
                     ButtonType downloadNow = new ButtonType("Download");
                     ButtonType ignore = new ButtonType("Ignore this update");
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
-                            + Main.appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
+                                                                         + Main.appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
                     alert.setHeaderText("New Update Available: " + newVersion);
                     alert.setTitle("New Update Available for blobsaver");
                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
@@ -162,7 +162,14 @@ final class Utils {
     static File getBlobsaverExecutable() {
         if (blobsaverExecutable != null) return blobsaverExecutable;
 
-        blobsaverExecutable = new File(Main.jarDirectory, "MacOS/blobsaver");
+        if (Platform.isMac()) {
+            blobsaverExecutable = new File(Main.jarDirectory, "MacOS/blobsaver");
+        } else if (Platform.isWindows()) {
+            blobsaverExecutable = new File(Main.jarDirectory, "blobsaver.exe");
+        } else {
+            blobsaverExecutable = new File(Main.jarDirectory.getParentFile(), "bin/blobsaver");
+        }
+
         return blobsaverExecutable;
     }
 

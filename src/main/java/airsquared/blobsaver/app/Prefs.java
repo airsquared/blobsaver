@@ -97,7 +97,7 @@ class Prefs {
         return appPrefs.getLong("Time to run", 1);
     }
 
-    public static TimeUnit getBackgroundIntervalTimeUnit() {
+    public static TimeUnit getBackgroundTimeUnit() {
         return TimeUnit.valueOf(appPrefs.get("Time unit for background", "DAYS"));
     }
 
