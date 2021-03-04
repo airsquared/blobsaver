@@ -60,7 +60,7 @@ dependencies {
     implementation 'de.jangassen:nsmenufx:3.1.0'
 //    implementation 'net.java.dev.jna:jna:jpms:5.7.0'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
 }
 
 java {
