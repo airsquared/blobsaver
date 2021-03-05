@@ -35,7 +35,7 @@ import static com.sun.jna.Platform.isWindows;
 
 public class Main {
 
-    static final String appVersion = "v3.0b0";
+    static final String appVersion = "v2.6";
     static Stage primaryStage;
     // make sure to set system property before running (automatically set if running from gradle)
     static final File jarDirectory;

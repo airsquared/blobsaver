@@ -62,6 +62,7 @@ class Background {
                 "</dict>" +
                 "</plist>";
         try {
+            Files.createDirectories(Path.of(System.getProperty("user.home"), "Library/LaunchAgents"));
             Files.writeString(plistFilePath, plist);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

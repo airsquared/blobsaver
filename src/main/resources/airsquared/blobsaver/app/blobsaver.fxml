@@ -89,23 +89,6 @@
             <VBox.margin>
                 <Insets bottom="5.0" top="5.0"/>
             </VBox.margin>
-            <CheckBox fx:id="identifierCheckBox" mnemonicParsing="false" onAction="#identifierCheckBoxHandler"
-                      text="Manually Specify Identifier:">
-                <HBox.margin>
-                    <Insets left="10.0"/>
-                </HBox.margin>
-            </CheckBox>
-            <TextField fx:id="identifierField" disable="${!identifierCheckBox.selected}" promptText="Identifier"
-                       onTextChange="#checkRequirements" onKeyTyped="#clearEffectHandler">
-                <HBox.margin>
-                    <Insets left="10.0"/>
-                </HBox.margin>
-            </TextField>
-        </HBox>
-        <HBox>
-            <VBox.margin>
-                <Insets bottom="5.0" top="5.0"/>
-            </VBox.margin>
             <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0" disable="${identifierCheckBox.selected}"
                        onAction="#clearEffectHandler" onValueChange="#deviceTypeChoiceBoxHandler" value="iPhone">
                 <HBox.margin>
@@ -126,6 +109,23 @@
                 </items>
             </ChoiceBox>
         </HBox>
+        <HBox alignment="CENTER_LEFT">
+            <VBox.margin>
+                <Insets bottom="5.0" top="5.0"/>
+            </VBox.margin>
+            <CheckBox fx:id="identifierCheckBox" mnemonicParsing="false" onAction="#identifierCheckBoxHandler"
+                      text="Manually Specify Identifier:">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </CheckBox>
+            <TextField fx:id="identifierField" disable="${!identifierCheckBox.selected}" promptText="Identifier"
+                       onTextChange="#checkRequirements" onKeyTyped="#clearEffectHandler">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </TextField>
+        </HBox>
         <Label fx:id="versionLabel" text="Version">
             <VBox.margin>
                 <Insets left="10.0" top="5.0"/>
@@ -137,7 +137,7 @@
             </VBox.margin>
             <CheckBox fx:id="allSignedVersionsCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler"
                       selected="true" text="All Signed Versions" disable="${betaCheckBox.selected}"/>
-            <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler" text="Beta version">
+            <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler" text="Beta Version">
                 <HBox.margin>
                     <Insets left="10.0"/>
                 </HBox.margin>
@@ -149,18 +149,12 @@
             </VBox.margin>
             <TextField fx:id="versionField" disable="${allSignedVersionsCheckBox.selected || betaCheckBox.selected}"
                        promptText="Version" onTextChange="#clearEffectHandler"/>
-        </HBox>
-        <Label text="Link to .ipsw file">
-            <VBox.margin>
-                <Insets left="10.0" top="5.0"/>
-            </VBox.margin>
-        </Label>
-        <HBox>
-            <VBox.margin>
-                <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
-            </VBox.margin>
-            <TextField fx:id="ipswField" disable="${!betaCheckBox.selected}" prefWidth="500.0"
-                       promptText="URL to .ipsw file" onTextChange="#clearEffectHandler"/>
+            <TextField fx:id="ipswField" disable="${!betaCheckBox.selected}" HBox.hgrow="ALWAYS"
+                       promptText="URL to .ipsw file" onTextChange="#clearEffectHandler">
+                <HBox.margin>
+                    <Insets left="5.0"/>
+                </HBox.margin>
+            </TextField>
             <Label id="ipswURLHelp" onMouseClicked="#helpLabelHandler" text="?">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
@@ -183,7 +177,7 @@
             </VBox.margin>
         </TextField>
         <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
-                  text="Manually specify apnonce:">
+                  text="Specify Apnonce:">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" top="5.0"/>
             </VBox.margin>
@@ -249,14 +243,15 @@
             </VBox.margin>
         </Label>
         <ListView fx:id="deviceList" onKeyReleased="#devicesListKeyEvent" onFocusedChange="#devicesListFocusLoss"
-                  VBox.vgrow="ALWAYS">
+                  VBox.vgrow="ALWAYS" prefHeight="375.0">
             <items>
                 <Prefs fx:factory="getSavedDevices"/>
             </items>
             <VBox.margin>
-                <Insets bottom="20.0"/>
+                <Insets bottom="15.0"/>
             </VBox.margin>
         </ListView>
+        <!--suppress JavaFxUnresolvedFxIdReference -->
         <Button fx:id="saveDeviceButton" prefWidth="Infinity" maxWidth="Infinity" mnemonicParsing="false"
                 onAction="#saveDeviceHandler" text="Save" disable="${backgroundSettingsButton.selected}"
                 visible="${!saveDeviceButton.disable}" managed="${!saveDeviceButton.disable}">

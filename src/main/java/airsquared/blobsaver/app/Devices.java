@@ -183,6 +183,10 @@ public class Devices {
         };
     }
 
+    static String getOSNameForIdentifier(String identifier) {
+        return getOSNameForType(getDeviceType(identifier));
+    }
+
     static boolean doesRequireBoardConfig(String deviceIdentifier) {
         return requiresBoardConfig.containsKey(deviceIdentifier) || !containsIdentifier(deviceIdentifier);
     }

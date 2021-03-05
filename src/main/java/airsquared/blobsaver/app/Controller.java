@@ -335,6 +335,12 @@ public class Controller {
         startBackgroundButton.setDisable(disableBackgroundSettings);
         forceCheckForBlobs.setDisable(disableBackgroundSettings || !Background.isBackgroundEnabled());
         chooseTimeToRunButton.setDisable(disableBackgroundSettings);
+
+        if (Background.isBackgroundEnabled()) {
+            startBackgroundButton.setText("Stop Background");
+        } else {
+            startBackgroundButton.setText("Start Background");
+        }
     }
 
     public void backgroundSettingsHandler() {
@@ -349,9 +355,6 @@ public class Controller {
                 property.addListener((obs, old, newValue) -> addBackgroundHandler(device, property));
                 return property;
             }));
-            if (Background.isBackgroundEnabled()) {
-                startBackgroundButton.setText("Stop Background");
-            }
         } else {
             savedDevicesVBox.setEffect(null);
             savedDevicesLabel.setText("Saved Devices");
@@ -415,13 +418,13 @@ public class Controller {
     public void startBackgroundHandler() {
         if (Background.isBackgroundEnabled()) { //stops background if already in background
             Background.stopBackground();
-            startBackgroundButton.setText("Start background");
+            updateBackgroundSettings();
         } else {
             Background.startBackground();
+            updateBackgroundSettings();
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     "Background saving has been enabled. You can now close this application and it will continue saving blobs at the interval you set, and won't use any resources when it is not running.", ButtonType.OK);
             alert.showAndWait();
-            startBackgroundButton.setText("Stop background");
         }
     }
 
