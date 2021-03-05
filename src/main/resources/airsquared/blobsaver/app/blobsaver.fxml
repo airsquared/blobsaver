@@ -20,6 +20,7 @@
 
 <?import airsquared.blobsaver.app.Controller?>
 <?import airsquared.blobsaver.app.Devices?>
+<?import airsquared.blobsaver.app.Prefs?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -27,17 +28,26 @@
       fx:controller="airsquared.blobsaver.app.Controller" stylesheets="@app.css">
     <VBox prefWidth="500.0">
         <MenuBar fx:id="menuBar">
-            <Menu mnemonicParsing="false" text="Options">
-                <MenuItem fx:id="debugLogMenuItem" mnemonicParsing="false" onAction="#debugLogHandler"
-                          text="Debug Log"/>
-                <MenuItem fx:id="checkForValidBlobsMenuItem" mnemonicParsing="false" onAction="#checkBlobs"
-                          text="Check for Valid Blobs..."/>
-                <MenuItem fx:id="checkForUpdatesMenuItem" mnemonicParsing="false" onAction="#checkForUpdatesHandler"
+            <Menu mnemonicParsing="false" text="File">
+                <MenuItem mnemonicParsing="false" onAction="#exportSavedDevices" text="Export Saved Devices..."/>
+                <Menu mnemonicParsing="false" text="Import Saved Devices">
+                    <MenuItem mnemonicParsing="false" onAction="#importFromXML" text="From XML"/>
+                    <MenuItem mnemonicParsing="false" onAction="#importFromOldVersion"
+                              text="From Older blobsaver Versions"/>
+                </Menu>
+                <SeparatorMenuItem mnemonicParsing="false"/>
+                <MenuItem fx:id="deleteDeviceMenu" mnemonicParsing="false" onAction="#deleteDeviceHandler"
+                          text="Remove Saved Device"/>
+                <MenuItem fx:id="checkForUpdatesMenu" mnemonicParsing="false" onAction="#checkForUpdatesHandler"
                           text="Check for Updates..."/>
-                <MenuItem fx:id="clearAllDataMenuItem" mnemonicParsing="false" onAction="#resetAppHandler"
+                <MenuItem fx:id="clearAllDataMenu" mnemonicParsing="false" onAction="#resetAppHandler"
                           text="Uninstall..."/>
             </Menu>
+            <Menu mnemonicParsing="false" text="Window">
+                <MenuItem mnemonicParsing="false" onAction="#debugLogHandler" text="Debug Log"/>
+            </Menu>
             <Menu mnemonicParsing="false" text="Help">
+                <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for Valid Blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#exitRecoveryHandler" text="Exit Recovery Mode..."/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#showWiki" text="blobsaver Help/Wiki"/>
@@ -205,12 +215,10 @@
             <AnchorPane HBox.hgrow="ALWAYS">
                 <TextField fx:id="pathField" promptText="Path" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                            AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" onTextChange="#clearEffectHandler">
-                    <text>
-                        <Controller fx:constant="initialPath"/>
-                    </text>
                     <padding>
                         <Insets left="8.0" right="33.0"/>
                     </padding>
+                    <Controller fx:constant="initialPath"/>
                 </TextField>
                 <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
             </AnchorPane>
@@ -224,26 +232,8 @@
             </Label>
         </HBox>
         <Region VBox.vgrow="ALWAYS"/>
-        <fx:define>
-            <!-- need to define it here or else the go button's disable property won't bind correctly -->
-            <ToggleButton fx:id="saveDeviceButton" prefWidth="Infinity" maxWidth="Infinity" mnemonicParsing="false"
-                          onAction="#saveDeviceHandler" text="Save" disable="${backgroundSettingsButton.selected}"
-                          visible="${!saveDeviceButton.disable}" managed="${!saveDeviceButton.disable}">
-                <VBox.margin>
-                    <Insets bottom="10.0"/>
-                </VBox.margin>
-            </ToggleButton>
-            <ToggleButton fx:id="backgroundSettingsButton" prefWidth="Infinity" maxWidth="Infinity"
-                          mnemonicParsing="false" onAction="#backgroundSettingsHandler" text="Background settings"
-                          disable="${saveDeviceButton.selected}" visible="${!backgroundSettingsButton.disable}"
-                          managed="${!backgroundSettingsButton.disable}">
-                <VBox.margin>
-                    <Insets bottom="10.0"/>
-                </VBox.margin>
-            </ToggleButton>
-        </fx:define>
         <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#goButtonHandler" prefWidth="Infinity" text="Go"
-                defaultButton="true" disable="${saveDeviceButton.selected || backgroundSettingsButton.selected}">
+                defaultButton="true" disable="${backgroundSettingsButton.selected}">
             <VBox.margin>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="30.0"/>
             </VBox.margin>
@@ -253,67 +243,27 @@
         <padding>
             <Insets left="10.0" right="10.0"/>
         </padding>
-        <Button mnemonicParsing="false" text="Load Device 1" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
+        <Label fx:id="savedDevicesLabel" text="Saved Devices">
             <VBox.margin>
                 <Insets top="10.0"/>
             </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 2" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
+        </Label>
+        <ListView fx:id="deviceList" onKeyReleased="#devicesListKeyEvent" onFocusedChange="#devicesListFocusLoss"
+                  VBox.vgrow="ALWAYS">
+            <items>
+                <Prefs fx:factory="getSavedDevices"/>
+            </items>
             <VBox.margin>
-                <Insets top="10.0"/>
+                <Insets bottom="20.0"/>
+            </VBox.margin>
+        </ListView>
+        <Button fx:id="saveDeviceButton" prefWidth="Infinity" maxWidth="Infinity" mnemonicParsing="false"
+                onAction="#saveDeviceHandler" text="Save" disable="${backgroundSettingsButton.selected}"
+                visible="${!saveDeviceButton.disable}" managed="${!saveDeviceButton.disable}">
+            <VBox.margin>
+                <Insets bottom="10.0"/>
             </VBox.margin>
         </Button>
-        <Button mnemonicParsing="false" text="Load Device 3" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0"/>
-            </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 4" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0"/>
-            </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 5" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0"/>
-            </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 6" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0"/>
-            </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 7" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0"/>
-            </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 8" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0"/>
-            </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 9" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0"/>
-            </VBox.margin>
-        </Button>
-        <Button mnemonicParsing="false" text="Load Device 10" onAction="#savedDeviceButtonHandler"
-                styleClass="savedDeviceButton">
-            <VBox.margin>
-                <Insets top="10.0" bottom="30.0"/>
-            </VBox.margin>
-        </Button>
-        <Region VBox.vgrow="ALWAYS"/>
         <Button fx:id="forceCheckForBlobs" prefWidth="Infinity" maxWidth="Infinity" mnemonicParsing="false"
                 onAction="#forceCheckForBlobsHandler" text="Force check"
                 visible="${backgroundSettingsButton.selected}" managed="${forceCheckForBlobs.visible}">
@@ -335,7 +285,11 @@
                 <Insets bottom="10.0"/>
             </VBox.margin>
         </Button>
-        <fx:reference source="saveDeviceButton"/>
-        <fx:reference source="backgroundSettingsButton"/>
+        <ToggleButton fx:id="backgroundSettingsButton" prefWidth="Infinity" maxWidth="Infinity"
+                      mnemonicParsing="false" onAction="#backgroundSettingsHandler" text="Background settings">
+            <VBox.margin>
+                <Insets bottom="10.0"/>
+            </VBox.margin>
+        </ToggleButton>
     </VBox>
 </HBox>

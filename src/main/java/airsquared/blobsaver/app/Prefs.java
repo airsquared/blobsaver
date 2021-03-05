@@ -18,18 +18,29 @@
 
 package airsquared.blobsaver.app;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.prefs.BackingStoreException;
+import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class Prefs {
+public class Prefs {
 
     private static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/app");
     private static final Preferences savedDevicesPrefs = appPrefs.node("Saved Devices");
+    private static ObservableList<SavedDevice> savedDevicesList;
 
     public static void setLastAppVersion(@SuppressWarnings("SameParameterValue") String version) {
         appPrefs.put("App version", version);
@@ -43,49 +54,101 @@ class Prefs {
         return testForVersion.equals(appPrefs.get("Ignore Version", null));
     }
 
-    public static void resetPrefs() throws BackingStoreException {
-        appPrefs.removeNode();
-        appPrefs.flush();
+    public static void resetPrefs() {
+        try {
+            appPrefs.removeNode();
+            appPrefs.flush();
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static Optional<SavedDevice> savedDevice(int num) {
-        if (savedDeviceExists(num)) {
-            return Optional.of(new SavedDevice(num));
+    public static void export(File file) {
+        try {
+            savedDevicesPrefs.exportSubtree(new FileOutputStream(file));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void importXML(File file) throws IOException, InvalidPreferencesFormatException {
+        Preferences.importPreferences(new FileInputStream(file));
+        if (savedDevicesList != null) {
+            savedDevicesList.setAll(savedDevices().collect(Collectors.toList()));
+        }
+    }
+
+    public static void importOldVersion() {
+        Preferences oldAppPrefs = Preferences.userRoot().node("airsquared/blobsaver/prefs");
+        for (int i = 1; i <= 10; i++) {
+            Preferences presetPrefs = Preferences.userRoot().node("airsquared/blobsaver/preset" + i);
+            if (!presetPrefs.getBoolean("Exists", false)) {
+                continue;
+            }
+            SavedDeviceBuilder builder = new SavedDeviceBuilder(oldAppPrefs.get("Name Preset" + i, "Saved Device " + i));
+            builder.setEcid(presetPrefs.get("ECID", null)).setSavePath(presetPrefs.get("Path", null));
+            if ("none".equals(presetPrefs.get("Device Model", null))) {
+                builder.setIdentifier(presetPrefs.get("Device Identifier", null));
+            } else {
+                builder.setIdentifier(Devices.modelToIdentifier(presetPrefs.get("Device Model", null)));
+            }
+            if (!"none".equals(presetPrefs.get("Board Config", null)) && Devices.doesRequireBoardConfig(builder.identifier)) {
+                builder.setBoardConfig(presetPrefs.get("Board Config", null));
+            }
+            if (Utils.isEmptyOrNull(presetPrefs.get("Apnonce", null))) {
+                builder.setApnonce(presetPrefs.get("Apnonce", null));
+            }
+            builder.save();
+        }
+    }
+
+    public static Optional<SavedDevice> savedDevice(String name) {
+        if (savedDeviceExists(name)) {
+            return Optional.of(new SavedDevice(name));
         } else {
             return Optional.empty();
         }
     }
 
-    private static boolean savedDeviceExists(int num) {
+    private static boolean savedDeviceExists(String name) {
         try {
-            return savedDevicesPrefs.nodeExists(Integer.toString(num));
+            return savedDevicesPrefs.nodeExists(name);
         } catch (BackingStoreException e) {
             return false;
         }
     }
 
-    public static String getSavedDeviceName(int num) {
-        return savedDevice(num).map(SavedDevice::getName).orElse("Device " + num);
-    }
-
-    public static Stream<SavedDevice> getSavedDevices() {
+    private static Stream<SavedDevice> savedDevices() {
         try {
             return Arrays.stream(savedDevicesPrefs.childrenNames()).map(SavedDevice::new);
         } catch (BackingStoreException e) {
-            throw new RuntimeException(e); // TODO: handle this
+            throw new RuntimeException(e);
         }
     }
 
+    /**
+     * @return an observable list of the saved devices that is automatically updated
+     */
+    public static ObservableList<SavedDevice> getSavedDevices() {
+        if (savedDevicesList == null) {
+            savedDevicesList = FXCollections.observableList(savedDevices().collect(Collectors.toList()));
+        }
+
+        return savedDevicesList;
+    }
+
     public static Stream<SavedDevice> getBackgroundDevices() {
-        return getSavedDevices().filter(SavedDevice::isBackground);
+        return savedDevices().filter(SavedDevice::isBackground);
     }
 
     public static boolean anyBackgroundDevices() {
-        return getSavedDevices().anyMatch(SavedDevice::isBackground);
+        return savedDevices().anyMatch(SavedDevice::isBackground);
     }
 
-    public static boolean isDeviceInBackground(int num) {
-        return savedDevice(num).map(SavedDevice::isBackground).orElse(false);
+    public static boolean isDeviceInBackground(String name) {
+        return savedDevice(name).map(SavedDevice::isBackground).orElse(false);
     }
 
     public static void setBackgroundInterval(long interval, TimeUnit timeUnit) {
@@ -102,25 +165,23 @@ class Prefs {
     }
 
     public static class SavedDevice {
-        public final int number;
-        public final Preferences node;
+        private final Preferences node;
 
-        private SavedDevice(int number) {
-            this.number = number;
-            this.node = savedDevicesPrefs.node(Integer.toString(number));
+        private SavedDevice(String name) {
+            this.node = savedDevicesPrefs.node(name);
         }
 
-        private SavedDevice(String number) {
-            this.number = Integer.parseInt(number);
-            this.node = savedDevicesPrefs.node(number);
+        public void delete() {
+            try {
+                savedDevicesList.remove(this);
+                node.removeNode();
+            } catch (BackingStoreException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public String getName() {
-            return node.get("Name", null);
-        }
-
-        public void setName(String name) {
-            node.put("Name", name);
+            return node.name();
         }
 
         public String getEcid() {
@@ -171,20 +232,29 @@ class Prefs {
             node.putBoolean("Save in background", background);
         }
 
+        @Override
+        public String toString() {
+            return getName();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof SavedDevice && this.getName().equals(((SavedDevice) o).getName());
+        }
+
+        @Override
+        public int hashCode() {
+            return getName().hashCode();
+        }
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public static class SavedDeviceBuilder {
-        private final int number;
-        private String name, ecid, savePath, identifier, boardConfig, apnonce;
+        private final String name;
+        private String ecid, savePath, identifier, boardConfig, apnonce;
 
-        public SavedDeviceBuilder(int number) {
-            this.number = number;
-        }
-
-        public SavedDeviceBuilder setName(String name) {
+        public SavedDeviceBuilder(String name) {
             this.name = name;
-            return this;
         }
 
         public SavedDeviceBuilder setEcid(String ecid) {
@@ -213,8 +283,7 @@ class Prefs {
         }
 
         public SavedDevice save() {
-            SavedDevice device = new SavedDevice(number);
-            device.setName(Objects.requireNonNull(name, "Device Name"));
+            SavedDevice device = new SavedDevice(Objects.requireNonNull(name, "Device Name"));
             device.setEcid(Objects.requireNonNull(ecid, "ECID"));
             device.setSavePath(Objects.requireNonNull(savePath, "Save Path"));
             device.setIdentifier(Objects.requireNonNull(identifier, "Identifier"));
@@ -223,6 +292,10 @@ class Prefs {
             }
             if (apnonce != null) {
                 device.setApnonce(apnonce);
+            }
+
+            if (!savedDevicesList.contains(device)) {
+                savedDevicesList.add(device); // update observable list
             }
             return device;
         }

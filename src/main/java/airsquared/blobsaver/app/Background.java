@@ -45,22 +45,22 @@ class Background {
         long interval = Prefs.getBackgroundTimeUnit().toSeconds(Prefs.getBackgroundInterval());
         //language=XML
         String plist = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                       "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" +
-                       "<plist>" +
-                       "<dict>" +
-                       "<key>Label</key>" +
-                       "<string>" + backgroundLabel + "</string>" +
-                       "<key>ProgramArguments</key>" +
-                       "<array>" +
-                       "  <string>" + executablePath + "</string>" +
-                       "  <string>--background-autosave</string>" +
-                       "</array>" +
-                       "<key>RunAtLoad</key>" +
-                       "<true/>" +
-                       "<key>StartInterval</key>" +
-                       "<integer>" + interval + "</integer>" +
-                       "</dict>" +
-                       "</plist>";
+                "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" +
+                "<plist>" +
+                "<dict>" +
+                "<key>Label</key>" +
+                "<string>" + backgroundLabel + "</string>" +
+                "<key>ProgramArguments</key>" +
+                "<array>" +
+                "  <string>" + executablePath + "</string>" +
+                "  <string>--background-autosave</string>" +
+                "</array>" +
+                "<key>RunAtLoad</key>" +
+                "<true/>" +
+                "<key>StartInterval</key>" +
+                "<integer>" + interval + "</integer>" +
+                "</dict>" +
+                "</plist>";
         try {
             Files.writeString(plistFilePath, plist);
         } catch (IOException e) {
@@ -137,7 +137,7 @@ class Background {
         } else {
             try {
                 return new ProcessBuilder("systemctl", "is-enabled", "--user", "--quiet", "blobsaver.timer")
-                               .start().waitFor() == 0;
+                        .start().waitFor() == 0;
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             } catch (InterruptedException e) {
@@ -194,7 +194,7 @@ class Background {
     }
 
     private static void saveBlobs(Prefs.SavedDevice savedDevice) {
-        System.out.println("attempting to save for device " + savedDevice.number);
+        System.out.println("attempting to save for device " + savedDevice);
 
         TSS.Builder builder = new TSS.Builder().setDevice(savedDevice.getIdentifier())
                 .setEcid(savedDevice.getEcid()).setSavePath(savedDevice.getSavePath());

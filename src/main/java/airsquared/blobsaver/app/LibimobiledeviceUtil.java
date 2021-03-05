@@ -131,7 +131,7 @@ public class LibimobiledeviceUtil {
                 Libirecovery.irecv_device_info deviceInfo = Libirecovery.getDeviceInfo(irecvClient.getValue());
                 final StringBuilder apnonce = new StringBuilder();
                 for (byte b : deviceInfo.ap_nonce.getByteArray(0, deviceInfo.ap_nonce_size)) {
-                    apnonce.append(String.format("%02x", b));
+                    apnonce.append(String.format("%02x", b)); // convert byte array into hex string
                 }
                 System.out.println("Got apnonce");
                 updateMessage("Successfully got apnonce, exiting recovery mode...");

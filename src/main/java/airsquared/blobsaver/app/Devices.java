@@ -165,32 +165,22 @@ public class Devices {
     }
 
     static ObservableList<String> getModelsForType(String deviceType) {
-        switch (deviceType == null ? "" : deviceType) {
-            case "iPhone":
-                return iPhones;
-            case "iPod":
-                return iPods;
-            case "iPad":
-                return iPads;
-            case "AppleTV":
-                return AppleTVs;
-            default:
-                return FXCollections.emptyObservableList();
-        }
+        return switch (deviceType == null ? "" : deviceType) {
+            case "iPhone" -> iPhones;
+            case "iPod" -> iPods;
+            case "iPad" -> iPads;
+            case "AppleTV" -> AppleTVs;
+            default -> FXCollections.emptyObservableList();
+        };
     }
 
     static String getOSNameForType(String deviceType) {
-        switch (deviceType == null ? "" : deviceType) {
-            case "iPhone":
-            case "iPod":
-                return "iOS";
-            case "iPad":
-                return "iOS/iPadOS";
-            case "AppleTV":
-                return "tvOS";
-            default:
-                return null;
-        }
+        return switch (deviceType == null ? "" : deviceType) {
+            case "iPhone", "iPod" -> "iOS";
+            case "iPad" -> "iOS/iPadOS";
+            case "AppleTV" -> "tvOS";
+            default -> null;
+        };
     }
 
     static boolean doesRequireBoardConfig(String deviceIdentifier) {

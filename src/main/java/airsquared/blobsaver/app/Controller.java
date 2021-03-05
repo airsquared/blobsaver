@@ -22,6 +22,8 @@ import airsquared.blobsaver.app.natives.Libirecovery;
 import com.sun.jna.Platform;
 import com.sun.jna.ptr.PointerByReference;
 import de.jangassen.MenuToolkit;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
@@ -31,22 +33,25 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxListCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 
 import java.io.File;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.prefs.BackingStoreException;
 
+@SuppressWarnings({"TextBlockMigration", "EnhancedSwitchMigration"})
 public class Controller {
 
 
     @FXML private MenuBar menuBar;
-    @FXML private MenuItem checkForUpdatesMenuItem, clearAllDataMenuItem, checkForValidBlobsMenuItem, debugLogMenuItem;
+    @FXML private MenuItem checkForUpdatesMenu, clearAllDataMenu, deleteDeviceMenu;
 
     @FXML private ChoiceBox<String> deviceTypeChoiceBox, deviceModelChoiceBox;
 
@@ -55,26 +60,22 @@ public class Controller {
 
     @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox;
 
-    @FXML private Label versionLabel;
+    @FXML private Label versionLabel, savedDevicesLabel;
 
     @FXML private Button startBackgroundButton, chooseTimeToRunButton, forceCheckForBlobs;
-    @FXML private ToggleButton backgroundSettingsButton, saveDeviceButton;
+    @FXML private ToggleButton backgroundSettingsButton;
 
+    @FXML private ListView<Prefs.SavedDevice> deviceList;
     @FXML private VBox savedDevicesVBox;
-
-    private List<Button> savedDeviceButtons;
 
     public static final String initialPath = System.getProperty("user.home") + File.separator + "Blobs";
 
     public void initialize() {
-        savedDeviceButtons = Utils.subList(savedDevicesVBox.getChildren(), 10);
-        for (int i = 1; i <= 10; i++) { // sets the names for the device buttons
-            Button btn = savedDeviceButtons.get(i - 1); // needed so it's 'effectively final'
-            Prefs.savedDevice(i).ifPresent(savedDevice -> btn.setText("Load " + savedDevice.getName()));
-        }
         if (Platform.isMac()) {
             useMacOSMenuBar();
         }
+        deviceList.getSelectionModel().selectedItemProperty().addListener((a, b, device) -> loadSavedDevice(device));
+        deleteDeviceMenu.disableProperty().bind(Bindings.isNull(deviceList.getSelectionModel().selectedItemProperty()));
     }
 
     public void newGithubIssue() { Utils.newGithubIssue(); }
@@ -166,6 +167,12 @@ public class Controller {
     }
 
     private void loadSavedDevice(Prefs.SavedDevice savedDevice) {
+        if (savedDevice == null) {
+            deleteDeviceMenu.setText("Remove Saved Device");
+            return;
+        }
+        deleteDeviceMenu.setText("Remove Saved Device \"" + savedDevice + "\"");
+
         ecidField.setText(savedDevice.getEcid());
         pathField.setText(savedDevice.getSavePath());
         String identifier = savedDevice.getIdentifier();
@@ -184,47 +191,7 @@ public class Controller {
         });
     }
 
-    public void savedDeviceButtonHandler(Event evt) {
-        Button btn = (Button) evt.getSource();
-        int presNum = savedDeviceButtons.indexOf(btn) + 1;
-        if (saveDeviceButton.isSelected()) {
-            saveDevice(presNum);
-            saveDeviceButton.fire();
-        } else if (backgroundSettingsButton.isSelected()) {
-            Optional<Prefs.SavedDevice> savedDevice = Prefs.savedDevice(presNum);
-            if (savedDevice.isEmpty()) {
-                Utils.showUnreportableError("Device " + presNum + " doesn't exist");
-                return;
-            }
-            if (btn.getText().startsWith("Cancel ")) {
-                savedDevice.get().setBackground(false);
-                System.out.println("removed device" + presNum + " from list");
-                btn.setText("Use " + btn.getText().substring("Cancel ".length()));
-            } else {
-                loadSavedDevice(savedDevice.get());
-                Utils.setSelectedFire(betaCheckBox, false);
-                Utils.setSelectedFire(allSignedVersionsCheckBox, true);
-                TSS tss = createTSS("Testing device...");
-                EventHandler<WorkerStateEvent> oldEventHandler = tss.getOnSucceeded();
-                tss.setOnSucceeded(event -> {
-                    savedDevice.get().setBackground(true);
-                    btn.setText("Cancel " + btn.getText().substring("Use ".length()));
-                    startBackgroundButton.setDisable(false);
-                    forceCheckForBlobs.setDisable(false);
-                    chooseTimeToRunButton.setDisable(false);
-                    System.out.println("added device" + presNum + " to list");
-
-                    oldEventHandler.handle(event);
-                });
-                Utils.executeInThreadPool(tss);
-            }
-        } else {
-            Prefs.savedDevice(presNum).ifPresent(this::loadSavedDevice);
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    private void saveDevice(int num) {
+    public void saveDeviceHandler() {
         boolean doReturn = Utils.isFieldEmpty(!identifierCheckBox.isSelected(), deviceModelChoiceBox.getValue(), deviceModelChoiceBox);
         doReturn |= Utils.isFieldEmpty(true, ecidField);
         doReturn |= Utils.isFieldEmpty(identifierCheckBox, identifierField);
@@ -232,21 +199,19 @@ public class Controller {
         doReturn |= Utils.isFieldEmpty(apnonceCheckBox, apnonceField);
         if (doReturn) return;
 
-        TextInputDialog textInputDialog = new TextInputDialog(Prefs.getSavedDeviceName(num));
-        textInputDialog.setTitle("Name Device " + num);
+        TextInputDialog textInputDialog = new TextInputDialog();
+        textInputDialog.setTitle("Name Device");
         textInputDialog.setHeaderText("Name Device");
         textInputDialog.setContentText("Please enter a name for the device:");
         textInputDialog.showAndWait();
         String result = textInputDialog.getResult();
 
         if (!Utils.isEmptyOrNull(result)) {
-            Prefs.SavedDeviceBuilder builder = new Prefs.SavedDeviceBuilder(num);
+            Prefs.SavedDeviceBuilder builder = new Prefs.SavedDeviceBuilder(result);
 
-            savedDeviceButtons.get(num - 1).setText("Save in " + textInputDialog.getResult());
-
-            builder.setName(textInputDialog.getResult()).setEcid(ecidField.getText()).setSavePath(pathField.getText());
-            builder.setIdentifier(identifierField.isDisabled() ?
-                    Devices.modelToIdentifier(deviceModelChoiceBox.getValue()) : identifierField.getText());
+            builder.setEcid(ecidField.getText()).setSavePath(pathField.getText())
+                    .setIdentifier(identifierField.isDisabled() ?
+                            Devices.modelToIdentifier(deviceModelChoiceBox.getValue()) : identifierField.getText());
             if (!boardConfigField.isDisable()) {
                 builder.setBoardConfig(boardConfigField.getText());
             }
@@ -255,19 +220,29 @@ public class Controller {
             }
             builder.save();
         }
-
     }
 
-    public void saveDeviceHandler() {
-        if (saveDeviceButton.isSelected()) {
-            saveDeviceButton.setText("Back");
-            savedDevicesVBox.setEffect(Utils.borderGlow);
-            savedDeviceButtons.forEach(btn -> btn.setText("Save in " + btn.getText().substring("Load ".length())));
-        } else {
-            savedDevicesVBox.setEffect(null);
-            saveDeviceButton.setText("Save");
-            savedDeviceButtons.forEach(btn -> btn.setText("Load " + btn.getText().substring("Save in ".length())));
+    public void deleteDeviceHandler() {
+        Prefs.SavedDevice device = deviceList.getSelectionModel().getSelectedItem();
+        if (device == null) return;
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                "Are you sure you would like to remove the device \"" + device + "\"?");
+        alert.showAndWait();
+        if (ButtonType.OK.equals(alert.getResult())) {
+            device.delete();
         }
+    }
+
+    public void devicesListKeyEvent(KeyEvent event) {
+        if (event.getCode().equals(KeyCode.DELETE) || event.getCode().equals(KeyCode.BACK_SPACE)) {
+            deleteDeviceHandler();
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void devicesListFocusLoss(ObservableValue<?> a, boolean b, boolean focused) {
+        if (!focused) deviceList.getSelectionModel().clearSelection();
     }
 
     public void checkBlobs() { Utils.openURL("https://verify.shsh.host"); }
@@ -325,74 +300,89 @@ public class Controller {
 
         alert.showAndWait();
         switch (alert.getResult().getText()) {
-            case "Github Repo":
-                Utils.openURL("https://github.com/airsquared/blobsaver");
-                break;
-            case "View License":
-                Utils.openURL(Utils.getLicenseFile().toURI().toString());
-                break;
-            case "Libraries Used":
-                Utils.openURL(Utils.getLibrariesUsedFile().toURI().toString());
-                break;
+            case "Github Repo" -> Utils.openURL("https://github.com/airsquared/blobsaver");
+            case "View License" -> Utils.openURL(Utils.getLicenseFile().toURI().toString());
+            case "Libraries Used" -> Utils.openURL(Utils.getLibrariesUsedFile().toURI().toString());
         }
     }
 
     private void useMacOSMenuBar() {
         ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
-        menuBar.getMenus().get(0).getItems().clear(); // clear old options menu
+        menuBar.getMenus().get(0).getItems().remove(4, 6); // clear old options menu
 
         MenuToolkit tk = MenuToolkit.toolkit();
 
         Menu applicationMenu = tk.createDefaultApplicationMenu("blobsaver", null);
-        menuBar.getMenus().set(0, applicationMenu);
+        menuBar.getMenus().add(0, applicationMenu);
         applicationMenu.getItems().get(0).setOnAction(this::aboutMenuHandler);
         applicationMenu.getItems().add(1, new SeparatorMenuItem());
-        applicationMenu.getItems().add(2, checkForUpdatesMenuItem);
+        applicationMenu.getItems().add(2, checkForUpdatesMenu);
         applicationMenu.getItems().add(3, new SeparatorMenuItem());
-        applicationMenu.getItems().add(4, clearAllDataMenuItem);
+        applicationMenu.getItems().add(4, clearAllDataMenu);
 
-        Menu windowMenu = new Menu("Window");
-        menuBar.getMenus().add(1, windowMenu);
-        windowMenu.getItems().addAll(new SeparatorMenuItem(), tk.createMinimizeMenuItem(), tk.createCycleWindowsItem(),
-                new SeparatorMenuItem(), debugLogMenuItem, new SeparatorMenuItem(), tk.createBringAllToFrontItem());
-        tk.autoAddWindowMenuItems(windowMenu);
+        menuBar.getMenus().get(2).getItems().addAll(new SeparatorMenuItem(), tk.createMinimizeMenuItem(), tk.createCycleWindowsItem(),
+                new SeparatorMenuItem(), tk.createBringAllToFrontItem());
+        tk.autoAddWindowMenuItems(menuBar.getMenus().get(2));
 
-        menuBar.getMenus().get(2).getItems().add(0, checkForValidBlobsMenuItem); // add to help menu
-        menuBar.getMenus().get(2).getItems().remove(8, 10); // remove about
+        menuBar.getMenus().get(3).getItems().remove(8, 10); // remove about
 
         tk.setApplicationMenu(applicationMenu);
         tk.setGlobalMenuBar(menuBar);
     }
 
-    public void backgroundSettingsHandler() {
+    private void updateBackgroundSettings() {
         boolean disableBackgroundSettings = !Prefs.anyBackgroundDevices();
         startBackgroundButton.setDisable(disableBackgroundSettings);
-        forceCheckForBlobs.setDisable(disableBackgroundSettings);
+        forceCheckForBlobs.setDisable(disableBackgroundSettings || !Background.isBackgroundEnabled());
         chooseTimeToRunButton.setDisable(disableBackgroundSettings);
+    }
 
+    public void backgroundSettingsHandler() {
+        updateBackgroundSettings();
         if (backgroundSettingsButton.isSelected()) {
+            savedDevicesLabel.setText("Select Devices");
             backgroundSettingsButton.setText("Back");
             savedDevicesVBox.setEffect(Utils.borderGlow);
-            savedDeviceButtons.forEach(btn -> {
-                if (Prefs.isDeviceInBackground(savedDeviceButtons.indexOf(btn) + 1)) {
-                    btn.setText("Cancel " + btn.getText().substring("Load ".length()));
-                } else {
-                    btn.setText("Use " + btn.getText().substring("Load ".length()));
-                }
-            });
+
+            deviceList.setCellFactory(CheckBoxListCell.forListView(device -> {
+                final SimpleBooleanProperty property = new SimpleBooleanProperty(device.isBackground());
+                property.addListener((obs, old, newValue) -> addBackgroundHandler(device, property));
+                return property;
+            }));
             if (Background.isBackgroundEnabled()) {
                 startBackgroundButton.setText("Stop Background");
             }
         } else {
             savedDevicesVBox.setEffect(null);
+            savedDevicesLabel.setText("Saved Devices");
             backgroundSettingsButton.setText("Background settings");
-            savedDeviceButtons.forEach(btn -> {
-                if (btn.getText().startsWith("Cancel ")) {
-                    btn.setText("Load " + btn.getText().substring("Cancel ".length()));
-                } else {
-                    btn.setText("Load " + btn.getText().substring("Use ".length()));
-                }
+            deviceList.setCellFactory(null);
+        }
+    }
+
+    public void addBackgroundHandler(Prefs.SavedDevice device, SimpleBooleanProperty enable) {
+        if (device.isBackground()) {
+            device.setBackground(enable.get());
+            updateBackgroundSettings();
+        } else if (enable.get()) {
+            loadSavedDevice(device);
+            Utils.setSelectedFire(betaCheckBox, false);
+            Utils.setSelectedFire(allSignedVersionsCheckBox, true);
+            TSS tss = createTSS("Testing device...");
+            EventHandler<WorkerStateEvent> oldSucceeded = tss.getOnSucceeded();
+            tss.setOnSucceeded(event -> {
+                device.setBackground(true);
+                updateBackgroundSettings();
+                System.out.println("added device " + device + " to list");
+
+                oldSucceeded.handle(event);
             });
+            EventHandler<WorkerStateEvent> oldFailed = tss.getOnFailed();
+            tss.setOnFailed(event -> {
+                enable.set(false);
+                oldFailed.handle(event);
+            });
+            Utils.executeInThreadPool(tss);
         }
     }
 
@@ -440,18 +430,47 @@ public class Controller {
     }
 
     public void resetAppHandler() {
-        try {
-            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to reset/remove all blobsaver data?");
-            confirmationAlert.showAndWait();
-            if (confirmationAlert.getResult() == null || ButtonType.CANCEL.equals(confirmationAlert.getResult())) {
-                return;
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to reset/remove all blobsaver data?");
+        confirmationAlert.showAndWait();
+        if (confirmationAlert.getResult() == null || ButtonType.CANCEL.equals(confirmationAlert.getResult())) {
+            return;
+        }
+        Prefs.resetPrefs();
+        Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data have been removed. \nThe application will now exit.", ButtonType.OK);
+        applicationCloseAlert.showAndWait();
+        Main.exit();
+    }
+
+    public void exportSavedDevices() {
+        FileChooser chooser = new FileChooser();
+        chooser.setInitialFileName("blobsaver.xml");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML File", "*.xml"));
+        File file = chooser.showSaveDialog(Main.primaryStage);
+        if (file != null) {
+            Prefs.export(file);
+        }
+    }
+
+    public void importFromXML() {
+        FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML File", "*.xml"));
+        File file = chooser.showOpenDialog(Main.primaryStage);
+        if (file != null) {
+            try {
+                Prefs.importXML(file);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Utils.showUnreportableError("There was an error importing the preferences. " +
+                        "Ensure that the right file is selected and the file isn't damaged.");
             }
-            Prefs.resetPrefs();
-            Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data and files have been removed. If you are running Windows, you still will need to run the uninstall from your programs/applications manager. Otherwise, you may just delete the app.\nThe application will now exit.", ButtonType.OK);
-            applicationCloseAlert.showAndWait();
-            Main.exit();
-        } catch (BackingStoreException e) {
-            Utils.showReportableError("There was an error resetting the application.", e.getMessage());
+        }
+    }
+
+    public void importFromOldVersion() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Continuing will import all presets into saved devices from blobsaver version 2.5.5 and older.");
+        alert.showAndWait();
+        if (ButtonType.OK.equals(alert.getResult())) {
+            Prefs.importOldVersion();
         }
     }
 
@@ -628,5 +647,4 @@ public class Controller {
             Utils.showReportableError("An unknown error occurred.", Utils.exceptionToString(t));
         }
     }
-
 }
