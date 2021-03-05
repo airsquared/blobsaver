@@ -100,10 +100,14 @@ public class TSS extends Task<String> {
                 throw new TSSException("There was an error starting tsschecker.", true, e);
             }
 
-            if (iosVersion.versionString != null) sb.append(iosVersion.versionString).append(", ");
+            if (iosVersion.versionString != null) {
+                sb.append(iosVersion.versionString);
+                if (!iosVersion.equals(iosVersions.get(iosVersions.size() - 1)))
+                    sb.append(", ");
+            }
         }
 
-        return sb.substring(0, sb.length() - 2);
+        return sb.toString();
     }
 
     private void checkInputs() throws TSSException {
@@ -187,7 +191,13 @@ public class TSS extends Task<String> {
         } else if (containsIgnoreCase(tsscheckerLog, "can't save shsh at")) {
             throw new TSSException("'" + savePath + "' is not a valid path", false);
         } else if (containsIgnoreCase(tsscheckerLog, "IS NOT being signed")) {
-            throw new TSSException("The iOS/tvOS is not being signed for device " + deviceIdentifier, false);
+            if (manualVersion == null) {
+                throw new TSSException("The " + Devices.getOSNameForType(Devices.getDeviceType(deviceIdentifier)) + " version is not being signed for device " + deviceIdentifier, false);
+            } else {
+                throw new TSSException("%s %s is not being signed for device %s".formatted(
+                        Devices.getOSNameForIdentifier(deviceIdentifier), manualVersion, deviceIdentifier), false);
+            }
+
         } else if (containsIgnoreCase(tsscheckerLog, "failed to load manifest")) {
             if (manualIpswURL != null) {
                 throw new TSSException("Failed to load manifest. The IPSW URL is not valid.\n\n" +
