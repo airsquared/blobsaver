@@ -56,7 +56,7 @@ dependencies {
     implementation "org.openjfx:javafx-graphics:15.0.1:$fxPlatform"
     implementation "org.openjfx:javafx-fxml:15.0.1:$fxPlatform"
 
-    implementation group: 'org.json', name: 'json', version: '20201115'
+    implementation group: 'org.json', name: 'json', version: '20210307'
     implementation 'de.jangassen:nsmenufx:3.1.0'
 //    implementation 'net.java.dev.jna:jna:jpms:5.7.0'
 
