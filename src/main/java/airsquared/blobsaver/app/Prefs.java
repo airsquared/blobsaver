@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020  airsquared
+ * Copyright (c) 2021  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -97,7 +97,7 @@ public class Prefs {
             if (!"none".equals(presetPrefs.get("Board Config", null)) && Devices.doesRequireBoardConfig(builder.identifier)) {
                 builder.setBoardConfig(presetPrefs.get("Board Config", null));
             }
-            if (Utils.isEmptyOrNull(presetPrefs.get("Apnonce", null))) {
+            if (!Utils.isEmptyOrNull(presetPrefs.get("Apnonce", null))) {
                 builder.setApnonce(presetPrefs.get("Apnonce", null));
             }
             builder.save();

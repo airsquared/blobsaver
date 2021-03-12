@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020  airsquared
+ * Copyright (c) 2021  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -60,6 +60,7 @@ import java.util.regex.Pattern;
 import static javafx.application.Platform.isFxApplicationThread;
 import static javafx.application.Platform.runLater;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 final class Utils {
 
     static final ButtonType redditPM = new ButtonType("PM on Reddit");
@@ -107,7 +108,7 @@ final class Utils {
                     ButtonType downloadNow = new ButtonType("Download");
                     ButtonType ignore = new ButtonType("Ignore this update");
                     Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
-                                                                         + Main.appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
+                            + Main.appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
                     alert.setHeaderText("New Update Available: " + newVersion);
                     alert.setTitle("New Update Available for blobsaver");
                     Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
@@ -364,15 +365,6 @@ final class Utils {
         }
         System.out.println("Extracted to " + buildManifest);
         return buildManifest;
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked", "SameParameterValue"})
-    static <T> List<T> subList(List list, int endIndex) {
-        ArrayList<T> arrayList = new ArrayList<>();
-        for (int i = 0; i < endIndex; i++) {
-            arrayList.add((T) list.get(i));
-        }
-        return arrayList;
     }
 
     static String exceptionToString(Throwable t) {

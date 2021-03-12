@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020  airsquared
+ * Copyright (c) 2021  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class Devices {
 
     private static final ObservableList<String> iPhones = unmodifiableArrayList("iPhone 3G[S]", "iPhone 4 (GSM)",
@@ -78,7 +79,6 @@ public class Devices {
         try {
             Properties properties = new Properties();
             properties.load(Devices.class.getResourceAsStream("devicemodels.properties"));
-            //noinspection unchecked,rawtypes
             deviceModelIdentifiers = (Map) properties;
             deviceModelIdentifiers.forEach((k, v) -> identifierDeviceModels.put(v, k));
         } catch (IOException e) {

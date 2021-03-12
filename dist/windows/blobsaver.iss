@@ -7,6 +7,7 @@
 #define MyAppURL "https://www.github.com/airsquared/blobsaver"
 #define MyAppExeName "blobsaver.exe"
 #define MyAppCopyright "@AppCopyright@"
+#define OutputDir "@OutputDir@"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -21,13 +22,13 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 AppCopyright={#MyAppCopyright}
-ArchitecturesAllowed=x64 arm64
-ArchitecturesInstallIn64BitMode=x64 arm64
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
 Uninstallable=not IsTaskSelected('portableMode')
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
-OutputDir=.
-OutputBaseFilename=blobsaver-windows
+OutputDir={#OutputDir}
+OutputBaseFilename=blobsaver-{#MyAppVersion}
 SetupIconFile=blobsaver\blobsaver.ico
 Compression=lzma
 SolidCompression=yes

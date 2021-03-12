@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020  airsquared
+ * Copyright (c) 2021  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -294,7 +294,7 @@ public class Controller {
 
         alert.setTitle("About");
         alert.setHeaderText("blobsaver " + Main.appVersion);
-        alert.setContentText("blobsaver Copyright (c) 2019  airsquared\n\n" +
+        alert.setContentText("blobsaver Copyright (c) 2021 airsquared\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
         Utils.resizeAlertButtons(alert);
 
