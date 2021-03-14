@@ -161,7 +161,9 @@ public class TSS extends Task<String> {
         //noinspection ResultOfMethodCallIgnored
         new File(savePath).mkdirs();
         Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
-        if (boardConfig != null) {
+        if (boardConfig == null) {
+            Collections.addAll(args, "--boardconfig", Devices.getBoardConfig(deviceIdentifier));
+        } else {
             Collections.addAll(args, "--boardconfig", boardConfig);
         }
         if (apnonce != null) {

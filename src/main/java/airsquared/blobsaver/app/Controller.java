@@ -46,12 +46,12 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings({"TextBlockMigration", "EnhancedSwitchMigration"})
+@SuppressWarnings({"TextBlockMigration"})
 public class Controller {
 
 
     @FXML private MenuBar menuBar;
-    @FXML private MenuItem checkForUpdatesMenu, clearAllDataMenu, deleteDeviceMenu;
+    @FXML private MenuItem checkForUpdatesMenu, clearAllDataMenu, deleteDeviceMenu, backgroundSettingsMenu;
 
     @FXML private ChoiceBox<String> deviceTypeChoiceBox, deviceModelChoiceBox;
 
@@ -76,6 +76,9 @@ public class Controller {
         }
         deviceList.getSelectionModel().selectedItemProperty().addListener((a, b, device) -> loadSavedDevice(device));
         deleteDeviceMenu.disableProperty().bind(Bindings.isNull(deviceList.getSelectionModel().selectedItemProperty()));
+        backgroundSettingsMenu.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
+                .then("Hide Background Settings").otherwise("Show Background Settings"));
+        backgroundSettingsMenu.setOnAction(e -> backgroundSettingsButton.fire());
     }
 
     public void newGithubIssue() { Utils.newGithubIssue(); }
@@ -92,7 +95,6 @@ public class Controller {
         if (!Utils.isEmptyOrNull(identifier) && Devices.doesRequireBoardConfig(identifier)) {
             boardConfigField.setDisable(false);
             boardConfigField.setEffect(Utils.borderGlow);
-            boardConfigField.setText(Devices.getBoardConfig(identifier));
         } else if (!boardConfigField.isDisable()) {
             boardConfigField.setEffect(null);
             boardConfigField.setDisable(true);
@@ -245,6 +247,11 @@ public class Controller {
         if (!focused) deviceList.getSelectionModel().clearSelection();
     }
 
+    public void showOlderDevicesHandler(Event evt) {
+        Prefs.setShowOldDevices(((CheckMenuItem) evt.getSource()).isSelected());
+        Devices.updateLists();
+    }
+
     public void checkBlobs() { Utils.openURL("https://verify.shsh.host"); }
 
     public void helpLabelHandler(Event evt) {
@@ -258,23 +265,20 @@ public class Controller {
         ButtonType customOK = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "", openURL, customOK);
         ((Button) alert.getDialogPane().lookupButton(customOK)).setDefaultButton(true);
-        String url;
-        switch (labelID) {
+        String url = switch (labelID) {
             case "ipswURLHelp":
                 alert.setContentText("Get the IPSW download URL for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here.");
                 alert.setTitle("Help: IPSW URL");
                 alert.setHeaderText("Help");
-                url = "https://www.theiphonewiki.com/wiki/Beta_Firmware";
-                break;
+                yield "https://www.theiphonewiki.com/wiki/Beta_Firmware";
             case "locationHelp":
                 alert.setContentText("Click \"Open URL\" to see how to automatically upload blobs you save to the cloud.");
                 alert.setTitle("Tip: Saving Blobs to the Cloud");
                 alert.setHeaderText("Tip");
-                url = "https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud";
-                break;
+                yield "https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud";
             default:
                 throw new IllegalStateException("Unexpected value for labelID: " + labelID);
-        }
+        };
         alert.showAndWait();
         if (openURL.equals(alert.getResult())) {
             Utils.openURL(url);
@@ -308,7 +312,7 @@ public class Controller {
 
     private void useMacOSMenuBar() {
         ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
-        menuBar.getMenus().get(0).getItems().remove(4, 6); // clear old options menu
+        menuBar.getMenus().get(0).getItems().remove(5, 8); // clear old options menu
 
         MenuToolkit tk = MenuToolkit.toolkit();
 
@@ -320,11 +324,11 @@ public class Controller {
         applicationMenu.getItems().add(3, new SeparatorMenuItem());
         applicationMenu.getItems().add(4, clearAllDataMenu);
 
-        menuBar.getMenus().get(2).getItems().addAll(new SeparatorMenuItem(), tk.createMinimizeMenuItem(), tk.createCycleWindowsItem(),
+        menuBar.getMenus().get(3).getItems().addAll(new SeparatorMenuItem(), tk.createMinimizeMenuItem(), tk.createCycleWindowsItem(),
                 new SeparatorMenuItem(), tk.createBringAllToFrontItem());
-        tk.autoAddWindowMenuItems(menuBar.getMenus().get(2));
+        tk.autoAddWindowMenuItems(menuBar.getMenus().get(3));
 
-        menuBar.getMenus().get(3).getItems().remove(8, 10); // remove about
+        menuBar.getMenus().get(4).getItems().remove(8, 10); // remove about
 
         tk.setApplicationMenu(applicationMenu);
         tk.setGlobalMenuBar(menuBar);

@@ -36,23 +36,11 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Prefs {
+public final class Prefs {
 
     private static final Preferences appPrefs = Preferences.userRoot().node("airsquared/blobsaver/app");
     private static final Preferences savedDevicesPrefs = appPrefs.node("Saved Devices");
     private static ObservableList<SavedDevice> savedDevicesList;
-
-    public static void setLastAppVersion(@SuppressWarnings("SameParameterValue") String version) {
-        appPrefs.put("App version", version);
-    }
-
-    public static void setIgnoreVersion(String ignoreVersion) {
-        appPrefs.put("Ignore Version", ignoreVersion);
-    }
-
-    public static boolean shouldIgnoreVersion(String testForVersion) {
-        return testForVersion.equals(appPrefs.get("Ignore Version", null));
-    }
 
     public static void resetPrefs() {
         try {
@@ -102,6 +90,26 @@ public class Prefs {
             }
             builder.save();
         }
+    }
+
+    public static void setLastAppVersion(@SuppressWarnings("SameParameterValue") String version) {
+        appPrefs.put("App version", version);
+    }
+
+    public static void setIgnoreVersion(String ignoreVersion) {
+        appPrefs.put("Ignore Version", ignoreVersion);
+    }
+
+    public static boolean shouldIgnoreVersion(String testForVersion) {
+        return testForVersion.equals(appPrefs.get("Ignore Version", null));
+    }
+
+    public static void setShowOldDevices(boolean showOldDevices) {
+        appPrefs.putBoolean("Show Old Devices", showOldDevices);
+    }
+
+    public static boolean getShowOldDevices() {
+        return appPrefs.getBoolean("Show Old Devices", false);
     }
 
     public static Optional<SavedDevice> savedDevice(String name) {

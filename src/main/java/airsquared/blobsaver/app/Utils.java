@@ -242,12 +242,14 @@ final class Utils {
 
     static void showReportableError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit.", githubIssue, redditPM, ButtonType.CANCEL);
+        resizeAlertButtons(alert);
         alert.showAndWait();
         reportError(alert);
     }
 
     static void showReportableError(String msg, String toCopy) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.", githubIssue, redditPM, ButtonType.CANCEL);
+        resizeAlertButtons(alert);
         alert.showAndWait();
         reportError(alert, toCopy);
     }
