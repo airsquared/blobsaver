@@ -16,9 +16,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '15'
-      - name: Install Linux dependencies
-        run: sudo apt install libcurl4-openssl-dev libzip-dev && git clone --depth=1 https://github.com/tihmstar/libgeneral.git && cd libgeneral && ./autogen.sh && make && sudo make install && git clone --depth=1 https://github.com/tihmstar/libfragmentzip.git && cd libfragmentzip && sed -i '/LIBGENERAL_REQUIRES_STR/d' ./configure.ac && ./autogen.sh && make && sudo make install && sudo ln -s /usr/local/lib/libfragmentzip.so /usr/lib/
-        if: runner.os == 'Linux'
       - name: gradle build
         uses: eskatos/gradle-command-action@v1
         with:

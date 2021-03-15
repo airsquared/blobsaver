@@ -88,7 +88,7 @@ public class TSS extends Task<String> {
         // can't use forEach() because exception won't be caught
         for (Utils.IOSVersion iosVersion : iosVersions) {
             try {
-                args.set(args.size() - 1, extractBuildManifest(iosVersion.ipswURL).getAbsolutePath());
+                args.set(args.size() - 1, extractBuildManifest(iosVersion.ipswURL).toString());
             } catch (IOException e) {
                 throw new TSSException("Unable to extract BuildManifest.", true, e);
             }

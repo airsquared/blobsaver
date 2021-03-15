@@ -20,10 +20,11 @@ package airsquared.blobsaver.app;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UtilsTest extends BlobsaverTest {
 
@@ -31,8 +32,14 @@ public class UtilsTest extends BlobsaverTest {
 
     @Test
     public void extractBuildManifest() throws IOException {
-        File buildManifest = Utils.extractBuildManifest(ipswUrl);
-        assertTrue(buildManifest.exists());
-        assertTrue(buildManifest.isFile());
+        Path buildManifest = Utils.extractBuildManifest(ipswUrl);
+
+        try (var reader = Files.newBufferedReader(buildManifest)) {
+            assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", reader.readLine());
+            assertEquals("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">", reader.readLine());
+            assertEquals("<plist version=\"1.0\">", reader.readLine());
+            assertEquals("<dict>", reader.readLine());
+        }
     }
+
 }

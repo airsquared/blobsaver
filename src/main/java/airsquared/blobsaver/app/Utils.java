@@ -18,7 +18,6 @@
 
 package airsquared.blobsaver.app;
 
-import airsquared.blobsaver.app.natives.Libfragmentzip;
 import com.sun.jna.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -35,19 +34,21 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -358,15 +359,100 @@ final class Utils {
         }
     }
 
-    static File extractBuildManifest(String url) throws IOException {
-        File buildManifest = File.createTempFile("BuildManifest", ".plist");
-        System.out.println("Extracting build manifest from " + url);
-        int err = Libfragmentzip.downloadFile(url, "BuildManifest.plist", buildManifest.getAbsolutePath());
-        if (err != 0) {
-            throw new IOException("problem with libfragmentzip download: code=" + err);
+    static Path extractBuildManifest(String ipswUrl) throws IOException {
+        Path buildManifest = Files.createTempFile("BuildManifest", ".plist");
+        try (ZipFile ipsw = new ZipFile(new HttpChannel(new URL(ipswUrl)), "ipsw", "UTF8", true, true);
+             InputStream is = ipsw.getInputStream(ipsw.getEntry("BuildManifest.plist"))) {
+            Files.copy(is, buildManifest, StandardCopyOption.REPLACE_EXISTING);
         }
         System.out.println("Extracted to " + buildManifest);
-        return buildManifest;
+        return buildManifest.toRealPath();
+    }
+
+    /**
+     * Source: https://github.com/jcodec/jcodec/blob/6e1ec651eca92d21b41f9790143a0e6e4d26811e/android/src/main/org/jcodec/common/io/HttpChannel.java
+     *
+     * @author The JCodec project
+     */
+    private static final class HttpChannel implements SeekableByteChannel {
+
+        private final URL url;
+        private ReadableByteChannel ch;
+        private long pos;
+        private long length;
+
+        public HttpChannel(URL url) {
+            this.url = url;
+        }
+
+        @Override
+        public long position() {
+            return pos;
+        }
+
+        @Override
+        public SeekableByteChannel position(long newPosition) throws IOException {
+            if (newPosition == pos) {
+                return this;
+            } else if (ch != null) {
+                ch.close();
+                ch = null;
+            }
+            pos = newPosition;
+            return this;
+        }
+
+        @Override
+        public long size() throws IOException {
+            ensureOpen();
+            return length;
+        }
+
+        @Override
+        public SeekableByteChannel truncate(long size) {
+            throw new UnsupportedOperationException("Truncate on HTTP is not supported.");
+        }
+
+        @Override
+        public int read(ByteBuffer buffer) throws IOException {
+            ensureOpen();
+            int read = ch.read(buffer);
+            if (read != -1)
+                pos += read;
+            return read;
+        }
+
+        @Override
+        public int write(ByteBuffer buffer) {
+            throw new UnsupportedOperationException("Write to HTTP is not supported.");
+        }
+
+        @Override
+        public boolean isOpen() {
+            return ch != null && ch.isOpen();
+        }
+
+        @Override
+        public void close() throws IOException {
+            ch.close();
+        }
+
+        private void ensureOpen() throws IOException {
+            if (ch == null) {
+                URLConnection connection = url.openConnection();
+                if (pos > 0)
+                    connection.addRequestProperty("Range", "bytes=" + pos + "-");
+                ch = Channels.newChannel(connection.getInputStream());
+                String resp = connection.getHeaderField("Content-Range");
+                if (resp != null) {
+                    length = Long.parseLong(resp.split("/")[1]);
+                } else {
+                    resp = connection.getHeaderField("Content-Length");
+                    length = Long.parseLong(resp);
+                }
+            }
+        }
+
     }
 
     static String exceptionToString(Throwable t) {
