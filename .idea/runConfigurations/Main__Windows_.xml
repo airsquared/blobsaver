@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main (Windows)" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="airsquared.blobsaver.app.Main" />
+    <module name="blobsaver.main" />
+    <option name="VM_PARAMETERS" value="-Djar.directory=$ProjectFileDir$/dist/windows/files" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

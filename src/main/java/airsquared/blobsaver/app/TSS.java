@@ -88,7 +88,7 @@ public class TSS extends Task<String> {
         // can't use forEach() because exception won't be caught
         for (Utils.IOSVersion iosVersion : iosVersions) {
             try {
-                args.set(args.size() - 1, extractBuildManifest(iosVersion.ipswURL).toString());
+                args.set(args.size() - 1, extractBuildManifest(iosVersion.ipswURL()).toString());
             } catch (IOException e) {
                 throw new TSSException("Unable to extract BuildManifest.", true, e);
             }
@@ -100,9 +100,9 @@ public class TSS extends Task<String> {
                 throw new TSSException("There was an error starting tsschecker.", true, e);
             }
 
-            if (iosVersion.versionString != null) {
-                sb.append(iosVersion.versionString);
-                if (!iosVersion.equals(iosVersions.get(iosVersions.size() - 1)))
+            if (iosVersion.versionString() != null) {
+                sb.append(iosVersion.versionString());
+                if (iosVersion != iosVersions.get(iosVersions.size() - 1))
                     sb.append(", ");
             }
         }
@@ -140,13 +140,13 @@ public class TSS extends Task<String> {
     private List<Utils.IOSVersion> getIOSVersions() throws TSSException {
         try {
             if (manualVersion != null) {
-                return Collections.singletonList(getFirmwareList(deviceIdentifier).stream().filter(iosVersion ->
-                        manualVersion.equals(iosVersion.versionString)).findFirst()
+                return Collections.singletonList(getFirmwareList(deviceIdentifier).filter(iosVersion ->
+                        manualVersion.equals(iosVersion.versionString())).findFirst()
                         .orElseThrow(() -> new TSSException("No versions found.", false)));
             } else if (manualIpswURL != null) {
                 return Collections.singletonList(new Utils.IOSVersion(null, manualIpswURL, null));
             } else { // all signed firmwares
-                return getSignedFirmwares(deviceIdentifier);
+                return getSignedFirmwares(deviceIdentifier).toList();
             }
         } catch (FileNotFoundException e) {
             throw new TSSException("The device \"" + deviceIdentifier + "\" could not be found.", false, e);

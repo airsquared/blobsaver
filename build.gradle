@@ -23,7 +23,8 @@ plugins {
     id 'java'
     id 'application'
     id 'com.github.ben-manes.versions' version '0.38.0'
-    id 'org.beryx.jlink' version '2.23.3'
+    id 'org.beryx.jlink' version '2.23.5'
+    id 'com.dua3.javafxgradle7plugin' version '0.0.9'
 
     id 'idea'
 }
@@ -36,43 +37,30 @@ idea.module.outputDir file("out/production/classes") // fix running via IntelliJ
 version = "2.6"
 description = "A cross-platform GUI app for saving SHSH blobs"
 String appIdentifier = "airsquared.blobsaver.app"
-String copyright = "Copyright (c) 2020 airsquared"
+String copyright = "Copyright (c) 2021 airsquared"
 def os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(16)
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    String fxPlatform = ""
-    if (os.isMacOsX()) fxPlatform = 'mac'
-    else if (os.isWindows()) fxPlatform = 'win'
-    else if (os.isLinux()) fxPlatform = 'linux'
-
-    implementation "org.openjfx:javafx-base:16:$fxPlatform"
-    implementation "org.openjfx:javafx-controls:16:$fxPlatform"
-    implementation "org.openjfx:javafx-graphics:16:$fxPlatform"
-    implementation "org.openjfx:javafx-fxml:16:$fxPlatform"
-
     implementation group: 'org.json', name: 'json', version: '20210307'
     implementation 'de.jangassen:nsmenufx:3.1.0'
-//    implementation 'net.java.dev.jna:jna:jpms:5.7.0'
+    implementation 'net.java.dev.jna:jna:5.7.0:jpms'
     implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.20'
 
-
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testImplementation group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(15)
-    }
-}
-
-compileJava {
-    options.compilerArgs = ['--module-path', classpath.asPath]
+javafx {
+    version = '16'
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
 application {

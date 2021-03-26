@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class UtilsTest extends BlobsaverTest {
 
@@ -40,6 +41,12 @@ public class UtilsTest extends BlobsaverTest {
             assertEquals("<plist version=\"1.0\">", reader.readLine());
             assertEquals("<dict>", reader.readLine());
         }
+    }
+
+    @Test
+    public void checkForUpdates() throws IOException {
+        var version = Utils.LatestVersion.request();
+        assertTrue(version.changelog().contains("Changelog"), "Changelog does not contain 'Changelog'");
     }
 
 }

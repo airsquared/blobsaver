@@ -21,7 +21,6 @@ package airsquared.blobsaver.app;
 import com.sun.jna.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -35,9 +34,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.*;
 import java.net.URL;
@@ -49,14 +47,13 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static javafx.application.Platform.isFxApplicationThread;
 import static javafx.application.Platform.runLater;
@@ -87,62 +84,63 @@ final class Utils {
     }
 
     static void checkForUpdates(boolean forceCheck) {
-        executeInThreadPool(() -> {
-            String response;
-            try {
-                response = makeRequest(new URL("https://api.github.com/repos/airsquared/blobsaver/releases/latest"));
-            } catch (IOException e) {
-                runLater(() -> showReportableError("Unable to check for updates.", e.toString()));
-                throw new UncheckedIOException(e);
-            }
-            String newVersion;
-            String changelog;
-            try {
-                newVersion = new JSONObject(response).getString("tag_name");
-                String tempChangelog = new JSONObject(response).getString("body");
-                changelog = tempChangelog.substring(tempChangelog.indexOf("Changelog"));
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-            if (!Main.appVersion.equals(newVersion) && (forceCheck || !Prefs.shouldIgnoreVersion(newVersion))) {
-                runLater(() -> {
-                    ButtonType downloadNow = new ButtonType("Download");
-                    ButtonType ignore = new ButtonType("Ignore this update");
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
-                            + Main.appVersion + "\n\n" + changelog, downloadNow, ignore, ButtonType.CANCEL);
-                    alert.setHeaderText("New Update Available: " + newVersion);
-                    alert.setTitle("New Update Available for blobsaver");
-                    Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
-                    dlButton.setDefaultButton(true);
-                    resizeAlertButtons(alert);
-                    alert.showAndWait();
-                    if (alert.getResult().equals(downloadNow)) {
-                        openURL("https://github.com/airsquared/blobsaver/releases");
-                    } else if (alert.getResult().equals(ignore)) {
-                        Prefs.setIgnoreVersion(newVersion);
-                    }
-                });
-            } else if (forceCheck) {
-                runLater(() -> {
-                    Alert alert = new Alert(AlertType.INFORMATION, "You are on the latest version: " + Main.appVersion);
-                    alert.setHeaderText("No updates available");
-                    alert.setTitle("No Updates Available");
-                    alert.showAndWait();
-                });
-            }
-        });
+        executeInThreadPool(() -> _checkForUpdates(forceCheck));
     }
 
-    private static String makeRequest(URL url) throws IOException {
-        URLConnection urlConnection = url.openConnection();
-        BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-        String inputLine;
-        StringBuilder response = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+    static final record LatestVersion(String version, String changelog) {
+        static LatestVersion request() throws IOException {
+            JSONObject json = makeRequest("https://api.github.com/repos/airsquared/blobsaver/releases/latest");
+            String tempChangelog = json.getString("body");
+            return new LatestVersion(json.getString("tag_name"), tempChangelog.substring(tempChangelog.indexOf("Changelog")));
         }
-        in.close();
-        return response.toString();
+
+        @Override
+        public String toString() {
+            return version;
+        }
+    }
+
+    private static void _checkForUpdates(boolean forceCheck) {
+        LatestVersion newVersion;
+        try {
+            newVersion = LatestVersion.request();
+        } catch (IOException e) {
+            runLater(() -> showReportableError("Unable to check for updates.", e.toString()));
+            throw new UncheckedIOException(e);
+        }
+
+        if (!Main.appVersion.equals(newVersion.toString()) && (forceCheck || !Prefs.shouldIgnoreVersion(newVersion.toString()))) {
+            runLater(() -> {
+                ButtonType downloadNow = new ButtonType("Download");
+                ButtonType ignore = new ButtonType("Ignore this update");
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "You have version "
+                        + Main.appVersion + "\n\n" + newVersion.changelog(), downloadNow, ignore, ButtonType.CANCEL);
+                alert.setHeaderText("New Update Available: " + newVersion);
+                alert.setTitle("New Update Available for blobsaver");
+                Button dlButton = (Button) alert.getDialogPane().lookupButton(downloadNow);
+                dlButton.setDefaultButton(true);
+                resizeAlertButtons(alert);
+                alert.showAndWait();
+                if (alert.getResult().equals(downloadNow)) {
+                    openURL("https://github.com/airsquared/blobsaver/releases");
+                } else if (alert.getResult().equals(ignore)) {
+                    Prefs.setIgnoreVersion(newVersion.toString());
+                }
+            });
+        } else if (forceCheck) {
+            runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "You are on the latest version: " + Main.appVersion);
+                alert.setHeaderText("No updates available");
+                alert.setTitle("No Updates Available");
+                alert.showAndWait();
+            });
+        }
+    }
+
+    private static JSONObject makeRequest(String url) throws IOException {
+        try (var inputStream = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
+            return new JSONObject(new JSONTokener(inputStream));
+        }
     }
 
     static File getTsschecker() {
@@ -288,8 +286,19 @@ final class Utils {
     }
 
     static TextFormatter<String> intOnlyFormatter() {
-        final Matcher matcher = Pattern.compile("[0-9]*").matcher("");
-        return new TextFormatter<>(change -> matcher.reset(change.getText()).matches() ? change : null);
+        return new TextFormatter<>(change -> isNumeric(change.getText()) ? change : null);
+    }
+
+    private static boolean isNumeric(String s) {
+        if (isEmptyOrNull(s)) {
+            return true;
+        }
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static boolean isFieldEmpty(CheckBox checkBox, TextField textField) {
@@ -322,40 +331,20 @@ final class Utils {
         }
     }
 
-    static List<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
-        String response = makeRequest(new URL("https://api.ipsw.me/v4/device/" + deviceIdentifier));
-        JSONArray firmwareListJson = new JSONObject(response).getJSONArray("firmwares");
-        ArrayList<IOSVersion> iosVersions = new ArrayList<>(firmwareListJson.length());
-        firmwareListJson.forEach(o -> {
-            JSONObject jo = (JSONObject) o;
-            iosVersions.add(new IOSVersion(jo.getString("version"), jo.getString("url"), jo.getBoolean("signed")));
-        });
-
-        return iosVersions;
+    static Stream<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
+        String url = "https://api.ipsw.me/v4/device/" + deviceIdentifier;
+        return StreamSupport.stream(makeRequest(url).getJSONArray("firmwares").spliterator(), false)
+                .map(o -> (JSONObject) o)
+                .map(o -> new IOSVersion(o.getString("version"), o.getString("url"), o.getBoolean("signed")));
     }
 
-    static List<IOSVersion> getSignedFirmwares(String deviceIdentifier) throws IOException {
-        List<IOSVersion> iosVersions = getFirmwareList(deviceIdentifier);
-        iosVersions.removeIf(iosVersion -> !iosVersion.signed);
-        return iosVersions;
+    static Stream<IOSVersion> getSignedFirmwares(String deviceIdentifier) throws IOException {
+        return getFirmwareList(deviceIdentifier).filter(IOSVersion::signed);
     }
 
-    public static final class IOSVersion {
-        public final String versionString, ipswURL;
-        public final Boolean signed;
-
-        public IOSVersion(String versionString, String ipswURL, Boolean signed) {
-            this.versionString = versionString;
-            this.ipswURL = Objects.requireNonNull(ipswURL, "ipsw url cannot be null");
-            this.signed = signed;
-        }
-
-        @Override
-        public String toString() {
-            if (versionString == null) {
-                return "IOSVersion{'" + ipswURL + "'}";
-            }
-            return "IOSVersion{'" + versionString + "', '" + ipswURL + "', signed=" + signed + '}';
+    public static final record IOSVersion(String versionString, String ipswURL, Boolean signed) {
+        public IOSVersion {
+            Objects.requireNonNull(ipswURL, "ipsw url cannot be null");
         }
     }
 

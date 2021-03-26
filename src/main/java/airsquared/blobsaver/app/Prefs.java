@@ -64,7 +64,7 @@ public final class Prefs {
     public static void importXML(File file) throws IOException, InvalidPreferencesFormatException {
         Preferences.importPreferences(new FileInputStream(file));
         if (savedDevicesList != null) {
-            savedDevicesList.setAll(savedDevices().collect(Collectors.toList()));
+            savedDevicesList.setAll(savedDevices().toList());
         }
     }
 
@@ -112,22 +112,6 @@ public final class Prefs {
         return appPrefs.getBoolean("Show Old Devices", false);
     }
 
-    public static Optional<SavedDevice> savedDevice(String name) {
-        if (savedDeviceExists(name)) {
-            return Optional.of(new SavedDevice(name));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private static boolean savedDeviceExists(String name) {
-        try {
-            return savedDevicesPrefs.nodeExists(name);
-        } catch (BackingStoreException e) {
-            return false;
-        }
-    }
-
     private static Stream<SavedDevice> savedDevices() {
         try {
             return Arrays.stream(savedDevicesPrefs.childrenNames()).map(SavedDevice::new);
@@ -141,7 +125,7 @@ public final class Prefs {
      */
     public static ObservableList<SavedDevice> getSavedDevices() {
         if (savedDevicesList == null) {
-            savedDevicesList = FXCollections.observableList(savedDevices().collect(Collectors.toList()));
+            savedDevicesList = savedDevices().collect(Collectors.toCollection(FXCollections::observableArrayList));
         }
 
         return savedDevicesList;
@@ -153,10 +137,6 @@ public final class Prefs {
 
     public static boolean anyBackgroundDevices() {
         return savedDevices().anyMatch(SavedDevice::isBackground);
-    }
-
-    public static boolean isDeviceInBackground(String name) {
-        return savedDevice(name).map(SavedDevice::isBackground).orElse(false);
     }
 
     public static void setBackgroundInterval(long interval, TimeUnit timeUnit) {
@@ -247,7 +227,7 @@ public final class Prefs {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof SavedDevice && this.getName().equals(((SavedDevice) o).getName());
+            return o instanceof SavedDevice s && this.getName().equals(s.getName());
         }
 
         @Override

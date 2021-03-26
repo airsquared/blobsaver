@@ -625,9 +625,8 @@ public class Controller {
     }
 
     private void parseException(Throwable t) {
-        if (t instanceof TSS.TSSException) {
-            TSS.TSSException e = (TSS.TSSException) t;
-            String message = t.getMessage();
+        if (t instanceof TSS.TSSException e) {
+            String message = e.getMessage();
             if (message.contains("not a valid identifier")) {
                 identifierField.setEffect(Utils.errorBorder);
             } else if (message.contains("IPSW URL is not valid")) {
