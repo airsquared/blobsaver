@@ -254,8 +254,19 @@ final class Utils {
     }
 
     static void showUnreportableError(String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg, ButtonType.OK);
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg);
         alert.showAndWait();
+    }
+
+    static void showInfoAlert(String msg, ButtonType... buttons) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, buttons);
+        alert.showAndWait();
+    }
+
+    static ButtonType showConfirmAlert(String msg) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, msg);
+        alert.showAndWait();
+        return alert.getResult();
     }
 
     static void copyToClipboard(String s) {

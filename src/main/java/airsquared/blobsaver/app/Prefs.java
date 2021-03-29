@@ -152,6 +152,10 @@ public final class Prefs {
         return TimeUnit.valueOf(appPrefs.get("Time unit for background", "DAYS"));
     }
 
+    public static long getBackgroundIntervalMinutes() {
+        return getBackgroundTimeUnit().toMinutes(getBackgroundInterval());
+    }
+
     public static class SavedDevice {
         private final Preferences node;
 

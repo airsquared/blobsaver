@@ -26,10 +26,8 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.function.Predicate;
 
 class Background {
@@ -41,7 +39,6 @@ class Background {
 
 
     private static void macosBackgroundFile() {
-        String executablePath = Utils.getBlobsaverExecutable().getAbsolutePath();
         long interval = Prefs.getBackgroundTimeUnit().toSeconds(Prefs.getBackgroundInterval());
         //language=XML
         String plist = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -52,7 +49,7 @@ class Background {
                 "<string>" + backgroundLabel + "</string>" +
                 "<key>ProgramArguments</key>" +
                 "<array>" +
-                "  <string>" + executablePath + "</string>" +
+                "  <string>" + executablePath() + "</string>" +
                 "  <string>--background-autosave</string>" +
                 "</array>" +
                 "<key>RunAtLoad</key>" +
@@ -70,17 +67,16 @@ class Background {
     }
 
     private static void linuxBackgroundFile() {
-        String executablePath = Utils.getBlobsaverExecutable().getAbsolutePath();
         String service = """
                 [Unit]
-                Description=Run blobsaver autosave
+                Description=Save blobs in the background
 
                 [Service]
                 Type=oneshot
-                ExecStart=%s --background-autosave""".formatted(executablePath);
+                ExecStart=%s --background-autosave""".formatted(executablePath());
         String timer = """
                 [Unit]
-                Description=Run blobsaver autosave
+                Description=Save blobs in the background
                                 
                 [Timer]
                 OnBootSec=1min
@@ -88,7 +84,7 @@ class Background {
                                 
                 [Install]
                 WantedBy=timers.target
-                """.formatted(Prefs.getBackgroundTimeUnit().toMinutes(Prefs.getBackgroundInterval()));
+                """.formatted(Prefs.getBackgroundIntervalMinutes());
         String dataHome = System.getenv("XDG_DATA_HOME");
         if (dataHome == null) {
             dataHome = System.getProperty("user.home") + "/.local/share";
@@ -102,16 +98,84 @@ class Background {
         }
     }
 
+    private static Path windowsBackgroundFile() {
+        String xml = """
+                <?xml version="1.0" encoding="UTF-16"?>
+                <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+                  <RegistrationInfo>
+                    <Author>airsquared</Author>
+                    <Description>Save blobs in the background</Description>
+                    <URI>%1$s</URI>
+                  </RegistrationInfo>
+                  <Triggers>
+                    <LogonTrigger>
+                      <Repetition>
+                        <Interval>PT%2$dM</Interval>
+                        <StopAtDurationEnd>false</StopAtDurationEnd>
+                      </Repetition>
+                      <Enabled>true</Enabled>
+                      <UserId>%3$s</UserId>
+                    </LogonTrigger>
+                    <RegistrationTrigger>
+                      <Repetition>
+                        <Interval>PT%2$dM</Interval>
+                        <StopAtDurationEnd>false</StopAtDurationEnd>
+                      </Repetition>
+                      <Enabled>true</Enabled>
+                    </RegistrationTrigger>
+                  </Triggers>
+                  <Principals>
+                    <Principal id="Author">
+                      <UserId>%3$s</UserId>
+                      <LogonType>InteractiveToken</LogonType>
+                      <RunLevel>LeastPrivilege</RunLevel>
+                    </Principal>
+                  </Principals>
+                  <Settings>
+                    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+                    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+                    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+                    <AllowHardTerminate>true</AllowHardTerminate>
+                    <StartWhenAvailable>true</StartWhenAvailable>
+                    <RunOnlyIfNetworkAvailable>true</RunOnlyIfNetworkAvailable>
+                    <IdleSettings>
+                      <StopOnIdleEnd>false</StopOnIdleEnd>
+                      <RestartOnIdle>false</RestartOnIdle>
+                    </IdleSettings>
+                    <AllowStartOnDemand>true</AllowStartOnDemand>
+                    <Enabled>true</Enabled>
+                    <Hidden>false</Hidden>
+                    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+                    <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+                    <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
+                    <WakeToRun>false</WakeToRun>
+                    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+                    <Priority>7</Priority>
+                  </Settings>
+                  <Actions Context="Author">
+                    <Exec>
+                      <Command>"%4$s"</Command>
+                      <Arguments>--background-autosave</Arguments>
+                    </Exec>
+                  </Actions>
+                </Task>
+                """.formatted(windowsTaskName, Prefs.getBackgroundIntervalMinutes(), System.getProperty("user.name"), executablePath());
+        try {
+            Path path = Files.createTempFile("blobsaver_background_service", ".xml");
+            Files.writeString(path, xml);
+            return path;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+    }
+
     public static void startBackground() {
         if (Platform.isMac()) {
             macosBackgroundFile();
             launchctl("load", "-w", plistFilePath.toString());
         } else if (Platform.isWindows()) {
-            // https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks-create
-            schtasks("/create", "/it", "/f", "/tn", windowsTaskName,
-                    "/tr", Utils.getBlobsaverExecutable().getAbsolutePath() + " --background-autosave",
-                    "/sc", "once", "/st", new SimpleDateFormat("HH:mm").format(new Date()),
-                    "/ri", Long.toString(Prefs.getBackgroundTimeUnit().toMinutes(Prefs.getBackgroundInterval())));
+            schtasks("/create", "/xml", windowsBackgroundFile().toString(), "/f", "/tn", windowsTaskName);
         } else {
             linuxBackgroundFile();
             systemctl("daemon-reload");
@@ -155,6 +219,10 @@ class Background {
         } else {
             systemctl("start", "--user", "blobsaver.service");
         }
+    }
+
+    private static String executablePath() {
+        return Utils.getBlobsaverExecutable().getAbsolutePath();
     }
 
     private static void launchctl(String... args) {

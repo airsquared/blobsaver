@@ -228,10 +228,8 @@ public class Controller {
         Prefs.SavedDevice device = deviceList.getSelectionModel().getSelectedItem();
         if (device == null) return;
 
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                "Are you sure you would like to remove the device \"" + device + "\"?");
-        alert.showAndWait();
-        if (ButtonType.OK.equals(alert.getResult())) {
+        ButtonType result = Utils.showConfirmAlert("Are you sure you would like to remove the device \"" + device + "\"?");
+        if (ButtonType.OK.equals(result)) {
             device.delete();
         }
     }
@@ -412,9 +410,7 @@ public class Controller {
             return;
         }
         if (Background.isBackgroundEnabled()) {
-            Alert restartBackgroundAlert = new Alert(Alert.AlertType.INFORMATION,
-                    "You will need to restart the background for changes to take effect.", new ButtonType("Stop Background"));
-            restartBackgroundAlert.showAndWait();
+            Utils.showInfoAlert("You will need to restart the background for changes to take effect.", new ButtonType("Stop Background"));
             startBackgroundButton.fire();
         }
     }
@@ -425,10 +421,12 @@ public class Controller {
             updateBackgroundSettings();
         } else {
             Background.startBackground();
-            updateBackgroundSettings();
-            Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    "Background saving has been enabled. You can now close this application and it will continue saving blobs at the interval you set, and won't use any resources when it is not running.", ButtonType.OK);
-            alert.showAndWait();
+            if (Background.isBackgroundEnabled()) {
+                updateBackgroundSettings();
+                Utils.showInfoAlert("A background saving task has been scheduled. You can now quit this application, and blobs will continue to be saved at the interval you set.");
+            } else {
+                Utils.showUnreportableError("Background saving is not enabled. Try again with the debug log open to check for any errors.");
+            }
         }
     }
 
@@ -437,15 +435,12 @@ public class Controller {
     }
 
     public void resetAppHandler() {
-        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you would like to reset/remove all blobsaver data?");
-        confirmationAlert.showAndWait();
-        if (confirmationAlert.getResult() == null || ButtonType.CANCEL.equals(confirmationAlert.getResult())) {
-            return;
+        ButtonType result = Utils.showConfirmAlert("Are you sure you would like to reset/remove all blobsaver data?");
+        if (ButtonType.OK.equals(result)) {
+            Prefs.resetPrefs();
+            Utils.showInfoAlert("The application data have been removed. \nThe application will now exit.");
+            Main.exit();
         }
-        Prefs.resetPrefs();
-        Alert applicationCloseAlert = new Alert(Alert.AlertType.INFORMATION, "The application data have been removed. \nThe application will now exit.", ButtonType.OK);
-        applicationCloseAlert.showAndWait();
-        Main.exit();
     }
 
     public void exportSavedDevices() {
@@ -474,9 +469,8 @@ public class Controller {
     }
 
     public void importFromOldVersion() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Continuing will import all presets into saved devices from blobsaver version 2.5.5 and older.");
-        alert.showAndWait();
-        if (ButtonType.OK.equals(alert.getResult())) {
+        ButtonType result = Utils.showConfirmAlert("Continuing will import all presets into saved devices from blobsaver version 2.5.5 and older.");
+        if (ButtonType.OK.equals(result)) {
             Prefs.importOldVersion();
         }
     }
