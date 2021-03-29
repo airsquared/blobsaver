@@ -55,7 +55,7 @@ public class Controller {
 
     @FXML private ChoiceBox<String> deviceTypeChoiceBox, deviceModelChoiceBox;
 
-    @FXML private TextField ecidField, boardConfigField, apnonceField, versionField, identifierField,
+    @FXML private TextField ecidField, boardConfigField, apnonceField, generatorField, versionField, identifierField,
             pathField, ipswField;
 
     @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox;
@@ -123,6 +123,7 @@ public class Controller {
         } else {
             apnonceField.setEffect(null);
             apnonceField.setText("");
+            generatorField.setText("");
         }
     }
 
@@ -592,6 +593,9 @@ public class Controller {
         }
         if (!apnonceField.isDisabled()) {
             builder.setApnonce(apnonceField.getText());
+            if (!Utils.isEmptyOrNull(generatorField.getText())) {
+                builder.setGenerator(generatorField.getText());
+            }
         }
 
         TSS tss = builder.build();

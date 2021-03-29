@@ -190,7 +190,7 @@
             </VBox.margin>
         </TextField>
         <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
-                  text="Specify Apnonce:">
+                  text="Specify ApNonce:">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" top="5.0"/>
             </VBox.margin>
@@ -210,6 +210,11 @@
                 <Insets bottom="5.0" left="10.0" right="10.0"/>
             </VBox.margin>
         </AnchorPane>
+        <TextField fx:id="generatorField" disable="${!apnonceCheckBox.selected}" promptText="Generator (Optional)">
+            <VBox.margin>
+                <Insets top="5.0" bottom="5.0" left="10.0" right="10.0"/>
+            </VBox.margin>
+        </TextField>
         <Label text="Location">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" top="5.0"/>

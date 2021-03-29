@@ -53,12 +53,12 @@ public class TSS extends Task<String> {
     private final String manualVersion;
     private final String manualIpswURL;
 
-    private final String apnonce;
+    private final String apnonce, generator;
 
     /**
      * Private constructor; use {@link TSS.Builder} instead
      */
-    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, String manualVersion, String manualIpswURL, String apnonce) {
+    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, String manualVersion, String manualIpswURL, String apnonce, String generator) {
         this.deviceIdentifier = deviceIdentifier;
         this.ecid = ecid;
         this.savePath = savePath;
@@ -66,6 +66,7 @@ public class TSS extends Task<String> {
         this.manualVersion = manualVersion;
         this.manualIpswURL = manualIpswURL;
         this.apnonce = apnonce;
+        this.generator = generator;
     }
 
     /**
@@ -79,6 +80,7 @@ public class TSS extends Task<String> {
         List<Utils.IOSVersion> iosVersions = getIOSVersions();
         System.out.println("iosVersions = " + iosVersions);
         ArrayList<String> args = constructArgs();
+        final int urlIndex = args.size() - 1;
 
         StringBuilder sb = new StringBuilder("Successfully saved blobs in\n").append(savePath);
         if (manualIpswURL == null) {
@@ -88,7 +90,7 @@ public class TSS extends Task<String> {
         // can't use forEach() because exception won't be caught
         for (Utils.IOSVersion iosVersion : iosVersions) {
             try {
-                args.set(args.size() - 1, extractBuildManifest(iosVersion.ipswURL()).toString());
+                args.set(urlIndex, extractBuildManifest(iosVersion.ipswURL()).toString());
             } catch (IOException e) {
                 throw new TSSException("Unable to extract BuildManifest.", true, e);
             }
@@ -156,26 +158,24 @@ public class TSS extends Task<String> {
     }
 
     private ArrayList<String> constructArgs() {
-        ArrayList<String> args = new ArrayList<>(15);
+        ArrayList<String> args = new ArrayList<>(17);
         String tsscheckerPath = Utils.getTsschecker().getAbsolutePath();
         //noinspection ResultOfMethodCallIgnored
         new File(savePath).mkdirs();
         Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
-        if (boardConfig == null) {
-            Collections.addAll(args, "--boardconfig", Devices.getBoardConfig(deviceIdentifier));
-        } else {
-            Collections.addAll(args, "--boardconfig", boardConfig);
-        }
+        Collections.addAll(args, "--boardconfig",
+                Objects.requireNonNullElse(boardConfig, Devices.getBoardConfig(deviceIdentifier)));
         if (apnonce != null) {
             Collections.addAll(args, "--apnonce", apnonce);
-        } else {
-            Collections.addAll(args, "--generator", "0x1111111111111111");
         }
-        Collections.addAll(args, "--build-manifest", "");
+        Collections.addAll(args, "--generator",
+                Objects.requireNonNullElse(generator, "0x1111111111111111"));
+        Collections.addAll(args, "--build-manifest", "will be replaced in loop");
 
         return args;
     }
 
+    @SuppressWarnings("TextBlockMigration")
     private void parseTSSLog(String tsscheckerLog) throws TSSException {
         if (containsIgnoreCase(tsscheckerLog, "Saved shsh blobs")) {
             return; // success
@@ -215,7 +215,7 @@ public class TSS extends Task<String> {
 
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
-        private String device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce;
+        private String device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce, generator;
 
         public Builder setDevice(String device) {
             this.device = device;
@@ -254,11 +254,16 @@ public class TSS extends Task<String> {
             return this;
         }
 
+        public Builder setGenerator(String generator) {
+            this.generator = generator;
+            return this;
+        }
+
         public TSS build() {
             return new TSS(Objects.requireNonNull(device, "Device"),
                     Objects.requireNonNull(ecid, "ECID"),
                     Objects.requireNonNull(savePath, "Save Path"),
-                    boardConfig, manualVersion, manualIpswURL, apnonce);
+                    boardConfig, manualVersion, manualIpswURL, apnonce, generator);
         }
     }
 
