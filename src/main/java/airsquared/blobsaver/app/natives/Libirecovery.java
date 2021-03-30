@@ -23,6 +23,9 @@ import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.PointerByReference;
 
+/**
+ * https://github.com/libimobiledevice/libirecovery/blob/master/src/libirecovery.c
+ */
 public class Libirecovery {
 
     public static int open(PointerByReference irecv_client) {
@@ -45,6 +48,10 @@ public class Libirecovery {
         return irecv_reboot(irecv_client);
     }
 
+    public static int sendCommand(Pointer irecv_client, String command) {
+        return irecv_send_command(irecv_client, command);
+    }
+
     public static irecv_device_info getDeviceInfo(Pointer irecv_client) {
         return irecv_get_device_info(irecv_client);
     }
@@ -58,6 +65,8 @@ public class Libirecovery {
     private static native int irecv_saveenv(Pointer irecv_client);
 
     private static native int irecv_reboot(Pointer irecv_client);
+
+    private static native int irecv_send_command(Pointer irecv_client, String command);
 
     private static native irecv_device_info irecv_get_device_info(Pointer irecv_client);
 

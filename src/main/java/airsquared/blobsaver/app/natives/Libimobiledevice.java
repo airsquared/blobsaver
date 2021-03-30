@@ -40,11 +40,21 @@ public class Libimobiledevice {
 
     public static native int idevice_new(PointerByReference device, Pointer udid);
 
-    public static native int lockdownd_client_new(Pointer device, PointerByReference client, String label);
+    public static native int lockdownd_client_new_with_handshake(Pointer device, PointerByReference client, String label);
 
-    public static native int lockdownd_pair(Pointer lockdownd_client, Pointer lockdownd_pair_record);
+    public static native int lockdownd_start_service(Pointer lockdownd_client, String identifier, PointerByReference service);
 
     public static native void lockdownd_client_free(Pointer client);
+
+    public static native void lockdownd_service_descriptor_free(Pointer service);
+
+    public static native int diagnostics_relay_client_new(Pointer idevice, Pointer lockdownd_service_descriptor, PointerByReference diagnostics_relay_client);
+
+    public static native int diagnostics_relay_query_mobilegestalt(Pointer diagnostics_client, Pointer plist_keys, PointerByReference plist_node);
+
+    public static native void diagnostics_relay_goodbye(Pointer diagnostics_client);
+
+    public static native void diagnostics_relay_client_free(Pointer diagnostics_client);
 
     public static native void idevice_free(Pointer idevice);
 

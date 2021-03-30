@@ -26,7 +26,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -487,9 +486,9 @@ public class Controller {
     public void readInfo() {
         try {
             // read ECID
-            ecidField.setText(Long.toHexString(LibimobiledeviceUtil.getECID(true)).toUpperCase());
+            ecidField.setText(Long.toHexString(LibimobiledeviceUtil.getECID()).toUpperCase());
             // read device model
-            String deviceIdentifier = LibimobiledeviceUtil.getDeviceModelIdentifier(true);
+            String deviceIdentifier = LibimobiledeviceUtil.getDeviceModelIdentifier();
             try {
                 deviceTypeChoiceBox.setValue(Devices.getDeviceType(deviceIdentifier));
                 deviceModelChoiceBox.setValue(Devices.identifierToModel(deviceIdentifier));
@@ -499,10 +498,11 @@ public class Controller {
             }
             // read board config
             if (!boardConfigField.isDisabled()) {
-                boardConfigField.setText(LibimobiledeviceUtil.getBoardConfig(true));
+                boardConfigField.setText(LibimobiledeviceUtil.getBoardConfig());
             }
         } catch (LibimobiledeviceUtil.LibimobiledeviceException e) {
             System.err.println(e.getMessage()); // don't need full stack trace
+            e.showErrorAlert();
         } catch (Throwable e) {
             e.printStackTrace();
             Utils.showReportableError("Error: unable to register native methods", Utils.exceptionToString(e));
@@ -514,7 +514,7 @@ public class Controller {
         alert1.setHeaderText("Read apnonce from connected device");
         alert1.setContentText("blobsaver can read the apnonce from a connected device.\n\n" +
                 "It is recommended, but not required to set a generator on your device prior to reading the apnonce. " +
-                "If you set a generator, make sure to take note of that generator so you can use it in the future.\n\n" +
+                "blobsaver can read the generator from your device to confirm whether the generator was set properly (currently jailbroken devices only, it will return a random value on unjailbroken devices).\n\n" +
                 "Please connect your device and hit \"OK\" to begin. Your device will enter recovery mode while retrieving the apnonce and will automatically reboot to normal mode when complete.\n\n" +
                 "NOTE: an apnonce is only required for devices with an A12 processor or newer.");
         Optional<ButtonType> result = alert1.showAndWait();
@@ -524,19 +524,25 @@ public class Controller {
         alert2.setHeaderText("Reading apnonce from connected device...");
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
-        Task<String> getApnonceTask = LibimobiledeviceUtil.createGetApnonceTask();
-        getApnonceTask.setOnSucceeded(event -> {
-            apnonceField.setText(getApnonceTask.getValue());
+        LibimobiledeviceUtil.GetApnonceTask task = LibimobiledeviceUtil.createGetApnonceTask();
+        task.setOnSucceeded(event -> {
+            apnonceField.setText(task.getApnonceResult());
+            generatorField.setText(task.getGeneratorResult());
             Utils.forEachButton(alert2, button -> button.setDisable(false));
         });
-        getApnonceTask.setOnFailed(event -> {
-            getApnonceTask.getException().printStackTrace();
+        task.setOnFailed(event -> {
+            task.getException().printStackTrace();
+            if (task.getException() instanceof LibimobiledeviceUtil.LibimobiledeviceException e) {
+                e.showErrorAlert();
+            } else {
+                Utils.showReportableError("An unknown error occurred.", Utils.exceptionToString(task.getException()));
+            }
             Utils.forEachButton(alert2, button -> button.setDisable(false));
             alert2.close();
         });
 
-        alert2.contentTextProperty().bind(getApnonceTask.messageProperty());
-        Utils.executeInThreadPool(getApnonceTask);
+        alert2.contentTextProperty().bind(task.messageProperty());
+        Utils.executeInThreadPool(task);
         alert2.show();
     }
 
@@ -548,9 +554,10 @@ public class Controller {
             return;
         }
         try {
-            LibimobiledeviceUtil.exitRecovery(irecvClient.getValue(), true);
+            LibimobiledeviceUtil.exitRecovery(irecvClient.getValue());
         } catch (LibimobiledeviceUtil.LibimobiledeviceException e) {
             e.printStackTrace();
+            e.showErrorAlert();
         }
     }
 

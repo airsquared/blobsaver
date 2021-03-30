@@ -20,6 +20,7 @@ package airsquared.blobsaver.app.natives;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 
 public class Libplist {
@@ -35,6 +36,16 @@ public class Libplist {
     public static void toXml(Pointer plist, PointerByReference plist_xml, PointerByReference length) {
         plist_to_xml(plist, plist_xml, length);
     }
+
+    public static native Pointer plist_new_array();
+
+    public static native void plist_array_append_item(Pointer plist_t, Pointer plist_t_item);
+
+    public static native Pointer plist_new_string(String val);
+
+    public static native Pointer plist_dict_get_item(Pointer plist, String key);
+
+    public static native Pointer plist_get_data_ptr(Pointer plist, IntByReference length);
 
     private static native void plist_get_string_val(Pointer plist, PointerByReference value);
 

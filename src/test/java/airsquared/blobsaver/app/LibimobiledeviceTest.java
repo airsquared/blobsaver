@@ -31,13 +31,13 @@ public class LibimobiledeviceTest extends BlobsaverTest {
 
     @Test
     public void getECID() throws LibimobiledeviceUtil.LibimobiledeviceException {
-        long ecid = LibimobiledeviceUtil.getECID(false);
+        long ecid = LibimobiledeviceUtil.getECID();
         assertEquals(0L, ecid);  // change to your device's ecid
     }
 
     @Test
     public void enterRecovery() throws LibimobiledeviceUtil.LibimobiledeviceException {
-        LibimobiledeviceUtil.enterRecovery(false);
+        LibimobiledeviceUtil.enterRecovery();
     }
 
     @Test
@@ -56,6 +56,12 @@ public class LibimobiledeviceTest extends BlobsaverTest {
         assertEquals(0, Libirecovery.saveEnv(irecvClient.getValue()));
         assertEquals(0, Libirecovery.reboot(irecvClient.getValue()));
         assertEquals(0, Libirecovery.close(irecvClient.getValue()));
+    }
+
+    @Test
+    public void mobilegestalt() throws LibimobiledeviceUtil.LibimobiledeviceException {
+        System.out.println(LibimobiledeviceUtil.getApNonceNormalMode());
+        System.out.println(LibimobiledeviceUtil.getGenerator());
     }
 
 }
