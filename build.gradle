@@ -23,7 +23,7 @@ plugins {
     id 'java'
     id 'application'
     id 'com.github.ben-manes.versions' version '0.38.0'
-    id 'org.beryx.jlink' version '2.23.5'
+    id 'org.beryx.jlink' version '2.23.8'
     id 'com.dua3.javafxgradle7plugin' version '0.0.9'
 
     id 'idea'
