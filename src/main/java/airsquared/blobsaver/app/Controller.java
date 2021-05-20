@@ -186,10 +186,11 @@ public class Controller {
             Utils.setSelectedFire(identifierCheckBox, true);
             identifierField.setText(identifier);
         }
-        savedDevice.getBoardConfig().ifPresent(b -> boardConfigField.setText(b));
+        savedDevice.getBoardConfig().ifPresent(boardConfigField::setText);
         savedDevice.getApnonce().ifPresent(a -> {
             Utils.setSelectedFire(apnonceCheckBox, true);
             apnonceField.setText(a);
+            savedDevice.getGenerator().ifPresent(generatorField::setText);
         });
     }
 
@@ -219,6 +220,9 @@ public class Controller {
             }
             if (apnonceCheckBox.isSelected()) {
                 builder.setApnonce(apnonceField.getText());
+                if (!Utils.isEmptyOrNull(generatorField.getText())) {
+                    builder.setGenerator(generatorField.getText());
+                }
             }
             builder.save();
         }

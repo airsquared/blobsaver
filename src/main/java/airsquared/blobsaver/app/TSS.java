@@ -167,9 +167,12 @@ public class TSS extends Task<String> {
                 Objects.requireNonNullElse(boardConfig, Devices.getBoardConfig(deviceIdentifier)));
         if (apnonce != null) {
             Collections.addAll(args, "--apnonce", apnonce);
+            if (generator != null) {
+                Collections.addAll(args, "--generator", generator);
+            }
+        } else {
+            Collections.addAll(args, "--generator", "0x1111111111111111");
         }
-        Collections.addAll(args, "--generator",
-                Objects.requireNonNullElse(generator, "0x1111111111111111"));
         Collections.addAll(args, "--build-manifest", "will be replaced in loop");
 
         return args;

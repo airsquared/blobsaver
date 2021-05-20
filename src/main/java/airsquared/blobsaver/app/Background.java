@@ -269,6 +269,7 @@ class Background {
                 .setEcid(savedDevice.getEcid()).setSavePath(savedDevice.getSavePath());
         savedDevice.getBoardConfig().ifPresent(builder::setBoardConfig);
         savedDevice.getApnonce().ifPresent(builder::setApnonce);
+        savedDevice.getGenerator().ifPresent(builder::setGenerator);
 
         try {
             builder.build().call();

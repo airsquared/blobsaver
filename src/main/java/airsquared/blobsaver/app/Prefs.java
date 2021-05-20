@@ -216,6 +216,14 @@ public final class Prefs {
             node.put("Apnonce", apnonce);
         }
 
+        public Optional<String> getGenerator() {
+            return Optional.ofNullable(node.get("Generator", null));
+        }
+
+        public void setGenerator(String generator) {
+            node.put("Generator", generator);
+        }
+
         public boolean isBackground() {
             return node.getBoolean("Save in background", false);
         }
@@ -243,7 +251,7 @@ public final class Prefs {
     @SuppressWarnings("UnusedReturnValue")
     public static class SavedDeviceBuilder {
         private final String name;
-        private String ecid, savePath, identifier, boardConfig, apnonce;
+        private String ecid, savePath, identifier, boardConfig, apnonce, generator;
 
         public SavedDeviceBuilder(String name) {
             this.name = name;
@@ -274,6 +282,11 @@ public final class Prefs {
             return this;
         }
 
+        public SavedDeviceBuilder setGenerator(String generator) {
+            this.generator = generator;
+            return this;
+        }
+
         public SavedDevice save() {
             SavedDevice device = new SavedDevice(Objects.requireNonNull(name, "Device Name"));
             device.setEcid(Objects.requireNonNull(ecid, "ECID"));
@@ -284,6 +297,9 @@ public final class Prefs {
             }
             if (apnonce != null) {
                 device.setApnonce(apnonce);
+            }
+            if (generator != null) {
+                device.setGenerator(generator);
             }
 
             if (!savedDevicesList.contains(device)) {
