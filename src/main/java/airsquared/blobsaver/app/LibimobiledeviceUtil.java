@@ -62,12 +62,17 @@ public class LibimobiledeviceUtil {
         throwIfNeeded(Libirecovery.close(irecvClient), ErrorCodeType.irecv_error);
     }
 
-    public static GetApnonceTask createGetApnonceTask() {
-        return new GetApnonceTask();
+    public static GetApnonceTask createApnonceTask(boolean jailbroken) {
+        return new GetApnonceTask(jailbroken);
     }
 
     public static final class GetApnonceTask extends Task<Void> {
         private String apnonceResult, generatorResult;
+        /**
+         * If the device is jailbroken or has a generator set, no need to try to read the apnonce in normal mode.
+         * If device doesn't have generator set, need to read the apnonce in normal mode to freeze it.
+         */
+        private final boolean jailbroken;
 
         public String getApnonceResult() {
             return apnonceResult;
@@ -77,23 +82,28 @@ public class LibimobiledeviceUtil {
             return generatorResult;
         }
 
+        private GetApnonceTask(boolean jailbroken) {
+            this.jailbroken = jailbroken;
+        }
+
         @Override
         protected Void call() throws LibimobiledeviceException {
+            if (!jailbroken) {
+                updateMessage("Reading ApNonce in normal mode...");
+                System.out.println("Read in normal mode: " + LibimobiledeviceUtil.getApNonceNormalMode());
+            }
             updateMessage("Entering recovery mode...\n\nThis can take up to 60 seconds");
             LibimobiledeviceUtil.enterRecovery();
-            PointerByReference irecvClient = new PointerByReference();
-            long endTime = System.currentTimeMillis() + 60_000; // timeout is 60 seconds
-            int errorCode = -3;
-            while (errorCode == -3 && System.currentTimeMillis() < endTime) {
-                if (!sleep(1000)) {
-                    return null;
-                }
-                errorCode = Libirecovery.open(irecvClient);
-            }
-            throwIfNeeded(errorCode, ErrorCodeType.irecv_error);
+            PointerByReference irecvClient = waitForRecovery();
+            if (irecvClient == null) return null;
 
+            updateMessage("Reading ApNonce...");
             apnonceResult = getApnonce(irecvClient.getValue());
             Libirecovery.sendCommand(irecvClient.getValue(), "reset");
+
+            throwIfNeeded(Libirecovery.close(irecvClient.getValue()), ErrorCodeType.irecv_error);
+            irecvClient = waitForRecovery();
+            if (irecvClient == null) return null;
 
             if (apnonceResult.equals(getApnonce(irecvClient.getValue()))) {
                 Utils.runSafe(() -> updateMessage("Successfully got ApNonce, exiting recovery mode..."));
@@ -106,8 +116,8 @@ public class LibimobiledeviceUtil {
             sleep(3000);
 
             PointerByReference device = new PointerByReference();
-            endTime = System.currentTimeMillis() + 80_000; // timeout is 80 seconds
-            errorCode = -3;
+            long endTime = System.currentTimeMillis() + 80_000; // timeout is 80 seconds
+            int errorCode = -3;
             while (errorCode == -3 && System.currentTimeMillis() < endTime) {
                 if (!sleep(1000)) {
                     return null;
@@ -116,7 +126,7 @@ public class LibimobiledeviceUtil {
             }
             throwIfNeeded(errorCode, ErrorCodeType.idevice_error);
 
-            Utils.runSafe(() -> updateMessage("Please unlock your device"));
+            updateMessage("Please unlock your device");
 
             PointerByReference lockdown = new PointerByReference();
             endTime = System.currentTimeMillis() + 120_000; // timeout is 120 seconds
@@ -151,17 +161,32 @@ public class LibimobiledeviceUtil {
             return null;
         }
 
-        /**
-         * @return false if task was cancelled during the Thread.sleep
-         */
-        private boolean sleep(long millis) {
-            try {
-                Thread.sleep(millis);
-            } catch (InterruptedException e) {
-                return false;
-            }
-            return true;
+    }
+
+    /**
+     * @return false if task was cancelled during the Thread.sleep
+     */
+    private static boolean sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            return false;
         }
+        return true;
+    }
+
+    private static PointerByReference waitForRecovery() throws LibimobiledeviceException {
+        PointerByReference irecvClient = new PointerByReference();
+        long endTime = System.currentTimeMillis() + 60_000; // timeout is 60 seconds
+        int errorCode = -3;
+        while (errorCode == -3 && System.currentTimeMillis() < endTime) {
+            if (!sleep(1000)) {
+                return null;
+            }
+            errorCode = Libirecovery.open(irecvClient);
+        }
+        throwIfNeeded(errorCode, ErrorCodeType.irecv_error);
+        return irecvClient;
     }
 
     private static String getApnonce(Pointer irecv_client) {

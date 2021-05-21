@@ -42,7 +42,6 @@ import javafx.stage.Modality;
 
 import java.io.File;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"TextBlockMigration"})
@@ -514,21 +513,21 @@ public class Controller {
     }
 
     public void readApnonce() {
-        Alert alert1 = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert1 = new Alert(Alert.AlertType.CONFIRMATION, "", ButtonType.CANCEL, new ButtonType("Jailbroken"), new ButtonType("Unjailbroken"));
         alert1.setHeaderText("Read apnonce from connected device");
-        alert1.setContentText("blobsaver can read the apnonce from a connected device.\n\n" +
-                "It is recommended, but not required to set a generator on your device prior to reading the apnonce. " +
-                "blobsaver can read the generator from your device to confirm whether the generator was set properly (currently jailbroken devices only, it will return a random value on unjailbroken devices).\n\n" +
-                "Please connect your device and hit \"OK\" to begin. Your device will enter recovery mode while retrieving the apnonce and will automatically reboot to normal mode when complete.\n\n" +
-                "NOTE: an apnonce is only required for devices with an A12 processor or newer.");
-        Optional<ButtonType> result = alert1.showAndWait();
-        if (result.isEmpty() || !result.get().equals(ButtonType.OK)) return;
-        final Alert alert2 = new Alert(Alert.AlertType.INFORMATION, "Entering recovery mode...\n\n" +
-                "This can take up to 60 seconds", ButtonType.FINISH);
+        alert1.setContentText("blobsaver can read both the ApNonce and generator from a connected device.\n\n" +
+                "Please connect your device and click \"Jailbroken\" if your device has a generator set or \"Unjailbroken\" if you don't. Your device will enter recovery mode while retrieving the apnonce and will automatically reboot to normal mode when complete.\n\n");
+        boolean jailbroken;
+        if (alert1.showAndWait().isEmpty() || !alert1.getResult().getText().contains("ailbroken")) {
+            return;
+        } else {
+            jailbroken = alert1.getResult().getText().equals("Jailbroken");
+        }
+        final Alert alert2 = new Alert(Alert.AlertType.INFORMATION, "[This should not be visible]", ButtonType.FINISH);
         alert2.setHeaderText("Reading apnonce from connected device...");
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
-        LibimobiledeviceUtil.GetApnonceTask task = LibimobiledeviceUtil.createGetApnonceTask();
+        LibimobiledeviceUtil.GetApnonceTask task = LibimobiledeviceUtil.createApnonceTask(jailbroken);
         task.setOnSucceeded(event -> {
             apnonceField.setText(task.getApnonceResult());
             generatorField.setText(task.getGeneratorResult());
