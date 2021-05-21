@@ -17,14 +17,14 @@
  */
 
 .label {
-    -fx-font-size: 15;
+  -fx-font-size: 15;
 }
 
 .savedDeviceButton {
-    -fx-max-width: Infinity;
-    -fx-pref-width: Infinity;
+  -fx-max-width: Infinity;
+  -fx-pref-width: Infinity;
 }
 
 #savedDevicesVBox {
-    -fx-background-color: white;
+  -fx-background-color: white;
 }
