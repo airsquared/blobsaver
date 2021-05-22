@@ -120,6 +120,9 @@ jlink {
             from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
             into "${buildDir}/jpackage/blobsaver.app/Contents/Resources"
         }
+        exec {
+            commandLine "codesign", "--remove-signature", "${buildDir}/jpackage/blobsaver.app"
+        }
     } else if (os.isWindows()) jpackageImage.doLast {
         copy {
             from "${projectDir}/dist/windows/files", "${buildDir}/jpackage/blobsaver/runtime/bin/zip.dll"
