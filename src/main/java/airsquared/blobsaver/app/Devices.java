@@ -57,7 +57,11 @@ public final class Devices {
             "iPad Pro 4 11' (Cellular)(iPad8,10)", "iPad Pro 4 12.9' (WiFi)(iPad8,11)",
             "iPad Pro 4 12.9' (Cellular)(iPad8,12)", "iPad Mini 5 (WiFi)(iPad11,1)", "iPad Mini 5 (Cellular)(iPad11,2)",
             "iPad Air 3 (WiFi)(iPad11,3)", "iPad Air 3 (Cellular)(iPad11,4)", "iPad 8 (WiFi) (iPad11,6)",
-            "iPad 8 (Cellular) (iPad11,7)", "iPad Air 4 (WiFi) (iPad13,1)", "iPad Air 4 (Cellular) (iPad13,2)"};
+            "iPad 8 (Cellular) (iPad11,7)", "iPad Air 4 (WiFi) (iPad13,1)", "iPad Air 4 (Cellular) (iPad13,2)",
+            "iPad Pro 11' (3rd gen) (WiFi) (iPad13,4)", "iPad Pro 11' (3rd gen) (WiFi) (iPad13,5)",
+            "iPad Pro 11' (3rd gen) (Cellular) (iPad13,6)", "iPad Pro 11' (3rd gen) (Cellular) (iPad13,7)",
+            "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,8)", "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,9)",
+            "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,10)", "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,11)"};
 
     private static final ObservableList<String> iPhoneList = FXCollections.observableArrayList(iPhones);
     private static final ObservableList<String> iPadList = FXCollections.observableArrayList(iPads);
