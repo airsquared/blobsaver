@@ -89,7 +89,7 @@ public class LibimobiledeviceUtil {
         @Override
         protected Void call() throws LibimobiledeviceException {
             if (!jailbroken) {
-                updateMessage("Reading ApNonce in normal mode...");
+                updateMessage("Reading APNonce in normal mode...");
                 System.out.println("Read in normal mode: " + LibimobiledeviceUtil.getApNonceNormalMode());
             }
             updateMessage("Entering recovery mode...\n\nThis can take up to 60 seconds");
@@ -97,7 +97,7 @@ public class LibimobiledeviceUtil {
             PointerByReference irecvClient = waitForRecovery();
             if (irecvClient == null) return null;
 
-            updateMessage("Reading ApNonce...");
+            updateMessage("Reading APNonce...");
             apnonceResult = getApnonce(irecvClient.getValue());
             Libirecovery.sendCommand(irecvClient.getValue(), "reset");
 
@@ -106,9 +106,9 @@ public class LibimobiledeviceUtil {
             if (irecvClient == null) return null;
 
             if (apnonceResult.equals(getApnonce(irecvClient.getValue()))) {
-                Utils.runSafe(() -> updateMessage("Successfully got ApNonce, exiting recovery mode..."));
+                Utils.runSafe(() -> updateMessage("Successfully got APNonce, exiting recovery mode..."));
             } else {
-                Utils.runSafe(() -> updateMessage("Warning: Got ApNonce, but two successive reads didn't match. This could mean the generator wasn't set correctly.\n\nExiting recovery mode..."));
+                Utils.runSafe(() -> updateMessage("Warning: Got APNonce, but two successive reads didn't match. This could mean the generator wasn't set correctly.\n\nExiting recovery mode..."));
             }
 
             LibimobiledeviceUtil.exitRecovery(irecvClient.getValue());
@@ -319,7 +319,7 @@ public class LibimobiledeviceUtil {
         boolean reportableError = false;
         if (errorType.equals(ErrorCodeType.idevice_error)) {
             if (errorCode == -3) { // IDEVICE_E_NO_DEVICE
-                message = "Error: No devices found/connected. Make sure your device is connected via USB and unlocked.";
+                message = "No devices found/connected. Make sure your device is connected via USB and unlocked.";
             } else {
                 message = "idevice error: code=" + errorCode;
                 reportableError = true;
@@ -327,11 +327,13 @@ public class LibimobiledeviceUtil {
         } else if (errorType.equals(ErrorCodeType.lockdownd_error)) {
             message = switch (errorCode) {
                 case -17:  // LOCKDOWN_E_PASSWORD_PROTECTED
-                    yield "Error: The device is locked.\n\nPlease unlock your device and go to the homescreen then try again.\n\nLOCKDOWN_E_PASSWORD_PROTECTED (-17)";
+                    yield "The device is locked.\n\nPlease unlock your device and go to the homescreen then try again.\n\nLOCKDOWN_E_PASSWORD_PROTECTED (-17)";
                 case -18:  // LOCKDOWN_E_USER_DENIED_PAIRING
-                    yield "Error: The user denied the pair request on the device. Please unplug your device and accept the dialog next time.\n\nLOCKDOWN_E_USER_DENIED_PAIRING (-18)";
+                    yield "The user denied the pair request on the device. Please unplug your device and accept the dialog next time.\n\nLOCKDOWN_E_USER_DENIED_PAIRING (-18)";
                 case -19:  // LOCKDOWN_E_PAIRING_DIALOG_RESPONSE_PENDING
-                    yield "Error: Please accept the trust/pair dialog on the device and try again.\n\nLOCKDOWN_E_PAIRING_DIALOG_RESPONSE_PENDING (-19)";
+                    yield "Please accept the trust/pair dialog on the device and try again.\n\nLOCKDOWN_E_PAIRING_DIALOG_RESPONSE_PENDING (-19)";
+                case -21: // LOCKDOWN_E_INVALID_HOST_ID
+                    yield "Try restarting both your iOS device and computer. If that doesn't work, try again with your device open and trusted in Finder/iTunes.\n\nLOCKDOWN_E_INVALID_HOST_ID (-21)";
                 case -8:  // LOCKDOWN_E_MUX_ERROR
                     reportableError = true;
                     yield "lockdownd error: LOCKDOWN_E_MUX_ERROR (-8)";

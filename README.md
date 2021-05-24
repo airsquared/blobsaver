@@ -1,11 +1,14 @@
 Help support this project by ⭐️'ing it! [Donations](https://www.paypal.me/airsqrd) also appreciated!
 
 # blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0d4fdc1daca5402a8c57efc3bef73d31)](https://www.codacy.com/gh/airsquared/blobsaver/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=airsquared/blobsaver&amp;utm_campaign=Badge_Grade)
-A GUI for saving SHSH blobs using [tsschecker](https://github.com/tihmstar/tsschecker). Supports macOS, Windows, and Linux.
+A GUI for saving SHSH blobs using [tsschecker](https://github.com/tihmstar/tsschecker). Supports macOS, Windows, and
+Linux.
 
-[Download here](https://github.com/airsquared/blobsaver/releases) (Requires [Java](https://java.com/en/download/manual.jsp))
+[Download here](https://github.com/airsquared/blobsaver/releases) (
+Requires [Java](https://java.com/en/download/manual.jsp), not required for the v3.0 beta)
 
-**Tip:** if you want blobs you save to automatically be uploaded to the cloud, see [here](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud).
+**Tip:** if you want blobs you save to automatically be uploaded to the cloud,
+see [here](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud).
 
 ![Mac Screenshot](.github/screenshots/screenshot-macos.png)
 ![Windows Screenshot](.github/screenshots/screenshot-windows.png)

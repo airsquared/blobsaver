@@ -438,10 +438,10 @@ public class Controller {
     }
 
     public void resetAppHandler() {
-        ButtonType result = Utils.showConfirmAlert("Are you sure you would like to reset/remove all blobsaver data?");
+        ButtonType result = Utils.showConfirmAlert("Are you sure you would like to clear all blobsaver data?");
         if (ButtonType.OK.equals(result)) {
             Prefs.resetPrefs();
-            Utils.showInfoAlert("The application data have been removed. \nThe application will now exit.");
+            Utils.showInfoAlert("The application data has been removed. \nThe application will now exit.");
             Main.exit();
         }
     }
@@ -514,9 +514,9 @@ public class Controller {
 
     public void readApnonce() {
         Alert alert1 = new Alert(Alert.AlertType.CONFIRMATION, "", ButtonType.CANCEL, new ButtonType("Jailbroken"), new ButtonType("Unjailbroken"));
-        alert1.setHeaderText("Read apnonce from connected device");
-        alert1.setContentText("blobsaver can read both the ApNonce and generator from a connected device.\n\n" +
-                "Please connect your device and click \"Jailbroken\" if your device has a generator set or \"Unjailbroken\" if you don't. Your device will enter recovery mode while retrieving the apnonce and will automatically reboot to normal mode when complete.\n\n");
+        alert1.setHeaderText("Read APNonce from connected device");
+        alert1.setContentText("blobsaver can read both the APNonce and generator from a connected device.\n\n" +
+                "Please connect your device and click \"Jailbroken\" if your device has a generator set or \"Unjailbroken\" if you don't. Your device will enter recovery mode while retrieving the APNonce and will automatically reboot to normal mode when complete.\n\n");
         boolean jailbroken;
         if (alert1.showAndWait().isEmpty() || !alert1.getResult().getText().contains("ailbroken")) {
             return;
@@ -524,7 +524,7 @@ public class Controller {
             jailbroken = alert1.getResult().getText().equals("Jailbroken");
         }
         final Alert alert2 = new Alert(Alert.AlertType.INFORMATION, "[This should not be visible]", ButtonType.FINISH);
-        alert2.setHeaderText("Reading apnonce from connected device...");
+        alert2.setHeaderText("Reading APNonce from connected device...");
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
         LibimobiledeviceUtil.GetApnonceTask task = LibimobiledeviceUtil.createApnonceTask(jailbroken);
@@ -641,7 +641,7 @@ public class Controller {
                 ipswField.setEffect(Utils.errorBorder);
             } else if (message.contains("not a valid ECID")) {
                 ecidField.setEffect(Utils.errorBorder);
-            } else if (message.contains("not a valid apnonce")) {
+            } else if (message.contains("not a valid APNonce")) {
                 apnonceField.setEffect(Utils.errorBorder);
             } else if (message.contains("not a valid path")) {
                 pathField.setEffect(Utils.errorBorder);

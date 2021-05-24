@@ -13,6 +13,7 @@
     <option name="configurationPath" value="" />
     <option name="exclusions">
       <set>
+        <option value=".*\.md" />
         <option value="build.gradle" />
       </set>
     </option>

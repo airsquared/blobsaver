@@ -186,7 +186,7 @@ public class TSS extends Task<String> {
             throw new TSSException("\"" + ecid + "\"" + " is not a valid ECID. Try using the 'Read from device' button.", false);
         } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")
                 || containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] parsed APNoncelen != requiredAPNoncelen")) {
-            throw new TSSException("\"" + apnonce + "\" is not a valid apnonce", false);
+            throw new TSSException("\"" + apnonce + "\" is not a valid APNonce", false);
         } else if (containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Erase")
                 && containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Update")
                 && containsIgnoreCase(tsscheckerLog, "checking tss status failed")) {

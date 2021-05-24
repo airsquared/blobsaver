@@ -7,9 +7,8 @@ assignees: ''
 
 ---
 
-DO NOT SUBMIT A BUG REPORT OR FEATURE REQUEST USING THIS TEMPLATE, YOUR ISSUE WILL BE CLOSED AND/OR DELETED
+Please do not submit a bug report or feature request using this template, your issue will be closed and/or deleted.
 
-
-Please remove the following line and the text above it before submitting this issue:
+Remove the following line and the text above it before submitting this issue:
 
 -------------------------------------------------------------

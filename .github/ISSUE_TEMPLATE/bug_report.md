@@ -7,8 +7,7 @@ assignees: ''
 
 ---
 
-YOUR ISSUE WILL BE CLOSED AND/OR DELETED IF YOU DO NOT FILL OUT THIS TEMPLATE
-
+Your issue will be closed and/or deleted if you do not fill out this template.
 
 Please remove the following line and the text above it before submitting this issue:
 

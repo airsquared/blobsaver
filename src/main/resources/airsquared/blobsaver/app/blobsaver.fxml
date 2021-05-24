@@ -190,13 +190,13 @@
             </VBox.margin>
         </TextField>
         <CheckBox fx:id="apnonceCheckBox" mnemonicParsing="false" onAction="#apnonceCheckBoxHandler"
-                  text="Specify ApNonce:">
+                  text="Specify APNonce:">
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" top="5.0"/>
             </VBox.margin>
         </CheckBox>
         <AnchorPane disable="${!apnonceCheckBox.selected}">
-            <TextField fx:id="apnonceField" promptText="Apnonce" AnchorPane.bottomAnchor="0.0"
+            <TextField fx:id="apnonceField" promptText="APNonce" AnchorPane.bottomAnchor="0.0"
                        onTextChange="#clearEffectHandler"
                        AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                 <padding>
@@ -271,7 +271,7 @@
         </ListView>
         <!--suppress JavaFxUnresolvedFxIdReference -->
         <Button fx:id="saveDeviceButton" prefWidth="Infinity" maxWidth="Infinity" mnemonicParsing="false"
-                onAction="#saveDeviceHandler" text="Save" disable="${backgroundSettingsButton.selected}"
+                onAction="#saveDeviceHandler" text="Save Device" disable="${backgroundSettingsButton.selected}"
                 visible="${!saveDeviceButton.disable}" managed="${!saveDeviceButton.disable}">
             <VBox.margin>
                 <Insets bottom="10.0"/>
