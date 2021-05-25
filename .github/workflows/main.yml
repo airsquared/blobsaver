@@ -26,7 +26,15 @@ jobs:
         with:
           name: ${{ runner.os }}
           path: build/distributions/*
-      - uses: "marvinpinto/action-automatic-releases@latest"
+  release:
+    name: Create pubilc releases
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: get artefacts
+        uses: actions/download-artifact@v2
+      - name: release public builds
+        uses: "marvinpinto/action-automatic-releases@latest"
         if: "!contains(github.event.head_commit.message, '[Release]')"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -34,6 +42,6 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            build/distributions/**
+            **
 
 
