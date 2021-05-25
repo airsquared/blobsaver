@@ -34,8 +34,6 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            **blobsaver-windows.exe
-            **blobsaver-macos.dmg
-            **blobsaver-linux.tar.gz
+            build/distributions/**
 
 
