@@ -302,7 +302,7 @@ final class Utils {
         return new TextFormatter<>(change -> isNumeric(change.getText()) ? change : null);
     }
 
-    private static boolean isNumeric(String s) {
+    static boolean isNumeric(String s) {
         if (isEmptyOrNull(s)) {
             return true;
         }
@@ -355,7 +355,7 @@ final class Utils {
         return getFirmwareList(deviceIdentifier).filter(IOSVersion::signed);
     }
 
-    public static final record IOSVersion(String versionString, String ipswURL, Boolean signed) {
+    static final record IOSVersion(String versionString, String ipswURL, Boolean signed) {
         public IOSVersion {
             Objects.requireNonNull(ipswURL, "ipsw url cannot be null");
         }

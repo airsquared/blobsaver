@@ -342,9 +342,9 @@ public class Controller {
         chooseTimeToRunButton.setDisable(disableBackgroundSettings);
 
         if (Background.isBackgroundEnabled()) {
-            startBackgroundButton.setText("Stop Background");
+            startBackgroundButton.setText("Stop background");
         } else {
-            startBackgroundButton.setText("Start Background");
+            startBackgroundButton.setText("Start background");
         }
     }
 
@@ -363,7 +363,7 @@ public class Controller {
         } else {
             savedDevicesVBox.setEffect(null);
             savedDevicesLabel.setText("Saved Devices");
-            backgroundSettingsButton.setText("Background settings");
+            backgroundSettingsButton.setText("Background Settings");
             deviceList.setCellFactory(null);
         }
     }
@@ -489,7 +489,8 @@ public class Controller {
     public void readInfo() {
         try {
             // read ECID
-            ecidField.setText(Long.toHexString(LibimobiledeviceUtil.getECID()).toUpperCase());
+            String ecid = Long.toHexString(LibimobiledeviceUtil.getECID()).toUpperCase();
+            ecidField.setText(Utils.isNumeric(ecid) ? "0x" + ecid : ecid);
             // read device model
             String deviceIdentifier = LibimobiledeviceUtil.getDeviceModelIdentifier();
             try {

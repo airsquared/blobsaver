@@ -299,7 +299,7 @@
             </VBox.margin>
         </Button>
         <ToggleButton fx:id="backgroundSettingsButton" prefWidth="Infinity" maxWidth="Infinity"
-                      mnemonicParsing="false" onAction="#backgroundSettingsHandler" text="Background settings">
+                      mnemonicParsing="false" onAction="#backgroundSettingsHandler" text="Background Settings">
             <VBox.margin>
                 <Insets bottom="10.0"/>
             </VBox.margin>
