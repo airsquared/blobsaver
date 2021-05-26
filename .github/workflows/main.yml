@@ -30,18 +30,16 @@ jobs:
     name: Create pubilc releases
     runs-on: ubuntu-latest
     needs: build
+    if: "startsWith(github.event.head_commit.message, '[Release]')"
     steps:
       - name: get artefacts
         uses: actions/download-artifact@v2
       - name: release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
-        if: "!contains(github.event.head_commit.message, '[Release]')"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
-          prerelease: true
-          title: "Development Build"
+          prerelease: false
+          title: "github.event.head_commit.message | awk '{print $2}'"
           files: |
             **
-
-
