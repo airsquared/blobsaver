@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.38.0'
+    id 'com.github.ben-manes.versions' version '0.39.0'
     id 'org.beryx.jlink' version '2.24.0'
     id 'com.dua3.javafxgradle7plugin' version '0.0.9'
 
