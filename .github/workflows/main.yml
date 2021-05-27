@@ -35,12 +35,12 @@ jobs:
       - name: get artefacts
         uses: actions/download-artifact@v2
       - name: get version from commit
-        run: echo "VERSION=$(echo github.event.head_commit.message | awk '{print $2}')" >> $GITHUB_ENV
+        run: echo "GITHUB_VERSION=$echo github.event.head_commit.message | awk '{print $2}')" >> $GITHUB_ENV
       - name: release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ env.VERSION }}"
+          automatic_release_tag: $GITHUB_VERSION
           prerelease: false
-          title: "${{ env.VERSION }}"
+          title: $GITHUB_VERSION
           files: "**"
