@@ -1,0 +1,13 @@
+name: Generate AVIF and WEBP
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  Convert-Compress:
+    runs-on: ubuntu-latest
+    steps:
+      # This fixes the "Missing write access to /usr/local/lib/node_modules" error
+      - name: Setup node 14 properly
+        run: echo "action_state=yellow" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: echo "${{ env.action_state }}" # This will output 'yellow'
