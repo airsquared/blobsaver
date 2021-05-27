@@ -18,42 +18,38 @@
 
 package airsquared.blobsaver.app.natives;
 
-import com.sun.jna.Native;
+import airsquared.blobsaver.app.natives.NativeUtils.CFunctionName;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 
 public class Libplist {
 
-    public static void getStringVal(Pointer plist, PointerByReference value) {
-        plist_get_string_val(plist, value);
-    }
+    @CFunctionName("plist_new_array")
+    public static native Pointer newArray();
 
-    public static void free(Pointer plist) {
-        plist_free(plist);
-    }
+    @CFunctionName("plist_array_append_item")
+    public static native void arrayAppendItem(Pointer plist_t, Pointer plist_t_item);
 
-    public static void toXml(Pointer plist, PointerByReference plist_xml, PointerByReference length) {
-        plist_to_xml(plist, plist_xml, length);
-    }
+    @CFunctionName("plist_new_string")
+    public static native Pointer newString(String val);
 
-    public static native Pointer plist_new_array();
+    @CFunctionName("plist_dict_get_item")
+    public static native Pointer dictGetItem(Pointer plist, String key);
 
-    public static native void plist_array_append_item(Pointer plist_t, Pointer plist_t_item);
+    @CFunctionName("plist_get_data_ptr")
+    public static native Pointer getDataPtr(Pointer plist, IntByReference length);
 
-    public static native Pointer plist_new_string(String val);
+    @CFunctionName("plist_get_string_val")
+    public static native void getStringVal(Pointer plist, PointerByReference value);
 
-    public static native Pointer plist_dict_get_item(Pointer plist, String key);
+    @CFunctionName("plist_free")
+    public static native void free(Pointer plist);
 
-    public static native Pointer plist_get_data_ptr(Pointer plist, IntByReference length);
-
-    private static native void plist_get_string_val(Pointer plist, PointerByReference value);
-
-    private static native void plist_free(Pointer plist);
-
-    private static native void plist_to_xml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
+    @CFunctionName("plist_to_xml")
+    public static native void toXml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
 
     static {
-        Native.register(Libplist.class, "plist");
+        NativeUtils.register(Libplist.class, "plist");
     }
 }

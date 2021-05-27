@@ -183,7 +183,16 @@ public class LibimobiledeviceUtil {
             if (!sleep(1000)) {
                 return null;
             }
-            errorCode = Libirecovery.open(irecvClient);
+            try {
+                errorCode = Libirecovery.open(irecvClient);
+            } catch (UnsatisfiedLinkError e) {
+                if (Platform.isLinux()) {
+                    throw new LibimobiledeviceException("Error: libirecovery not found.\n\n" +
+                            "Please ensure you have libirecovery installed as libirecovery.so, and not as libirecovery-1.0.so.", null, 0, false);
+                } else {
+                    throw e;
+                }
+            }
         }
         throwIfNeeded(errorCode, ErrorCodeType.irecv_error);
         return irecvClient;
@@ -259,11 +268,11 @@ public class LibimobiledeviceUtil {
         PointerByReference diagnosticsRelayClient = new PointerByReference();
         throwIfNeeded(diagnostics_relay_client_new(device.getValue(), service.getValue(), diagnosticsRelayClient), ErrorCodeType.diagnostics_relay_error);
 
-        Pointer keys = Libplist.plist_new_array();
-        Libplist.plist_array_append_item(keys, Libplist.plist_new_string(key));
+        Pointer keys = Libplist.newArray();
+        Libplist.arrayAppendItem(keys, Libplist.newString(key));
         PointerByReference plistResult = new PointerByReference();
         throwIfNeeded(diagnostics_relay_query_mobilegestalt(diagnosticsRelayClient.getValue(), keys, plistResult), ErrorCodeType.diagnostics_relay_error);
-        Pointer plistApnonce = Libplist.plist_dict_get_item(Libplist.plist_dict_get_item(plistResult.getValue(), "MobileGestalt"), key);
+        Pointer plistApnonce = Libplist.dictGetItem(Libplist.dictGetItem(plistResult.getValue(), "MobileGestalt"), key);
 
         diagnostics_relay_goodbye(diagnosticsRelayClient.getValue());
         diagnostics_relay_client_free(diagnosticsRelayClient.getValue());
@@ -276,7 +285,7 @@ public class LibimobiledeviceUtil {
 
     private static String plistDataToString(Pointer plist, ByteOrder byteOrder) {
         IntByReference apnonceLength = new IntByReference();
-        byte[] apnonceBytes = Libplist.plist_get_data_ptr(plist, apnonceLength).getByteArray(0, apnonceLength.getValue());
+        byte[] apnonceBytes = Libplist.getDataPtr(plist, apnonceLength).getByteArray(0, apnonceLength.getValue());
         String toReturn = Utils.bytesToHex(apnonceBytes, byteOrder);
         Libplist.free(plist);
 
@@ -369,7 +378,7 @@ public class LibimobiledeviceUtil {
             String message = getMessage();
             if (reportable) {
                 Utils.showReportableError(message);
-            } else if (errorType.equals(ErrorCodeType.idevice_error) && errorCode == -3 && Platform.isWindows()) {
+            } else if (ErrorCodeType.idevice_error.equals(errorType) && errorCode == -3 && Platform.isWindows()) {
                 message += "\n\nEnsure iTunes or Apple's iOS Drivers are installed.";
                 ButtonType downloadItunes = new ButtonType("Download iTunes");
                 if (downloadItunes.equals(Utils.showUnreportableError(message, downloadItunes))) {

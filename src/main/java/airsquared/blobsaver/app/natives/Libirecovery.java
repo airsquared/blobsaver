@@ -18,7 +18,7 @@
 
 package airsquared.blobsaver.app.natives;
 
-import com.sun.jna.Native;
+import airsquared.blobsaver.app.natives.NativeUtils.CFunctionName;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.PointerByReference;
@@ -32,43 +32,25 @@ public class Libirecovery {
         return irecv_open_with_ecid(irecv_client, 0);
     }
 
-    public static int close(Pointer irecv_client) {
-        return irecv_close(irecv_client);
-    }
-
-    public static int setEnv(Pointer irecv_client, String variable, String value) {
-        return irecv_setenv(irecv_client, variable, value);
-    }
-
-    public static int saveEnv(Pointer irecv_client) {
-        return irecv_saveenv(irecv_client);
-    }
-
-    public static int reboot(Pointer irecv_client) {
-        return irecv_reboot(irecv_client);
-    }
-
-    public static int sendCommand(Pointer irecv_client, String command) {
-        return irecv_send_command(irecv_client, command);
-    }
-
-    public static irecv_device_info getDeviceInfo(Pointer irecv_client) {
-        return irecv_get_device_info(irecv_client);
-    }
-
     private static native int irecv_open_with_ecid(PointerByReference irecv_client, long ecid);
 
-    private static native int irecv_close(Pointer irecv_client);
+    @CFunctionName("irecv_close")
+    public static native int close(Pointer irecv_client);
 
-    private static native int irecv_setenv(Pointer irecv_client, String variable, String value);
+    @CFunctionName("irecv_setenv")
+    public static native int setEnv(Pointer irecv_client, String variable, String value);
 
-    private static native int irecv_saveenv(Pointer irecv_client);
+    @CFunctionName("irecv_saveenv")
+    public static native int saveEnv(Pointer irecv_client);
 
-    private static native int irecv_reboot(Pointer irecv_client);
+    @CFunctionName("irecv_reboot")
+    public static native int reboot(Pointer irecv_client);
 
-    private static native int irecv_send_command(Pointer irecv_client, String command);
+    @CFunctionName("irecv_send_command")
+    public static native int sendCommand(Pointer irecv_client, String command);
 
-    private static native irecv_device_info irecv_get_device_info(Pointer irecv_client);
+    @CFunctionName("irecv_get_device_info")
+    public static native irecv_device_info getDeviceInfo(Pointer irecv_client);
 
     @SuppressWarnings({"unused", "SpellCheckingInspection"})
     @Structure.FieldOrder({"cpid", "cprv", "cpfm", "scep", "bdid", "ecid", "ibfl", "srnm", "imei", "srtg", "serial_string", "ap_nonce", "ap_nonce_size", "sep_nonce", "sep_nonce_size"})
@@ -83,7 +65,8 @@ public class Libirecovery {
         public int sep_nonce_size;
     }
 
+
     static {
-        Native.register(Libirecovery.class, "irecovery");
+        NativeUtils.register(Libirecovery.class, "irecovery");
     }
 }

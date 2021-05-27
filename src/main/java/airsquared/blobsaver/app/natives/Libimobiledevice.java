@@ -18,7 +18,6 @@
 
 package airsquared.blobsaver.app.natives;
 
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.PointerByReference;
 
@@ -59,6 +58,6 @@ public class Libimobiledevice {
     public static native void idevice_free(Pointer idevice);
 
     static {
-        Native.register(Libimobiledevice.class, "imobiledevice");
+        NativeUtils.register(Libimobiledevice.class, "imobiledevice");
     }
 }
