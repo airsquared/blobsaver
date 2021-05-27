@@ -6,6 +6,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set env
-      run: echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+      run: |
+        echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        echo github.event.head_commit.message | awk '{print $2}'
     - name: Test
       run: echo $GITHUB_SHA_SHORT
