@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '16'
-      - name: gradle build
+      - name: Gradle build
         uses: eskatos/gradle-command-action@v1
         with:
           arguments: build --no-daemon
@@ -32,11 +32,11 @@ jobs:
     needs: build
     if: "startsWith(github.event.head_commit.message, 'Release')"
     steps:
-      - name: get artifacts
+      - name: Get artifacts
         uses: actions/download-artifact@v2
-      - name: get version from commit
+      - name: Get version from commit
         run: echo "VERSION=$(echo ${{ github.event.commits[0].message }} | awk '{print $2}')" >> $GITHUB_ENV 
-      - name: release public builds
+      - name: Release public builds
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
