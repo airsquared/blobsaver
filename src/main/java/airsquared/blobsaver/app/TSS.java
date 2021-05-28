@@ -109,6 +109,7 @@ public class TSS extends Task<String> {
             }
         }
 
+        Analytics.saveBlobs();
         return sb.toString();
     }
 

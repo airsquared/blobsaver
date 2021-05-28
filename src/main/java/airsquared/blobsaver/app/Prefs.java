@@ -49,6 +49,7 @@ public final class Prefs {
         } catch (BackingStoreException e) {
             throw new RuntimeException(e);
         }
+        Analytics.resetPrefs();
     }
 
     public static void export(File file) {
@@ -104,8 +105,26 @@ public final class Prefs {
         return testForVersion.equals(appPrefs.get("Ignore Version", null));
     }
 
+    public static boolean getDisableAnalytics() {
+        return appPrefs.getBoolean("Disable Analytics", false);
+    }
+
+    public static void setDisableAnalytics(boolean disabled) {
+        appPrefs.putBoolean("Disable Analytics", disabled);
+        Analytics.disableAnalytics(); // last analytics message that will be sent
+    }
+
+    public static String getAnalyticsUUID() {
+        return appPrefs.get("Analytics UUID", null);
+    }
+
+    public static void setAnalyticsUUID(String uuid) {
+        appPrefs.put("Analytics UUID", uuid);
+    }
+
     public static void setShowOldDevices(boolean showOldDevices) {
         appPrefs.putBoolean("Show Old Devices", showOldDevices);
+        Analytics.olderDevices(showOldDevices);
     }
 
     public static boolean getShowOldDevices() {
@@ -305,6 +324,8 @@ public final class Prefs {
             if (!savedDevicesList.contains(device)) {
                 savedDevicesList.add(device); // update observable list
             }
+
+            Analytics.saveDevice();
             return device;
         }
     }

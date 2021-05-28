@@ -253,7 +253,14 @@ public class Controller {
         Devices.updateLists();
     }
 
-    public void checkBlobs() { Utils.openURL("https://verify.shsh.host"); }
+    public void disableAnalyticsHandler(Event evt) {
+        Prefs.setDisableAnalytics(((CheckMenuItem) evt.getSource()).isSelected());
+    }
+
+    public void checkBlobs() {
+        Utils.openURL("https://verify.shsh.host");
+        Analytics.checkBlobs();
+    }
 
     public void helpLabelHandler(Event evt) {
         if (Main.SHOW_BREAKPOINT) {
@@ -329,7 +336,7 @@ public class Controller {
                 new SeparatorMenuItem(), tk.createBringAllToFrontItem());
         tk.autoAddWindowMenuItems(menuBar.getMenus().get(3));
 
-        menuBar.getMenus().get(4).getItems().remove(8, 10); // remove about
+        menuBar.getMenus().get(4).getItems().remove(10); // remove about
 
         tk.setApplicationMenu(applicationMenu);
         tk.setGlobalMenuBar(menuBar);
@@ -516,6 +523,7 @@ public class Controller {
                 Utils.showReportableError("An unknown error occurred.", Utils.exceptionToString(e));
             }
         }
+        Analytics.readInfo();
     }
 
     public void readApnonce() {
@@ -568,6 +576,7 @@ public class Controller {
             e.printStackTrace();
             e.showErrorAlert();
         }
+        Analytics.exitRecovery();
     }
 
     public void donate() { Utils.openURL("https://www.paypal.me/airsqrd"); }

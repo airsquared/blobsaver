@@ -182,6 +182,7 @@ class Background {
             systemctl("enable", "--user", "--now", "blobsaver.timer");
             runOnce(); // systemd doesn't start it automatically when enabled
         }
+        Analytics.startBackground();
     }
 
     public static void stopBackground() {

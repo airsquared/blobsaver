@@ -154,6 +154,7 @@ public class LibimobiledeviceUtil {
 
             updateMessage("Success");
 
+            Analytics.readAPNonce(jailbroken);
             return null;
         }
 

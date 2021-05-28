@@ -118,6 +118,7 @@ public class Main {
             primaryStage.setResizable(false);
             Utils.checkForUpdates(false);
             primaryStage.show();
+            Analytics.startup();
             Prefs.setLastAppVersion(appVersion);
         }
 

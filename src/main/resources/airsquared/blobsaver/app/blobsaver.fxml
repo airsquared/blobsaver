@@ -63,12 +63,18 @@
                 <MenuItem mnemonicParsing="false" onAction="#checkBlobs" text="Check for Valid Blobs..."/>
                 <MenuItem mnemonicParsing="false" onAction="#exitRecoveryHandler" text="Exit Recovery Mode..."/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
+                <CheckMenuItem mnemonicParsing="false" text="Disable Sending Analytics"
+                               onAction="#disableAnalyticsHandler">
+                    <selected>
+                        <Prefs fx:factory="getDisableAnalytics"/>
+                    </selected>
+                </CheckMenuItem>
+                <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#showWiki" text="blobsaver Help/Wiki"/>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue" text="Send Feedback (Github Issue)"/>
                 <MenuItem mnemonicParsing="false" onAction="#sendRedditPM" text="Send Feedback (Reddit PM)"/>
                 <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#donate" text="Donate!"/>
-                <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#aboutMenuHandler" text="About"/>
             </Menu>
         </MenuBar>
