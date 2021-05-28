@@ -67,6 +67,15 @@ public class Libirecovery {
 
 
     static {
-        NativeUtils.register(Libirecovery.class, "irecovery");
+        try {
+            NativeUtils.register(Libimobiledevice.class, "irecovery");
+        } catch (UnsatisfiedLinkError e) {
+            try {
+                NativeUtils.register(Libimobiledevice.class, "irecovery-1.0");
+            } catch (UnsatisfiedLinkError e2) {
+                e.addSuppressed(e2);
+                throw e;
+            }
+        }
     }
 }

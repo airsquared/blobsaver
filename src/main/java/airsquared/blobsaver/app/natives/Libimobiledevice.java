@@ -58,6 +58,15 @@ public class Libimobiledevice {
     public static native void idevice_free(Pointer idevice);
 
     static {
-        NativeUtils.register(Libimobiledevice.class, "imobiledevice");
+        try {
+            NativeUtils.register(Libimobiledevice.class, "imobiledevice");
+        } catch (UnsatisfiedLinkError e) {
+            try {
+                NativeUtils.register(Libimobiledevice.class, "imobiledevice-1.0");
+            } catch (UnsatisfiedLinkError e2) {
+                e.addSuppressed(e2);
+                throw e;
+            }
+        }
     }
 }
