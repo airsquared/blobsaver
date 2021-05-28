@@ -370,7 +370,7 @@ public class Controller {
         } else {
             savedDevicesVBox.setEffect(null);
             savedDevicesLabel.setText("Saved Devices");
-            backgroundSettingsButton.setText("Background Settings");
+            backgroundSettingsButton.setText("Auto-Save Settings");
             deviceList.setCellFactory(null);
         }
     }

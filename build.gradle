@@ -24,7 +24,7 @@ plugins {
     id 'application'
     id 'com.github.ben-manes.versions' version '0.39.0'
     id 'org.beryx.jlink' version '2.24.0'
-    id 'com.dua3.javafxgradle7plugin' version '0.0.9'
+    id 'org.openjfx.javafxplugin' version '0.0.10'
 
     id 'idea'
 }
@@ -34,7 +34,7 @@ idea.module.outputDir file("out/production/classes") // fix running via IntelliJ
  * REMEMBER: also update the version string in:
  *  - Main.java
  */
-version = "2.6"
+version = "3.0"
 description = "A cross-platform GUI app for saving SHSH blobs"
 String appIdentifier = "airsquared.blobsaver.app"
 String copyright = "Copyright (c) 2021 airsquared"
@@ -83,6 +83,7 @@ run {
 test {
     useJUnitPlatform()
     systemProperty "jar.directory", getJarDirectory()
+    jvmArgs = ['--add-exports=javafx.graphics/com.sun.glass.ui=org.testfx.monocle']
 }
 
 jlink {

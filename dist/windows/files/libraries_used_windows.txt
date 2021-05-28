@@ -1,6 +1,3 @@
-
-*** If I am missing anything, please tell me so I can fix it **
-
 Libraries used by blobsaver:
 
 ============================================================================
@@ -53,7 +50,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 JSON in Java (https://github.com/stleary/JSON-java)
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Copyright (c) 2002 JSON.org
 
@@ -81,43 +78,7 @@ SOFTWARE.
 
 ============================================================================
 
-Enzo (https://bitbucket.org/hansolo/enzo/)
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-Copyright (c) 2015 by Gerrit Grunwald
-
-Licensed under the Apache License, Version 2.0.
-(https://www.apache.org/licenses/LICENSE-2.0)
-
-============================================================================
-
-============================================================================
-
-JUnique (https://sauronsoftware.it/projects/junique/)
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Copyright (c) 2008-2010 Carlo Pelliccia (www.sauronsoftware.it)
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License version
-2.1, as published by the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License 2.1 for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License version 2.1 along with this program.
-If not, see <https://www.gnu.org/licenses/>.
-
-============================================================================
-
-============================================================================
-
-NSMenuFX (https://github.com/codecentric/NSMenuFX)
+NSMenuFX (https://github.com/0x4a616e/NSMenuFX)
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -148,19 +109,3 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ============================================================================
 
-============================================================================
-
-Code used from posts on Stack Overflow
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Unfortunately, I do not remember all the posts I have used. If I am using
-your code, please tell me and I will add it in.
-
-"How to get the path of a running JAR file?"
-https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
-
-"What's the best way to check if a String represents an integer in Java?"
-https://stackoverflow.com/questions/237159/whats-the-best-way-to-check-if-a-string-represents-an-integer-in-java
-
-============================================================================
