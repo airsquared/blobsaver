@@ -44,4 +44,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "${{ env.GITHUB_VERSION }}"
           prerelease: false
+          draft: true
           files: "**"
