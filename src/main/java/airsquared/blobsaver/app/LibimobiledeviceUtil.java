@@ -62,10 +62,6 @@ public class LibimobiledeviceUtil {
         throwIfNeeded(Libirecovery.close(irecvClient), ErrorCodeType.irecv_error);
     }
 
-    public static GetApnonceTask createApnonceTask(boolean jailbroken) {
-        return new GetApnonceTask(jailbroken);
-    }
-
     public static final class GetApnonceTask extends Task<Void> {
         private String apnonceResult, generatorResult;
         /**
@@ -82,7 +78,7 @@ public class LibimobiledeviceUtil {
             return generatorResult;
         }
 
-        private GetApnonceTask(boolean jailbroken) {
+        public GetApnonceTask(boolean jailbroken) {
             this.jailbroken = jailbroken;
         }
 
@@ -185,10 +181,9 @@ public class LibimobiledeviceUtil {
             }
             try {
                 errorCode = Libirecovery.open(irecvClient);
-            } catch (UnsatisfiedLinkError e) {
+            } catch (Error e) {
                 if (Platform.isLinux()) {
-                    throw new LibimobiledeviceException("Error: libirecovery not found.\n\n" +
-                            "Please ensure you have libirecovery installed as libirecovery.so, and not as libirecovery-1.0.so.", null, 0, false);
+                    throw new LibimobiledeviceException("Unable to load native libraries. Ensure you have libirecovery installed and as libirecovery.so. If it is installed under a different name, try creating a symlink.", null, 0, false);
                 } else {
                     throw e;
                 }

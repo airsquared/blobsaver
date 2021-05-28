@@ -32,7 +32,6 @@ import java.util.Map;
 
 final class NativeUtils {
 
-
     private static final Map<String, ?> libraryOptions = Map.of(Library.OPTION_CLASSLOADER, NativeUtils.class.getClassLoader(),
             Library.OPTION_FUNCTION_MAPPER, (FunctionMapper) (lib, method) ->
                     method.isAnnotationPresent(CFunctionName.class) ?

@@ -509,7 +509,12 @@ public class Controller {
             e.showErrorAlert();
         } catch (Throwable e) {
             e.printStackTrace();
-            Utils.showReportableError("Error: unable to register native methods", Utils.exceptionToString(e));
+            if (e instanceof Error && Platform.isLinux()) {
+                Utils.showUnreportableError("Unable to load native libraries. Ensure you have libimobiledevice installed and as libimobiledevice.so. If it is installed under a different name, try creating a symlink.");
+                System.exit(-1);
+            } else {
+                Utils.showReportableError("An unknown error occurred.", Utils.exceptionToString(e));
+            }
         }
     }
 
@@ -528,7 +533,7 @@ public class Controller {
         alert2.setHeaderText("Reading APNonce from connected device...");
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
-        LibimobiledeviceUtil.GetApnonceTask task = LibimobiledeviceUtil.createApnonceTask(jailbroken);
+        var task = new LibimobiledeviceUtil.GetApnonceTask(jailbroken);
         task.setOnSucceeded(event -> {
             apnonceField.setText(task.getApnonceResult());
             generatorField.setText(task.getGeneratorResult());
