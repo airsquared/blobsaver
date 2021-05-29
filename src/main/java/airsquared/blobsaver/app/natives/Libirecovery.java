@@ -19,9 +19,15 @@
 package airsquared.blobsaver.app.natives;
 
 import airsquared.blobsaver.app.natives.NativeUtils.CFunctionName;
+import com.sun.jna.FunctionMapper;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.PointerByReference;
+
+import java.util.Map;
 
 /**
  * https://github.com/libimobiledevice/libirecovery/blob/master/src/libirecovery.c
@@ -67,15 +73,19 @@ public class Libirecovery {
 
 
     static {
-        try {
-            NativeUtils.register(Libimobiledevice.class, "irecovery");
-        } catch (UnsatisfiedLinkError e) {
-            try {
-                NativeUtils.register(Libimobiledevice.class, "irecovery-1.0");
-            } catch (UnsatisfiedLinkError e2) {
-                e.addSuppressed(e2);
-                throw e;
-            }
-        }
+//        try {
+//        NativeUtils.register(Libimobiledevice.class, "irecovery");
+//        } catch (UnsatisfiedLinkError e) {
+//            try {
+//                NativeUtils.register(Libimobiledevice.class, "irecovery-1.0");
+//            } catch (UnsatisfiedLinkError e2) {
+//                e.addSuppressed(e2);
+//                throw e;
+//            }
+//        }
+        Native.register(Libirecovery.class, NativeLibrary.getInstance("irecovery", Map.of(Library.OPTION_CLASSLOADER, Libirecovery.class.getClassLoader(),
+                Library.OPTION_FUNCTION_MAPPER, (FunctionMapper) (lib, method) ->
+                        method.isAnnotationPresent(CFunctionName.class) ?
+                                method.getAnnotation(CFunctionName.class).value() : method.getName())));
     }
 }

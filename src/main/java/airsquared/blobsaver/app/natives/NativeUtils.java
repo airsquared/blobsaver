@@ -32,17 +32,17 @@ import java.util.Map;
 
 final class NativeUtils {
 
-    private static final Map<String, ?> libraryOptions = Map.of(Library.OPTION_CLASSLOADER, NativeUtils.class.getClassLoader(),
-            Library.OPTION_FUNCTION_MAPPER, (FunctionMapper) (lib, method) ->
-                    method.isAnnotationPresent(CFunctionName.class) ?
-                            method.getAnnotation(CFunctionName.class).value() : method.getName());
+//    private static final Map<String, ?> libraryOptions = ;
 
     /**
      * Same exact implementation as Native.register(Class, String), except it
      * also includes a function mapper for methods annotated with @CFunctionName
      */
     static void register(Class<?> cls, String libName) {
-        Native.register(cls, NativeLibrary.getInstance(libName, libraryOptions));
+        Native.register(cls, NativeLibrary.getInstance(libName, Map.of(Library.OPTION_CLASSLOADER, cls.getClassLoader(),
+                Library.OPTION_FUNCTION_MAPPER, (FunctionMapper) (lib, method) ->
+                        method.isAnnotationPresent(CFunctionName.class) ?
+                                method.getAnnotation(CFunctionName.class).value() : method.getName())));
     }
 
     @Documented
