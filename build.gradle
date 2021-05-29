@@ -34,7 +34,7 @@ idea.module.outputDir file("out/production/classes") // fix running via IntelliJ
  * REMEMBER: also update the version string in:
  *  - Main.java
  */
-version = "3.0"
+version = "3.0.1"
 description = "A cross-platform GUI app for saving SHSH blobs"
 String appIdentifier = "airsquared.blobsaver.app"
 String copyright = "Copyright (c) 2021 airsquared"
