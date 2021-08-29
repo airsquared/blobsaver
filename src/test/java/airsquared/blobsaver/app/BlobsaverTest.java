@@ -18,12 +18,12 @@
 
 package airsquared.blobsaver.app;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 
 public class BlobsaverTest {
 
-    @BeforeEach
-    public void setJNALibraryPath() {
+    @BeforeAll
+    public static void setJNALibraryPath() {
         Main.setJNALibraryPath();
     }
 }

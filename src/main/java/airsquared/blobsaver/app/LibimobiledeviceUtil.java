@@ -23,6 +23,7 @@ import airsquared.blobsaver.app.natives.Libplist;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import javafx.concurrent.Task;
 import javafx.scene.control.ButtonType;
@@ -36,23 +37,23 @@ import static airsquared.blobsaver.app.natives.Libimobiledevice.*;
 public class LibimobiledeviceUtil {
 
     public static long getECID() throws LibimobiledeviceException {
-        return Long.parseLong(getKeyFromConnectedDevice("UniqueChipID", PlistType.INTEGER));
+        return getPlistLong(getLockdownValuePlist("UniqueChipID"));
     }
 
     public static String getDeviceModelIdentifier() throws LibimobiledeviceException {
-        return getKeyFromConnectedDevice("ProductType", PlistType.STRING);
+        return getPlistString(getLockdownValuePlist("ProductType"));
     }
 
     public static String getBoardConfig() throws LibimobiledeviceException {
-        return getKeyFromConnectedDevice("HardwareModel", PlistType.STRING);
+        return getPlistString(getLockdownValuePlist("HardwareModel"));
     }
 
     public static String getApNonceNormalMode() throws LibimobiledeviceException {
-        return LibimobiledeviceUtil.plistDataToString(LibimobiledeviceUtil.getMobileGestaltKey("ApNonce"), ByteOrder.BIG_ENDIAN);
+        return plistDataToHexString(LibimobiledeviceUtil.getLockdownValuePlist("ApNonce"), ByteOrder.BIG_ENDIAN);
     }
 
     public static String getGenerator() throws LibimobiledeviceException {
-        return "0x" + LibimobiledeviceUtil.plistDataToString(LibimobiledeviceUtil.getMobileGestaltKey("BootNonce"), ByteOrder.LITTLE_ENDIAN);
+        return "0x" + plistDataToHexString(getLockdownValuePlist("BootNonce"), ByteOrder.LITTLE_ENDIAN);
     }
 
     public static void exitRecovery(Pointer irecvClient) throws LibimobiledeviceException {
@@ -135,17 +136,17 @@ public class LibimobiledeviceUtil {
             }
             throwIfNeeded(errorCode, ErrorCodeType.lockdownd_error);
 
-            PointerByReference service = new PointerByReference();
+            PointerByReference plist = new PointerByReference();
             // don't reset timeout
             errorCode = -17;
             while (errorCode == -17 && System.currentTimeMillis() < endTime) {
                 if (!sleep(1000)) {
                     return null;
                 }
-                errorCode = lockdownd_start_service(lockdown.getValue(), "com.apple.mobile.diagnostics_relay", service);
+                errorCode = lockdownd_get_value(lockdown.getValue(), Pointer.NULL, "BootNonce", plist);
             }
             if (errorCode == 0) {
-                lockdownd_service_descriptor_free(service.getValue());
+                Libplist.free(plist.getValue());
             }
             lockdownd_client_free(lockdown.getValue());
             idevice_free(device.getValue());
@@ -201,45 +202,10 @@ public class LibimobiledeviceUtil {
         return Utils.bytesToHex(apnonceBytes, ByteOrder.BIG_ENDIAN);
     }
 
-    private static String getKeyFromConnectedDevice(String key, PlistType plistType) throws LibimobiledeviceException {
-        if (plistType == null) {
-            plistType = PlistType.STRING;
-        }
-        if (key == null) {
-            key = "";
-        }
-
-        Pointer client = lockdowndClientFromConnectedDevice();
-        PointerByReference plist_value = new PointerByReference();
-        int lockdowndGetValueErrorCode = lockdownd_get_value(client, Pointer.NULL, key, plist_value);
-        if (lockdowndGetValueErrorCode == -8) {
-            // try again, and if it doesn't work, show an error to the user + throw an exception
-            // it always works the second time
-            lockdownd_client_free(client);
-            client = lockdowndClientFromConnectedDevice();
-            throwIfNeeded(lockdownd_get_value(client, Pointer.NULL, key, plist_value), ErrorCodeType.lockdownd_error);
-        } else {
-            throwIfNeeded(lockdowndGetValueErrorCode, ErrorCodeType.lockdownd_error);
-        }
-        lockdownd_client_free(client);
-        if (plistType.equals(PlistType.INTEGER)) {
-            PointerByReference xml_doc = new PointerByReference();
-            Libplist.toXml(plist_value.getValue(), xml_doc, new PointerByReference());
-            Libplist.free(plist_value.getValue());
-            String toReturn = xml_doc.getValue().getString(0, "UTF-8");
-            return toReturn.substring(toReturn.indexOf("<integer>") + "<integer>".length(), toReturn.indexOf("</integer>"));
-        } else {
-            PointerByReference toReturn = new PointerByReference();
-            Libplist.getStringVal(plist_value.getValue(), toReturn);
-            Libplist.free(plist_value.getValue());
-            return toReturn.getValue().getString(0, "UTF-8");
-        }
-    }
-
     /**
      * Returns a plist with the root element being the requested item.
      * <p>
-     * It will look something like this:
+     * It will look something like this (might have different type):
      * <pre>
      * {@code
      * <?xml version="1.0" encoding="UTF-8"?>
@@ -252,40 +218,52 @@ public class LibimobiledeviceUtil {
      * }
      * </pre>
      */
-    private static Pointer getMobileGestaltKey(String key) throws LibimobiledeviceException {
-        PointerByReference device = new PointerByReference();
-        throwIfNeeded(idevice_new(device, Pointer.NULL), ErrorCodeType.idevice_error);
-        PointerByReference client = new PointerByReference();
-        throwIfNeeded(lockdownd_client_new_with_handshake(device.getValue(), client, "blobsaver"), ErrorCodeType.lockdownd_error);
-        PointerByReference service = new PointerByReference();
-        throwIfNeeded(lockdownd_start_service(client.getValue(), "com.apple.mobile.diagnostics_relay", service), ErrorCodeType.lockdownd_error);
-        lockdownd_client_free(client.getValue());
+    private static Pointer getLockdownValuePlist(String key) throws LibimobiledeviceException {
+        Pointer client = lockdowndClientFromConnectedDevice();
+        PointerByReference plist = new PointerByReference();
+        int lockdowndGetValueErrorCode = lockdownd_get_value(client, Pointer.NULL, key, plist);
+        if (lockdowndGetValueErrorCode == -8) {
+            // try again, and if it doesn't work, show an error to the user + throw an exception
+            // it always works the second time
+            lockdownd_client_free(client);
+            client = lockdowndClientFromConnectedDevice();
+            throwIfNeeded(lockdownd_get_value(client, Pointer.NULL, key, plist), ErrorCodeType.lockdownd_error);
+        } else {
+            throwIfNeeded(lockdowndGetValueErrorCode, ErrorCodeType.lockdownd_error);
+        }
+        lockdownd_client_free(client);
 
-        PointerByReference diagnosticsRelayClient = new PointerByReference();
-        throwIfNeeded(diagnostics_relay_client_new(device.getValue(), service.getValue(), diagnosticsRelayClient), ErrorCodeType.diagnostics_relay_error);
-
-        Pointer keys = Libplist.newArray();
-        Libplist.arrayAppendItem(keys, Libplist.newString(key));
-        PointerByReference plistResult = new PointerByReference();
-        throwIfNeeded(diagnostics_relay_query_mobilegestalt(diagnosticsRelayClient.getValue(), keys, plistResult), ErrorCodeType.diagnostics_relay_error);
-        Pointer plistApnonce = Libplist.dictGetItem(Libplist.dictGetItem(plistResult.getValue(), "MobileGestalt"), key);
-
-        diagnostics_relay_goodbye(diagnosticsRelayClient.getValue());
-        diagnostics_relay_client_free(diagnosticsRelayClient.getValue());
-        lockdownd_service_descriptor_free(service.getValue());
-        idevice_free(device.getValue());
-        Libplist.free(keys);
-
-        return plistApnonce;
+        return plist.getValue();
     }
 
-    private static String plistDataToString(Pointer plist, ByteOrder byteOrder) {
+    private static String plistDataToHexString(Pointer plist, ByteOrder byteOrder) {
         IntByReference apnonceLength = new IntByReference();
         byte[] apnonceBytes = Libplist.getDataPtr(plist, apnonceLength).getByteArray(0, apnonceLength.getValue());
         String toReturn = Utils.bytesToHex(apnonceBytes, byteOrder);
         Libplist.free(plist);
 
         return toReturn;
+    }
+
+    private static long getPlistLong(Pointer plist) {
+        LongByReference reference = new LongByReference();
+        Libplist.getUintVal(plist, reference);
+        Libplist.free(plist);
+        return reference.getValue();
+    }
+
+    private static String getPlistString(Pointer plist) {
+        PointerByReference reference = new PointerByReference();
+        Libplist.getStringVal(plist, reference);
+        Libplist.free(plist);
+        return reference.getValue().getString(0, "UTF-8");
+    }
+
+    // Useful for debugging
+    private static String plistToXml(Pointer plist) {
+        PointerByReference xml_doc = new PointerByReference();
+        Libplist.toXml(plist, xml_doc, new PointerByReference());
+        return xml_doc.getValue().getString(0, "UTF-8");
     }
 
     private static Pointer lockdowndClientFromConnectedDevice() throws LibimobiledeviceException {
@@ -306,12 +284,8 @@ public class LibimobiledeviceUtil {
         lockdownd_client_free(client);
     }
 
-    private enum PlistType {
-        STRING, INTEGER
-    }
-
     private enum ErrorCodeType {
-        idevice_error, lockdownd_error, irecv_error, diagnostics_relay_error
+        idevice_error, lockdownd_error, irecv_error
     }
 
     private static void throwIfNeeded(int errorCode, ErrorCodeType errorType) throws LibimobiledeviceException {
@@ -349,9 +323,6 @@ public class LibimobiledeviceUtil {
         } else if (errorType.equals(ErrorCodeType.irecv_error)) {
             message = "irecovery error: code=" + errorCode +
                     "\n\nIf your device is still in recovery mode, use the \"Exit Recovery Mode\" option from the help menu.";
-            reportableError = true;
-        } else if (errorType.equals(ErrorCodeType.diagnostics_relay_error)) {
-            message = "Diagnostics Relay error: code=" + errorCode;
             reportableError = true;
         }
         throw new LibimobiledeviceException(message, errorType, errorCode, reportableError);

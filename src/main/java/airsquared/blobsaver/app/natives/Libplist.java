@@ -21,6 +21,7 @@ package airsquared.blobsaver.app.natives;
 import airsquared.blobsaver.app.natives.NativeUtils.CFunctionName;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 
 public class Libplist {
@@ -42,6 +43,9 @@ public class Libplist {
 
     @CFunctionName("plist_get_string_val")
     public static native void getStringVal(Pointer plist, PointerByReference value);
+
+    @CFunctionName("plist_get_uint_val")
+    public static native void getUintVal(Pointer plist, LongByReference value);
 
     @CFunctionName("plist_free")
     public static native void free(Pointer plist);

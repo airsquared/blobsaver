@@ -18,26 +18,31 @@
 
 package airsquared.blobsaver.app;
 
-import org.junit.jupiter.api.Disabled;
+import airsquared.blobsaver.app.natives.Libimobiledevice;
+import airsquared.blobsaver.app.natives.Libirecovery;
+import airsquared.blobsaver.app.natives.Libplist;
+import com.sun.jna.Pointer;
+import com.sun.jna.ptr.PointerByReference;
 import org.junit.jupiter.api.Test;
 
-@Disabled("disable tests unless device is connected")
-public class LibimobiledeviceTest extends BlobsaverTest {
+public class NativesTest extends BlobsaverTest {
 
     @Test
-    public void getECID() throws LibimobiledeviceUtil.LibimobiledeviceException {
-        System.out.println(LibimobiledeviceUtil.getECID());
+    public void loadPlist() {
+        Libplist.free(Libplist.newArray());
     }
 
     @Test
-    public void enterRecovery() throws LibimobiledeviceUtil.LibimobiledeviceException {
-        LibimobiledeviceUtil.enterRecovery();
+    public void loadIdevice() {
+        PointerByReference ref = new PointerByReference();
+        Libimobiledevice.idevice_new(ref, Pointer.NULL);
+        Libimobiledevice.idevice_free(ref.getValue());
     }
 
     @Test
-    public void getApNonce() throws LibimobiledeviceUtil.LibimobiledeviceException {
-        System.out.println(LibimobiledeviceUtil.getApNonceNormalMode());
-        System.out.println(LibimobiledeviceUtil.getGenerator());
+    public void loadRecovery() {
+        PointerByReference ref = new PointerByReference();
+        Libirecovery.open(ref);
+        Libirecovery.close(ref.getValue());
     }
-
 }
