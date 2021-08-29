@@ -54,6 +54,15 @@ public class Libplist {
     public static native void toXml(Pointer plist, PointerByReference plist_xml, PointerByReference length);
 
     static {
-        NativeUtils.register(Libplist.class, "plist");
+        try {
+            NativeUtils.register(Libplist.class, "plist");
+        } catch (UnsatisfiedLinkError e) {
+            try {
+                NativeUtils.register(Libplist.class, "plist-2.0");
+            } catch (UnsatisfiedLinkError e2) {
+                e.addSuppressed(e2);
+                throw e;
+            }
+        }
     }
 }
