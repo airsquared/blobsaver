@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -48,6 +49,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -363,7 +365,10 @@ final class Utils {
 
     static Path extractBuildManifest(String ipswUrl) throws IOException {
         Path buildManifest = Files.createTempFile("BuildManifest", ".plist");
-        try (ZipFile ipsw = new ZipFile(new HttpChannel(new URL(ipswUrl)), "ipsw", "UTF8", true, true);
+        SeekableByteChannel channel = ipswUrl.startsWith("file:")
+                ? Files.newByteChannel(Path.of(URI.create(ipswUrl)), StandardOpenOption.READ)
+                : new HttpChannel(new URL(ipswUrl));
+        try (channel; ZipFile ipsw = new ZipFile(channel, "ipsw", "UTF8", true, true);
              InputStream is = ipsw.getInputStream(ipsw.getEntry("BuildManifest.plist"))) {
             Files.copy(is, buildManifest, StandardCopyOption.REPLACE_EXISTING);
         }

@@ -6,7 +6,7 @@
         <option value="activate" />
         <option value="noActionIfCompileErrors" />
         <option value="organizeImports" />
-        <option value="reformat" />
+        <option value="reformatChangedCode" />
         <option value="missingOverrideAnnotation" />
       </set>
     </option>

@@ -275,7 +275,7 @@ public class Controller {
         ((Button) alert.getDialogPane().lookupButton(customOK)).setDefaultButton(true);
         String url = switch (labelID) {
             case "ipswURLHelp":
-                alert.setContentText("Get the IPSW download URL for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here.");
+                alert.setContentText("Get the IPSW download URL for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here.\n\nIf you already have the IPSW downloaded, you can also supply a 'file:' URL.");
                 alert.setTitle("Help: IPSW URL");
                 alert.setHeaderText("Help");
                 yield "https://www.theiphonewiki.com/wiki/Beta_Firmware";

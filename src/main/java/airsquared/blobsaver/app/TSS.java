@@ -24,7 +24,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,7 +44,7 @@ import static airsquared.blobsaver.app.Utils.getSignedFirmwares;
 public class TSS extends Task<String> {
 
     // note: Matcher is NOT thread safe
-    private static final Matcher ipswURLMatcher = Pattern.compile("https?://.*apple.*\\.ipsw").matcher("");
+    private static final Matcher ipswURLMatcher = Pattern.compile("(https?://|file:/).*\\.ipsw").matcher("");
     private static final Matcher versionMatcher = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)").matcher("");
 
     private final String deviceIdentifier;
@@ -124,9 +127,14 @@ public class TSS extends Task<String> {
                 if (!ipswURLMatcher.reset(manualIpswURL).matches()) {
                     throw new MalformedURLException("Doesn't match ipsw URL regex");
                 }
-                new URL(manualIpswURL);
+                new URL(manualIpswURL); // check URL
             } catch (MalformedURLException e) {
-                throw new TSSException("The IPSW URL is not valid.\n\nMake sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"", false, e);
+                throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid URL that ends with \".ipsw\"", false, e);
+            }
+            if (manualIpswURL.startsWith("file:")) try {
+                Path.of(new URI(manualIpswURL)).toRealPath(); // check URI
+            } catch (IllegalArgumentException | URISyntaxException | IOException e) {
+                throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid file URL to a local .ipsw file.", false, e);
             }
         } else if (manualVersion != null && !versionMatcher.reset(manualVersion).matches()) {
             throw new TSSException("Invalid version. Make sure it follows the convention X.X.X or X.X, like \"13.1\" or \"13.5.5\"", false);
