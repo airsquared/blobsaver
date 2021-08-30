@@ -530,7 +530,7 @@ public class Controller {
         Alert alert1 = new Alert(Alert.AlertType.CONFIRMATION, "", ButtonType.CANCEL, new ButtonType("Jailbroken"), new ButtonType("Unjailbroken"));
         alert1.setHeaderText("Read APNonce from connected device");
         alert1.setContentText("blobsaver can read both the APNonce and generator from a connected device.\n\n" +
-                "Please connect your device and click \"Jailbroken\" if your device has a generator set or \"Unjailbroken\" if you don't. Your device will enter recovery mode while retrieving the APNonce and will automatically reboot to normal mode when complete.\n\n");
+                "Please connect your device and click \"Jailbroken\" if your device has a generator set or \"Unjailbroken\" if you don't. If unsure, select \"Unjailbroken\".\n\nYour device will enter recovery mode while retrieving the APNonce and will automatically reboot to normal mode when complete.");
         boolean jailbroken;
         if (alert1.showAndWait().isEmpty() || !alert1.getResult().getText().contains("ailbroken")) {
             return;
