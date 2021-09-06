@@ -6,4 +6,9 @@
       <module name="blobsaver_test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="blobsaver.main" options="--add-exports javafx.graphics/com.sun.javafx.css=airsquared.blobsaver" />
+    </option>
+  </component>
 </project>

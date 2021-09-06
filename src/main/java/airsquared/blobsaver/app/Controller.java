@@ -44,12 +44,13 @@ import java.io.File;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings({"TextBlockMigration"})
+@SuppressWarnings("TextBlockMigration")
 public class Controller {
 
 
     @FXML private MenuBar menuBar;
     @FXML private MenuItem checkForUpdatesMenu, clearAllDataMenu, deleteDeviceMenu, backgroundSettingsMenu;
+    @FXML private RadioMenuItem darkDisabled, darkSync, darkEnabled;
 
     @FXML private ChoiceBox<String> deviceTypeChoiceBox, deviceModelChoiceBox;
 
@@ -77,6 +78,11 @@ public class Controller {
         backgroundSettingsMenu.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Hide Background Settings").otherwise("Show Background Settings"));
         backgroundSettingsMenu.setOnAction(e -> backgroundSettingsButton.fire());
+        switch (Prefs.getDarkMode()) {
+            case DISABLED -> darkDisabled.setSelected(true);
+            case SYNC_WITH_OS -> darkSync.setSelected(true);
+            case ENABLED -> darkEnabled.setSelected(true);
+        }
     }
 
     public void newGithubIssue() { Utils.newGithubIssue(); }
@@ -251,6 +257,28 @@ public class Controller {
     public void showOlderDevicesHandler(Event evt) {
         Prefs.setShowOldDevices(((CheckMenuItem) evt.getSource()).isSelected());
         Devices.updateLists();
+    }
+
+    @SuppressWarnings("unused")
+    public void darkModeHandler(ObservableValue<?> a, RadioMenuItem old, RadioMenuItem darkMode) {
+        switch ((Prefs.DarkMode) darkMode.getUserData()) {
+            case ENABLED -> updateDarkMode(true);
+            case DISABLED -> updateDarkMode(false);
+            case SYNC_WITH_OS -> System.err.println("Sync with OS not implemented yet"); // register listener for os here
+        }
+        Prefs.setDarkMode((Prefs.DarkMode) darkMode.getUserData());
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private void updateDarkMode(boolean enable) {
+        if (enable) {
+            // eventually replace with https://github.com/openjdk/jfx/pull/511 once released
+            com.sun.javafx.css.StyleManager.getInstance().addUserAgentStylesheet(Controller.class.getResource("modena_dark.css").toExternalForm());
+            savedDevicesVBox.setStyle("-fx-background-color: -fx-background");
+        } else {
+            com.sun.javafx.css.StyleManager.getInstance().removeUserAgentStylesheet(Controller.class.getResource("modena_dark.css").toExternalForm());
+            savedDevicesVBox.setStyle("-fx-background-color: white");
+        }
     }
 
     public void disableAnalyticsHandler(Event evt) {

@@ -290,12 +290,13 @@ final class Utils {
     static File showFilePickerDialog(Window window, File initialDirectory) {
         DirectoryChooser dirChooser = new DirectoryChooser();
         dirChooser.setTitle("Choose a folder to save Blobs in");
-        if (initialDirectory.exists()) {
-            dirChooser.setInitialDirectory(initialDirectory);
-        } else if (initialDirectory.getParentFile().exists()) {
-            dirChooser.setInitialDirectory(initialDirectory.getParentFile());
-        } else {
-            dirChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        for (int i = 0; i < 20; i++) { // limit loop iterations to 20
+            if (initialDirectory == null || initialDirectory.isDirectory()) {
+                dirChooser.setInitialDirectory(initialDirectory);
+                break;
+            } else {
+                initialDirectory = initialDirectory.getParentFile();
+            }
         }
         return dirChooser.showDialog(window);
     }

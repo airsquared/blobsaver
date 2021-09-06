@@ -100,6 +100,7 @@ public class Main {
         }
 
         @Override
+        @SuppressWarnings("ConstantConditions")
         public void start(Stage primaryStage) {
             Main.primaryStage = primaryStage;
             Parent root = null;
@@ -113,7 +114,7 @@ public class Main {
             primaryStage.setScene(new Scene(root));
             if (isWindows()) {
                 primaryStage.getIcons().clear();
-                primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("blob_emoji.png")));
+                primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("blob_emoji.png")));
             }
             primaryStage.setResizable(false);
             Utils.checkForUpdates(false);

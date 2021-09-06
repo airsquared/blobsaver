@@ -18,9 +18,7 @@
   ~ along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
   -->
 
-<?import airsquared.blobsaver.app.Controller?>
-<?import airsquared.blobsaver.app.Devices?>
-<?import airsquared.blobsaver.app.Prefs?>
+<?import airsquared.blobsaver.app.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -47,6 +45,20 @@
                           text="Uninstall..."/>
             </Menu>
             <Menu mnemonicParsing="false" text="View">
+                <Menu mnemonicParsing="false" text="Dark Mode">
+                    <fx:define>
+                        <ToggleGroup fx:id="darkModeGroup" onSelectedToggleChange="#darkModeHandler"/>
+                        <Prefs.DarkMode fx:value="DISABLED" fx:id="DARK_DISABLED"/>
+                        <Prefs.DarkMode fx:value="SYNC_WITH_OS" fx:id="DARK_SYNC_WITH_OS"/>
+                        <Prefs.DarkMode fx:value="ENABLED" fx:id="DARK_ENABLED"/>
+                    </fx:define>
+                    <RadioMenuItem mnemonicParsing="false" text="Disabled" toggleGroup="$darkModeGroup"
+                                   fx:id="darkDisabled" userData="$DARK_DISABLED"/>
+                    <RadioMenuItem mnemonicParsing="false" text="Sync With OS" toggleGroup="$darkModeGroup"
+                                   fx:id="darkSync" userData="$DARK_SYNC_WITH_OS"/>
+                    <RadioMenuItem mnemonicParsing="false" text="Enabled" toggleGroup="$darkModeGroup"
+                                   fx:id="darkEnabled" userData="$DARK_ENABLED"/>
+                </Menu>
                 <CheckMenuItem mnemonicParsing="false" text="Show Older Devices" onAction="#showOlderDevicesHandler">
                     <selected>
                         <Prefs fx:factory="getShowOldDevices"/>

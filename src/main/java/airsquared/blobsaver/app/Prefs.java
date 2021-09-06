@@ -131,6 +131,16 @@ public final class Prefs {
         return appPrefs.getBoolean("Show Old Devices", false);
     }
 
+    public enum DarkMode {DISABLED, SYNC_WITH_OS, ENABLED}
+
+    public static DarkMode getDarkMode() {
+        return DarkMode.valueOf(appPrefs.get("Dark Mode", "DISABLED"));
+    }
+
+    public static void setDarkMode(DarkMode darkMode) {
+        appPrefs.put("Dark Mode", darkMode.name());
+    }
+
     private static Stream<SavedDevice> savedDevices() {
         try {
             return Arrays.stream(savedDevicesPrefs.childrenNames()).map(SavedDevice::new);
