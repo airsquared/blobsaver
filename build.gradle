@@ -56,7 +56,7 @@ dependencies {
     implementation 'net.java.dev.jna:jna-jpms:5.9.0'
     implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.21'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.0'
     testImplementation group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
 }
 
