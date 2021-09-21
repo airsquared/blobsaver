@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Checklist (place an x between the brackets to mark as completed):**
  - [ ] I have made sure I am on the latest version of blobsaver
- - [ ] I have checked the blobsaver wiki to see if there is already a solution to my problem
+ - [ ] I have checked other open issues to see if my problem has already been reported
  - [ ] I have tried common troubleshooting tactics such as restarting my computer and reinstalling blobsaver
 
 **Log(s)**
