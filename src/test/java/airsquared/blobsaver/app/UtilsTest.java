@@ -19,6 +19,8 @@
 package airsquared.blobsaver.app;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,6 +46,7 @@ public class UtilsTest extends BlobsaverTest {
     }
 
     @Test
+    @DisabledOnOs(value = OS.MAC, disabledReason = "Randomly fails in CI on macOS")
     public void checkForUpdates() throws IOException {
         var version = Utils.LatestVersion.request();
         assertTrue(version.changelog().contains("Changelog"), "Changelog does not contain 'Changelog'");

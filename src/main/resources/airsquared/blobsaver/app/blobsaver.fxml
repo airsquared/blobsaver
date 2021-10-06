@@ -55,7 +55,7 @@
                     <RadioMenuItem mnemonicParsing="false" text="Disabled" toggleGroup="$darkModeGroup"
                                    fx:id="darkDisabled" userData="$DARK_DISABLED"/>
                     <RadioMenuItem mnemonicParsing="false" text="Sync With OS" toggleGroup="$darkModeGroup"
-                                   fx:id="darkSync" userData="$DARK_SYNC_WITH_OS"/>
+                                   fx:id="darkSync" userData="$DARK_SYNC_WITH_OS" visible="false"/>
                     <RadioMenuItem mnemonicParsing="false" text="Enabled" toggleGroup="$darkModeGroup"
                                    fx:id="darkEnabled" userData="$DARK_ENABLED"/>
                 </Menu>
