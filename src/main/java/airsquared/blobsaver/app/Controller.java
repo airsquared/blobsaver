@@ -532,8 +532,8 @@ public class Controller {
                 deviceTypeChoiceBox.setValue(Devices.getDeviceType(deviceIdentifier));
                 deviceModelChoiceBox.setValue(Devices.identifierToModel(deviceIdentifier));
             } catch (IllegalArgumentException e) {
-                Utils.showReportableError("Unknown model: " + deviceIdentifier);
-                return;
+                Utils.setSelectedFire(identifierCheckBox, true);
+                identifierField.setText(deviceIdentifier);
             }
             // read board config
             if (!boardConfigField.isDisabled()) {
