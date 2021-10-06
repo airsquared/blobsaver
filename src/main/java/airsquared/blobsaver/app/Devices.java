@@ -40,7 +40,9 @@ public final class Devices {
             "iPhone XS Max (China) (iPhone11,4)", "iPhone XS Max (iPhone11,6)", "iPhone XR (iPhone11,8)",
             "iPhone 11 (iPhone12,1)", "iPhone 11 Pro (iPhone12,3)", "iPhone 11 Pro Max (iPhone12,5)",
             "iPhone SE 2 (iPhone12,8)", "iPhone 12 mini (iPhone13,1)", "iPhone 12 (iPhone13,2)",
-            "iPhone 12 Pro (iPhone13,3)", "iPhone 12 Pro Max (iPhone13,4)"};
+            "iPhone 12 Pro (iPhone13,3)", "iPhone 12 Pro Max (iPhone13,4)",
+            "iPhone 13 Pro (iPhone14,2)", "iPhone 13 Pro Max (iPhone14,3)",
+            "iPhone 13 mini (iPhone14,4)", "iPhone 13 (iPhone14,5)"};
     private static final String[] iPads = {"iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
             "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
             "iPad 3 (WiFi)", "iPad 3 (CDMA)", "iPad 3 (GSM)", "iPad 4 (WiFi)", "iPad 4 (GSM)", "iPad 4 (Global)",
@@ -57,11 +59,13 @@ public final class Devices {
             "iPad Pro 4 11' (Cellular)(iPad8,10)", "iPad Pro 4 12.9' (WiFi)(iPad8,11)",
             "iPad Pro 4 12.9' (Cellular)(iPad8,12)", "iPad Mini 5 (WiFi)(iPad11,1)", "iPad Mini 5 (Cellular)(iPad11,2)",
             "iPad Air 3 (WiFi)(iPad11,3)", "iPad Air 3 (Cellular)(iPad11,4)", "iPad 8 (WiFi) (iPad11,6)",
-            "iPad 8 (Cellular) (iPad11,7)", "iPad Air 4 (WiFi) (iPad13,1)", "iPad Air 4 (Cellular) (iPad13,2)",
+            "iPad 8 (Cellular) (iPad11,7)", "iPad 9 (WiFi) (iPad12,1)", "iPad 9 (Cellular) (iPad12,2)",
+            "iPad Air 4 (WiFi) (iPad13,1)", "iPad Air 4 (Cellular) (iPad13,2)",
             "iPad Pro 11' (3rd gen) (WiFi) (iPad13,4)", "iPad Pro 11' (3rd gen) (WiFi) (iPad13,5)",
             "iPad Pro 11' (3rd gen) (Cellular) (iPad13,6)", "iPad Pro 11' (3rd gen) (Cellular) (iPad13,7)",
             "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,8)", "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,9)",
-            "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,10)", "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,11)"};
+            "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,10)", "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,11)",
+            "iPad Mini 6 (WiFi) (iPad14,1)", "iPad Mini 6 (Cellular) (iPad14,2)"};
 
     private static final ObservableList<String> iPhoneList = FXCollections.observableArrayList(iPhones);
     private static final ObservableList<String> iPadList = FXCollections.observableArrayList(iPads);
@@ -183,8 +187,9 @@ public final class Devices {
 
     public static boolean doesRequireApnonce(String deviceIdentifier) {
         return deviceIdentifier.startsWith("iPhone11,") || deviceIdentifier.startsWith("iPhone12,") ||
-                deviceIdentifier.startsWith("iPhone13,") || deviceIdentifier.startsWith("iPad8,") ||
-                deviceIdentifier.startsWith("iPad11,");
+                deviceIdentifier.startsWith("iPhone13,") || deviceIdentifier.startsWith("iPhone14,") ||
+                deviceIdentifier.startsWith("iPad8,") || deviceIdentifier.startsWith("iPad9,")||
+                deviceIdentifier.startsWith("iPad11,") || deviceIdentifier.startsWith("iPad14,");
     }
 
     @SafeVarargs
