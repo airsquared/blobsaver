@@ -65,7 +65,7 @@ public final class Devices {
             "iPad Pro 11' (3rd gen) (Cellular) (iPad13,6)", "iPad Pro 11' (3rd gen) (Cellular) (iPad13,7)",
             "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,8)", "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,9)",
             "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,10)", "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,11)",
-            "iPad Mini 6 (WiFi)(iPad14,1)", "iPad Mini 6 (Cellular)(iPad14,2)"};
+            "iPad Mini 6 (WiFi) (iPad14,1)", "iPad Mini 6 (Cellular) (iPad14,2)"};
 
     private static final ObservableList<String> iPhoneList = FXCollections.observableArrayList(iPhones);
     private static final ObservableList<String> iPadList = FXCollections.observableArrayList(iPads);
