@@ -53,7 +53,7 @@ dependencies {
     implementation ('de.jangassen:nsmenufx:3.1.0') {
         exclude group: 'net.java.dev.jna', module: 'jna' //separate jna version
     }
-    implementation 'net.java.dev.jna:jna-jpms:5.9.0'
+    implementation 'net.java.dev.jna:jna-jpms:5.10.0'
     implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.21'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
