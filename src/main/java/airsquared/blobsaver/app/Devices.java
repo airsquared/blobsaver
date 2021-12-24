@@ -188,8 +188,9 @@ public final class Devices {
     public static boolean doesRequireApnonce(String deviceIdentifier) {
         return deviceIdentifier.startsWith("iPhone11,") || deviceIdentifier.startsWith("iPhone12,") ||
                 deviceIdentifier.startsWith("iPhone13,") || deviceIdentifier.startsWith("iPhone14,") ||
-                deviceIdentifier.startsWith("iPad8,") || deviceIdentifier.startsWith("iPad9,")||
-                deviceIdentifier.startsWith("iPad11,") || deviceIdentifier.startsWith("iPad14,");
+                deviceIdentifier.startsWith("iPad8,") || deviceIdentifier.startsWith("iPad11,") ||
+                deviceIdentifier.startsWith("iPad12,") || deviceIdentifier.startsWith("iPad13,") ||
+                deviceIdentifier.startsWith("iPad14,");
     }
 
     @SafeVarargs
