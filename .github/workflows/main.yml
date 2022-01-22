@@ -15,7 +15,7 @@ jobs:
       - name: Set up JDK 16
         uses: actions/setup-java@v1
         with:
-          java-version: '16'
+          java-version: '17'
       - name: Install Linux dependencies
         run: brew install libimobiledevice libirecovery && P=/home/linuxbrew/.linuxbrew/lib; sudo ln -s $P/libimobiledevice-1.0.so $P/libirecovery-1.0.so $P/libplist-2.0.so /usr/lib/
         if: runner.os == 'Linux'
