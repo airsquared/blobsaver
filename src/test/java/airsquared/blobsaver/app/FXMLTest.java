@@ -31,7 +31,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FXMLTest {
+public class FXMLTest extends BlobsaverTest {
 
     @Test
     public void loadFXML() throws IOException {

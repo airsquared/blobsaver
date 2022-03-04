@@ -78,12 +78,8 @@ public class Main {
         } else { // if Windows
             path = new File(jarDirectory, "lib/").getAbsolutePath();
         }
-        System.setProperty("jna.boot.library.path", path); // path for jnidispatch lib
         System.setProperty("jna.library.path", path);
         System.out.println("path = " + path);
-        // disable getting library w/ auto unpacking / classpath since it will never be in jar/classpath
-        System.setProperty("jna.noclasspath", "true");
-        System.setProperty("jna.nounpack", "true");
     }
 
     public static final class JavaFxApplication extends Application {

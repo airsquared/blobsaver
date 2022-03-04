@@ -22,9 +22,9 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.41.0'
-    id 'org.beryx.jlink' version '2.24.4'
-    id 'org.openjfx.javafxplugin' version '0.0.11'
+    id 'com.github.ben-manes.versions' version '0.42.0'
+    id 'org.beryx.jlink' version '2.25.0'
+    id 'org.openjfx.javafxplugin' version '0.0.12'
 
     id 'idea'
 }
@@ -103,7 +103,8 @@ jlink {
         noConsole = true
     }
     jpackage {
-        imageOptions = [ '--copyright', copyright, '--description', description, '--vendor', 'airsquared']
+        imageOptions = [ '--copyright', copyright, '--description', description]
+        vendor = 'airsquared'
         installerOutputDir = file("${buildDir}/distributions/")
 
         if (os.isMacOsX()) {
@@ -130,8 +131,8 @@ jlink {
             from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
             into "${buildDir}/jpackage/blobsaver.app/Contents/Resources"
         }
-        exec {
-            commandLine "codesign", "--remove-signature", "${buildDir}/jpackage/blobsaver.app"
+        exec { // needed to prevent "application is damaged" error when opening quarantined app
+            commandLine "codesign", "--force", "--deep", "--sign", "-", "${buildDir}/jpackage/blobsaver.app"
         }
     } else if (os.isWindows()) jpackageImage.doLast {
         copy {
