@@ -32,7 +32,7 @@ bugs/problems or have a feature request.
 - [IntelliJ Idea](https://www.jetbrains.com/idea/)
 - [Gradle](https://gradle.org/)
 - [JLink Plugin](https://github.com/beryx/badass-jlink-plugin)
-- [Inno Setup](http://www.jrsoftware.org/isinfo.php) (Windows) (creating Windows installer)
+- [Inno Setup](http://www.jrsoftware.org/isinfo.php) (creating Windows installer)
 
 See the full credits [here](libraries_used.txt).
 
