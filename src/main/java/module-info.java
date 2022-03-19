@@ -6,6 +6,6 @@ open module airsquared.blobsaver {
 
     requires com.sun.jna;
     requires nsmenufx;
-    requires org.json;
+    requires com.google.gson;
     requires org.apache.commons.compress;
 }

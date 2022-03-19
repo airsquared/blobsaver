@@ -18,6 +18,8 @@
 
 package airsquared.blobsaver.app;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.sun.jna.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -34,8 +36,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import java.io.*;
 import java.net.URI;
@@ -90,11 +90,11 @@ final class Utils {
         executeInThreadPool(() -> _checkForUpdates(forceCheck));
     }
 
-    static final record LatestVersion(String version, String changelog) {
+    record LatestVersion(String version, String changelog) {
         static LatestVersion request() throws IOException {
-            JSONObject json = makeRequest("https://api.github.com/repos/airsquared/blobsaver/releases/latest");
-            String tempChangelog = json.getString("body");
-            return new LatestVersion(json.getString("tag_name"), tempChangelog.substring(tempChangelog.indexOf("Changelog")));
+            JsonElement json = makeRequest("https://api.github.com/repos/airsquared/blobsaver/releases/latest");
+            String tempChangelog = json.getAsJsonObject().get("body").getAsString();
+            return new LatestVersion(json.getAsJsonObject().get("tag_name").getAsString(), tempChangelog.substring(tempChangelog.indexOf("Changelog")));
         }
 
         @Override
@@ -140,9 +140,9 @@ final class Utils {
         }
     }
 
-    private static JSONObject makeRequest(String url) throws IOException {
+    private static JsonElement makeRequest(String url) throws IOException {
         try (var inputStream = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
-            return new JSONObject(new JSONTokener(inputStream));
+            return JsonParser.parseReader(inputStream);
         }
     }
 
@@ -349,16 +349,16 @@ final class Utils {
 
     static Stream<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
         String url = "https://api.ipsw.me/v4/device/" + deviceIdentifier;
-        return StreamSupport.stream(makeRequest(url).getJSONArray("firmwares").spliterator(), false)
-                .map(o -> (JSONObject) o)
-                .map(o -> new IOSVersion(o.getString("version"), o.getString("url"), o.getBoolean("signed")));
+        return StreamSupport.stream(makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares").spliterator(), false)
+                .map(JsonElement::getAsJsonObject)
+                .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("url").getAsString(), o.get("signed").getAsBoolean()));
     }
 
     static Stream<IOSVersion> getSignedFirmwares(String deviceIdentifier) throws IOException {
         return getFirmwareList(deviceIdentifier).filter(IOSVersion::signed);
     }
 
-    static final record IOSVersion(String versionString, String ipswURL, Boolean signed) {
+    record IOSVersion(String versionString, String ipswURL, Boolean signed) {
         public IOSVersion {
             Objects.requireNonNull(ipswURL, "ipsw url cannot be null");
         }
