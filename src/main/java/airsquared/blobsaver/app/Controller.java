@@ -555,21 +555,18 @@ public class Controller {
     }
 
     public void readApnonce() {
-        Alert alert1 = new Alert(Alert.AlertType.CONFIRMATION, "", ButtonType.CANCEL, new ButtonType("Jailbroken"), new ButtonType("Unjailbroken"));
+        Alert alert1 = new Alert(Alert.AlertType.CONFIRMATION);
         alert1.setHeaderText("Read APNonce from connected device");
         alert1.setContentText("blobsaver can read both the APNonce and generator from a connected device.\n\n" +
-                "Please connect your device and click \"Jailbroken\" if your device has a generator set or \"Unjailbroken\" if you don't. If unsure, select \"Unjailbroken\".\n\nYour device will enter recovery mode while retrieving the APNonce and will automatically reboot to normal mode when complete.");
-        boolean jailbroken;
-        if (alert1.showAndWait().isEmpty() || !alert1.getResult().getText().contains("ailbroken")) {
+                "Your device will enter recovery mode while retrieving the APNonce and will automatically reboot to normal mode when complete.");
+        if (!ButtonType.OK.equals(alert1.showAndWait().orElse(null))) {
             return;
-        } else {
-            jailbroken = alert1.getResult().getText().equals("Jailbroken");
         }
         final Alert alert2 = new Alert(Alert.AlertType.INFORMATION, "[This should not be visible]", ButtonType.FINISH);
-        alert2.setHeaderText("Reading APNonce from connected device...");
+        alert2.setHeaderText("Read APNonce from connected device");
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
-        var task = new LibimobiledeviceUtil.GetApnonceTask(jailbroken);
+        var task = new LibimobiledeviceUtil.GetApnonceTask(false);
         task.setOnSucceeded(event -> {
             apnonceField.setText(task.getApnonceResult());
             generatorField.setText(task.getGeneratorResult());

@@ -31,7 +31,12 @@ import javafx.scene.control.ButtonType;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-import static airsquared.blobsaver.app.natives.Libimobiledevice.*;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.idevice_free;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.idevice_new;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_client_free;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_client_new_with_handshake;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_enter_recovery;
+import static airsquared.blobsaver.app.natives.Libimobiledevice.lockdownd_get_value;
 
 
 public class LibimobiledeviceUtil {
@@ -65,11 +70,12 @@ public class LibimobiledeviceUtil {
 
     public static final class GetApnonceTask extends Task<Void> {
         private String apnonceResult, generatorResult;
+        private boolean tryAgain;
         /**
          * If the device is jailbroken or has a generator set, no need to try to read the apnonce in normal mode.
          * If device doesn't have generator set, need to read the apnonce in normal mode to freeze it.
          */
-        private final boolean jailbroken;
+        private final boolean forceNewApnonce;
 
         public String getApnonceResult() {
             return apnonceResult;
@@ -79,13 +85,13 @@ public class LibimobiledeviceUtil {
             return generatorResult;
         }
 
-        public GetApnonceTask(boolean jailbroken) {
-            this.jailbroken = jailbroken;
+        public GetApnonceTask(boolean forceNewApnonce) {
+            this.forceNewApnonce = forceNewApnonce;
         }
 
         @Override
         protected Void call() throws LibimobiledeviceException {
-            if (!jailbroken) {
+            if (forceNewApnonce || tryAgain) {
                 updateMessage("Reading APNonce in normal mode...");
                 System.out.println("Read in normal mode: " + LibimobiledeviceUtil.getApNonceNormalMode());
             }
@@ -104,8 +110,13 @@ public class LibimobiledeviceUtil {
 
             if (apnonceResult.equals(getApnonce(irecvClient.getValue()))) {
                 Utils.runSafe(() -> updateMessage("Successfully got APNonce, exiting recovery mode..."));
+                tryAgain = false;
+            } else if (tryAgain) { // already tried again
+                Utils.runSafe(() -> updateMessage("Warning: Got APNonce, but APNonce is not frozen. This could mean the generator wasn't set correctly.\n\nExiting recovery mode..."));
+                tryAgain = false;
             } else {
-                Utils.runSafe(() -> updateMessage("Warning: Got APNonce, but two successive reads didn't match. This could mean the generator wasn't set correctly.\n\nExiting recovery mode..."));
+                Utils.runSafe(() -> updateMessage("APNonce is not frozen, trying again.\n\nExiting recovery mode..."));
+                tryAgain = true;
             }
 
             LibimobiledeviceUtil.exitRecovery(irecvClient.getValue());
@@ -153,9 +164,14 @@ public class LibimobiledeviceUtil {
 
             generatorResult = getGenerator();
 
+            if (tryAgain) {
+                call();
+                return null;
+            }
+
             updateMessage("Success");
 
-            Analytics.readAPNonce(jailbroken);
+            Analytics.readAPNonce(!forceNewApnonce && !tryAgain);
             return null;
         }
 
