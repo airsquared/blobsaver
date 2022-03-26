@@ -262,6 +262,18 @@
             </Label>
         </HBox>
         <Region VBox.vgrow="ALWAYS"/>
+        <CheckBox fx:id="saveToTSSSaverCheckBox" prefWidth="Infinity" maxWidth="Infinity"
+                  mnemonicParsing="false" text="Also save to TSS Saver" selected="true">
+            <VBox.margin>
+                <Insets left="10.0" top="5.0"/>
+            </VBox.margin>
+        </CheckBox>
+        <CheckBox fx:id="saveToSHSHHostCheckBox" prefWidth="Infinity" maxWidth="Infinity"
+                  mnemonicParsing="false" text="Also save to SHSH Host" selected="true">
+            <VBox.margin>
+                <Insets left="10.0" top="5.0"/>
+            </VBox.margin>
+        </CheckBox>
         <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#goButtonHandler" prefWidth="Infinity" text="Go"
                 defaultButton="true" disable="${backgroundSettingsButton.selected}">
             <VBox.margin>

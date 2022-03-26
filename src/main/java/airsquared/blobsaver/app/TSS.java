@@ -27,10 +27,13 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,11 +60,12 @@ public class TSS extends Task<String> {
     private final String manualIpswURL;
 
     private final String apnonce, generator;
+    private final boolean saveToTSSSaver, saveToSHSHHost;
 
     /**
      * Private constructor; use {@link TSS.Builder} instead
      */
-    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, String manualVersion, String manualIpswURL, String apnonce, String generator) {
+    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, String manualVersion, String manualIpswURL, String apnonce, String generator, boolean saveToTSSSaver, boolean saveToSHSHHost) {
         this.deviceIdentifier = deviceIdentifier;
         this.ecid = ecid;
         this.savePath = savePath;
@@ -70,6 +74,8 @@ public class TSS extends Task<String> {
         this.manualIpswURL = manualIpswURL;
         this.apnonce = apnonce;
         this.generator = generator;
+        this.saveToTSSSaver = saveToTSSSaver;
+        this.saveToSHSHHost = saveToSHSHHost;
     }
 
     /**
@@ -172,8 +178,7 @@ public class TSS extends Task<String> {
         //noinspection ResultOfMethodCallIgnored
         new File(savePath).mkdirs();
         Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
-        Collections.addAll(args, "--boardconfig",
-                Objects.requireNonNullElse(boardConfig, Devices.getBoardConfig(deviceIdentifier)));
+        Collections.addAll(args, "--boardconfig", getBoardConfig());
         if (apnonce != null) {
             Collections.addAll(args, "--apnonce", apnonce);
             if (generator != null) {
@@ -185,6 +190,10 @@ public class TSS extends Task<String> {
         Collections.addAll(args, "--build-manifest", "will be replaced in loop");
 
         return args;
+    }
+
+    private String getBoardConfig() {
+        return Objects.requireNonNullElse(boardConfig, Devices.getBoardConfig(deviceIdentifier));
     }
 
     @SuppressWarnings("TextBlockMigration")
@@ -228,6 +237,7 @@ public class TSS extends Task<String> {
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
         private String device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce, generator;
+        private boolean saveToTSSSaver, saveToSHSHHost;
 
         public Builder setDevice(String device) {
             this.device = device;
@@ -271,11 +281,21 @@ public class TSS extends Task<String> {
             return this;
         }
 
+        public Builder saveToTSSSaver(boolean saveToTSSSaver) {
+            this.saveToTSSSaver = saveToTSSSaver;
+            return this;
+        }
+
+        public Builder saveToSHSHHost(boolean saveToSHSHHost) {
+            this.saveToSHSHHost = saveToSHSHHost;
+            return this;
+        }
+
         public TSS build() {
             return new TSS(Objects.requireNonNull(device, "Device"),
                     Objects.requireNonNull(ecid, "ECID"),
                     Objects.requireNonNull(savePath, "Save Path"),
-                    boardConfig, manualVersion, manualIpswURL, apnonce, generator);
+                    boardConfig, manualVersion, manualIpswURL, apnonce, generator, saveToTSSSaver, saveToSHSHHost);
         }
     }
 
@@ -308,4 +328,47 @@ public class TSS extends Task<String> {
 
     }
 
+    HttpResponse<String> saveBlobsTSSSaver() throws Exception {
+        Map<Object, Object> deviceParameters = new HashMap<>();
+
+        deviceParameters.put("ecid", String.valueOf(Long.parseLong(ecid, 16)));
+        deviceParameters.put("deviceIdentifier", deviceIdentifier);
+        deviceParameters.put("boardConfig", getBoardConfig());
+
+        if (generator != null) {
+            deviceParameters.put("generator", generator);
+        }
+        if (apnonce != null) {
+            deviceParameters.put("apnonce", apnonce);
+        }
+
+        System.out.println(deviceParameters);
+        var headers = new HashMap<String, String>();
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        return Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
+    }
+
+    HttpResponse<String> saveBlobsSHSHHost() throws Exception {
+        Map<Object, Object> deviceParameters = new HashMap<>();
+
+        deviceParameters.put("ecid", ecid);
+        deviceParameters.put("boardconfig", getBoardConfig());
+        deviceParameters.put("device", deviceIdentifier);
+        deviceParameters.put("selected_firmware", "All");
+
+        if (generator != null) {
+            deviceParameters.put("generator", generator);
+        }
+        if (apnonce != null) {
+            deviceParameters.put("apnonce", apnonce);
+        }
+
+        System.out.println(deviceParameters);
+        String UserAgent = "Blobsaver " + Main.appVersion;
+        var headers = new HashMap<String, String>();
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("User-Agent", UserAgent);
+        headers.put("X-CPU-STATE", "0000000000000000000000000000000000000000");
+        return Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
+    }
 }
