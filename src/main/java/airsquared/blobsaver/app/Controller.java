@@ -19,7 +19,6 @@
 package airsquared.blobsaver.app;
 
 import airsquared.blobsaver.app.natives.Libirecovery;
-import com.google.gson.Gson;
 import com.sun.jna.Platform;
 import com.sun.jna.ptr.PointerByReference;
 import de.jangassen.MenuToolkit;
@@ -42,9 +41,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 
 import java.io.File;
-import java.net.http.HttpResponse;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("TextBlockMigration")
@@ -635,7 +632,9 @@ public class Controller {
         TSS.Builder builder = new TSS.Builder()
                 .setDevice(identifierCheckBox.isSelected() ?
                         identifierField.getText() : Devices.modelToIdentifier(deviceModelChoiceBox.getValue()))
-                .setEcid(ecidField.getText()).setSavePath(pathField.getText());
+                .setEcid(ecidField.getText()).setSavePath(pathField.getText())
+                .saveToTSSSaver(saveToTSSSaverCheckBox.isSelected())
+                .saveToSHSHHost(saveToSHSHHostCheckBox.isSelected());
         if (!boardConfigField.isDisabled()) {
             builder.setBoardConfig(boardConfigField.getText());
         }
@@ -662,59 +661,11 @@ public class Controller {
 
         tss.setOnScheduled(event -> runningAlert.show());
         tss.setOnSucceeded(event -> {
-            String tssValue = tss.getValue();
-            Map responseBodyMapped = null;
-            if (saveToTSSSaverCheckBox.isSelected()) {
-                try {
-                    HttpResponse<String> response = tss.saveBlobsTSSSaver();
-                    System.out.println(response.body());
-                    Gson gson = new Gson();
-                    responseBodyMapped = gson.fromJson(response.body(), Map.class);
-                    // if we can get the URL from the JSON Response
-                    // include it in the tssValue
-                    if (responseBodyMapped.containsKey("url")) {
-                        tssValue = tss.getValue() + "\nAlso saved blobs online to: " + responseBodyMapped.get("url");
-                    } else {
-                        tssValue = tss.getValue() + "\nTried saving blobs online to TSS Saver but got following Error(s): " + responseBodyMapped.get("errors").toString();
-                    }
-                } catch (Exception e) {
-                    tssValue = (tss.getValue() + "Error encountered while trying to save blobs online: " + e.getMessage());
-                }
-            }
-
-            if (saveToSHSHHostCheckBox.isSelected()) {
-                try {
-                    HttpResponse<String> SHSHHostResponse = tss.saveBlobsSHSHHost();
-                    System.out.println("shsh host code: " + SHSHHostResponse.statusCode());
-                    System.out.println("shsh host body: " + SHSHHostResponse.body());
-                    tssValue += "\nAlso saved blobs to SHSH Host";
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            final String tssValueFinal = tssValue;
             runningAlert.close();
-
-            Alert alert = null;
-            ButtonType openURLButton = new ButtonType("Open URL");
-            ButtonType customOK = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
-            // if the tss saver url is available, include it in the alert.
-            if (responseBodyMapped != null && responseBodyMapped.containsKey("url")) {
-                alert = new Alert(Alert.AlertType.INFORMATION, tssValueFinal, openURLButton, customOK);
-            } else {
-                alert = new Alert(Alert.AlertType.INFORMATION, tssValueFinal, customOK);
-            }
-
-            ((Button) alert.getDialogPane().lookupButton(customOK)).setDefaultButton(true); // set 'ok' as the default button
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, tss.getValue());
             alert.setHeaderText("Success!");
-            alert.setContentText(tssValueFinal);
-            System.out.println("text: " + tssValueFinal);
             alert.showAndWait();
-            if (alert.getResult() == openURLButton) {
-                Utils.openURL(responseBodyMapped.get("url").toString());
-            }
         });
-
         tss.setOnFailed(event -> {
             runningAlert.close();
             tss.getException().printStackTrace();

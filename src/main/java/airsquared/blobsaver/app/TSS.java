@@ -18,6 +18,7 @@
 
 package airsquared.blobsaver.app;
 
+import com.google.gson.Gson;
 import javafx.concurrent.Task;
 
 import java.io.File;
@@ -60,6 +61,7 @@ public class TSS extends Task<String> {
     private final String manualIpswURL;
 
     private final String apnonce, generator;
+
     private final boolean saveToTSSSaver, saveToSHSHHost;
 
     /**
@@ -91,9 +93,9 @@ public class TSS extends Task<String> {
         ArrayList<String> args = constructArgs();
         final int urlIndex = args.size() - 1;
 
-        StringBuilder sb = new StringBuilder("Successfully saved blobs in\n").append(savePath);
+        StringBuilder responseBuilder = new StringBuilder("Successfully saved blobs in\n").append(savePath);
         if (manualIpswURL == null) {
-            sb.append(iosVersions.size() == 1 ? "\n\nFor version " : "\n\nFor versions ");
+            responseBuilder.append(iosVersions.size() == 1 ? "\n\nFor version " : "\n\nFor versions ");
         }
 
         // can't use forEach() because exception won't be caught
@@ -112,14 +114,24 @@ public class TSS extends Task<String> {
             }
 
             if (iosVersion.versionString() != null) {
-                sb.append(iosVersion.versionString());
+                responseBuilder.append(iosVersion.versionString());
                 if (iosVersion != iosVersions.get(iosVersions.size() - 1))
-                    sb.append(", ");
+                    responseBuilder.append(", ");
             }
         }
 
+        if (saveToTSSSaver || saveToSHSHHost) {
+            responseBuilder.append("\n\n");
+        }
+        if (saveToTSSSaver) {
+            saveBlobsTSSSaver(responseBuilder);
+        }
+        if (saveToSHSHHost) {
+            saveBlobsSHSHHost(responseBuilder);
+        }
+
         Analytics.saveBlobs();
-        return sb.toString();
+        return responseBuilder.toString();
     }
 
     private void checkInputs() throws TSSException {
@@ -158,7 +170,7 @@ public class TSS extends Task<String> {
         try {
             if (manualVersion != null) {
                 return Collections.singletonList(getFirmwareList(deviceIdentifier).filter(iosVersion ->
-                        manualVersion.equals(iosVersion.versionString())).findFirst()
+                                manualVersion.equals(iosVersion.versionString())).findFirst()
                         .orElseThrow(() -> new TSSException("No versions found.", false)));
             } else if (manualIpswURL != null) {
                 return Collections.singletonList(new Utils.IOSVersion(null, manualIpswURL, null));
@@ -328,7 +340,7 @@ public class TSS extends Task<String> {
 
     }
 
-    HttpResponse<String> saveBlobsTSSSaver() throws Exception {
+    private void saveBlobsTSSSaver(StringBuilder responseBuilder) {
         Map<Object, Object> deviceParameters = new HashMap<>();
 
         deviceParameters.put("ecid", String.valueOf(Long.parseLong(ecid, 16)));
@@ -345,10 +357,27 @@ public class TSS extends Task<String> {
         System.out.println(deviceParameters);
         var headers = new HashMap<String, String>();
         headers.put("Content-Type", "application/x-www-form-urlencoded");
-        return Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
+
+        HttpResponse<String> response;
+        try {
+            response = Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append(e.getMessage());
+            return;
+        }
+        System.out.println(response.body());
+
+        @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
+
+        if (responseBody.containsKey("errors")) {
+            responseBuilder.append("Error encountered while trying to save blobs TSSSaver: ").append(responseBody.get("errors"));
+        } else {
+            responseBuilder.append("Also saved blobs online to TSS Saver.");
+        }
     }
 
-    HttpResponse<String> saveBlobsSHSHHost() throws Exception {
+    private void saveBlobsSHSHHost(StringBuilder responseBuilder) {
         Map<Object, Object> deviceParameters = new HashMap<>();
 
         deviceParameters.put("ecid", ecid);
@@ -364,11 +393,22 @@ public class TSS extends Task<String> {
         }
 
         System.out.println(deviceParameters);
-        String UserAgent = "Blobsaver " + Main.appVersion;
+        String userAgent = "Blobsaver " + Main.appVersion;
         var headers = new HashMap<String, String>();
         headers.put("Content-Type", "application/x-www-form-urlencoded");
-        headers.put("User-Agent", UserAgent);
+        headers.put("User-Agent", userAgent);
         headers.put("X-CPU-STATE", "0000000000000000000000000000000000000000");
-        return Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
+
+        HttpResponse<String> response;
+        try {
+            response = Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            responseBuilder.append("Error encountered while trying to save blobs to SHSH Host: ").append(e.getMessage());
+            return;
+        }
+        System.out.println(response.body());
+
+        responseBuilder.append("Also saved blobs online to SHSH Host.");
     }
 }

@@ -262,14 +262,12 @@
             </Label>
         </HBox>
         <Region VBox.vgrow="ALWAYS"/>
-        <CheckBox fx:id="saveToTSSSaverCheckBox" prefWidth="Infinity" maxWidth="Infinity"
-                  mnemonicParsing="false" text="Also save to TSS Saver" selected="true">
+        <CheckBox fx:id="saveToTSSSaverCheckBox" mnemonicParsing="false" text="Also save to TSS Saver">
             <VBox.margin>
                 <Insets left="10.0" top="5.0"/>
             </VBox.margin>
         </CheckBox>
-        <CheckBox fx:id="saveToSHSHHostCheckBox" prefWidth="Infinity" maxWidth="Infinity"
-                  mnemonicParsing="false" text="Also save to SHSH Host" selected="true">
+        <CheckBox fx:id="saveToSHSHHostCheckBox" mnemonicParsing="false" text="Also save to SHSH Host">
             <VBox.margin>
                 <Insets left="10.0" top="5.0"/>
             </VBox.margin>
