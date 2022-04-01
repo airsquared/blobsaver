@@ -78,6 +78,12 @@ public class Controller {
         backgroundSettingsMenu.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Hide Background Settings").otherwise("Show Background Settings"));
         backgroundSettingsMenu.setOnAction(e -> backgroundSettingsButton.fire());
+        allSignedVersionsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) {
+                saveToTSSSaverCheckBox.setSelected(false);
+                saveToSHSHHostCheckBox.setSelected(false);
+            }
+        });
         switch (Prefs.getDarkMode()) {
             case DISABLED -> darkDisabled.setSelected(true);
             case SYNC_WITH_OS -> darkSync.setSelected(true);

@@ -140,6 +140,9 @@ public class TSS extends Task<String> {
         if (!deviceIdentifier.contains(",") || !hasCorrectIdentifierPrefix) {
             throw new TSSException("\"" + deviceIdentifier + "\" is not a valid identifier", false);
         }
+        if (boardConfig == null && Devices.doesRequireBoardConfig(deviceIdentifier)) {
+            throw new TSSException("A board configuration is required for this device.", false);
+        }
         if (manualIpswURL != null) { // check URL
             try {
                 if (!ipswURLMatcher.reset(manualIpswURL).matches()) {
@@ -371,13 +374,17 @@ public class TSS extends Task<String> {
         @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
 
         if (responseBody.containsKey("errors")) {
-            responseBuilder.append("Error encountered while trying to save blobs TSSSaver: ").append(responseBody.get("errors"));
+            responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append(responseBody.get("errors"));
         } else {
             responseBuilder.append("Also saved blobs online to TSS Saver.");
         }
     }
 
     private void saveBlobsSHSHHost(StringBuilder responseBuilder) {
+        if (saveToTSSSaver) {
+            responseBuilder.append("\n");
+        }
+
         Map<Object, Object> deviceParameters = new HashMap<>();
 
         deviceParameters.put("ecid", ecid);
@@ -409,6 +416,12 @@ public class TSS extends Task<String> {
         }
         System.out.println(response.body());
 
-        responseBuilder.append("Also saved blobs online to SHSH Host.");
+        @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
+
+        if (responseBody.get("code").equals((double) 0)) {
+            responseBuilder.append("Also saved blobs online to SHSH Host.");
+        } else {
+            responseBuilder.append("Error encountered while trying to save blobs to SHSH Host: ").append(responseBody.get("message"));
+        }
     }
 }
