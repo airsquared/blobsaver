@@ -18,6 +18,7 @@
 
 package airsquared.blobsaver.app;
 
+import com.google.gson.Gson;
 import javafx.concurrent.Task;
 
 import java.io.File;
@@ -27,10 +28,13 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,10 +62,12 @@ public class TSS extends Task<String> {
 
     private final String apnonce, generator;
 
+    private final boolean saveToTSSSaver, saveToSHSHHost;
+
     /**
      * Private constructor; use {@link TSS.Builder} instead
      */
-    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, String manualVersion, String manualIpswURL, String apnonce, String generator) {
+    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, String manualVersion, String manualIpswURL, String apnonce, String generator, boolean saveToTSSSaver, boolean saveToSHSHHost) {
         this.deviceIdentifier = deviceIdentifier;
         this.ecid = ecid;
         this.savePath = savePath;
@@ -70,6 +76,8 @@ public class TSS extends Task<String> {
         this.manualIpswURL = manualIpswURL;
         this.apnonce = apnonce;
         this.generator = generator;
+        this.saveToTSSSaver = saveToTSSSaver;
+        this.saveToSHSHHost = saveToSHSHHost;
     }
 
     /**
@@ -85,9 +93,9 @@ public class TSS extends Task<String> {
         ArrayList<String> args = constructArgs();
         final int urlIndex = args.size() - 1;
 
-        StringBuilder sb = new StringBuilder("Successfully saved blobs in\n").append(savePath);
+        StringBuilder responseBuilder = new StringBuilder("Successfully saved blobs in\n").append(savePath);
         if (manualIpswURL == null) {
-            sb.append(iosVersions.size() == 1 ? "\n\nFor version " : "\n\nFor versions ");
+            responseBuilder.append(iosVersions.size() == 1 ? "\n\nFor version " : "\n\nFor versions ");
         }
 
         // can't use forEach() because exception won't be caught
@@ -106,14 +114,24 @@ public class TSS extends Task<String> {
             }
 
             if (iosVersion.versionString() != null) {
-                sb.append(iosVersion.versionString());
+                responseBuilder.append(iosVersion.versionString());
                 if (iosVersion != iosVersions.get(iosVersions.size() - 1))
-                    sb.append(", ");
+                    responseBuilder.append(", ");
             }
         }
 
+        if (saveToTSSSaver || saveToSHSHHost) {
+            responseBuilder.append("\n\n");
+        }
+        if (saveToTSSSaver) {
+            saveBlobsTSSSaver(responseBuilder);
+        }
+        if (saveToSHSHHost) {
+            saveBlobsSHSHHost(responseBuilder);
+        }
+
         Analytics.saveBlobs();
-        return sb.toString();
+        return responseBuilder.toString();
     }
 
     private void checkInputs() throws TSSException {
@@ -121,6 +139,9 @@ public class TSS extends Task<String> {
                 || deviceIdentifier.startsWith("iPhone") || deviceIdentifier.startsWith("AppleTV");
         if (!deviceIdentifier.contains(",") || !hasCorrectIdentifierPrefix) {
             throw new TSSException("\"" + deviceIdentifier + "\" is not a valid identifier", false);
+        }
+        if (boardConfig == null && Devices.doesRequireBoardConfig(deviceIdentifier)) {
+            throw new TSSException("A board configuration is required for this device.", false);
         }
         if (manualIpswURL != null) { // check URL
             try {
@@ -152,7 +173,7 @@ public class TSS extends Task<String> {
         try {
             if (manualVersion != null) {
                 return Collections.singletonList(getFirmwareList(deviceIdentifier).filter(iosVersion ->
-                        manualVersion.equals(iosVersion.versionString())).findFirst()
+                                manualVersion.equals(iosVersion.versionString())).findFirst()
                         .orElseThrow(() -> new TSSException("No versions found.", false)));
             } else if (manualIpswURL != null) {
                 return Collections.singletonList(new Utils.IOSVersion(null, manualIpswURL, null));
@@ -172,8 +193,7 @@ public class TSS extends Task<String> {
         //noinspection ResultOfMethodCallIgnored
         new File(savePath).mkdirs();
         Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
-        Collections.addAll(args, "--boardconfig",
-                Objects.requireNonNullElse(boardConfig, Devices.getBoardConfig(deviceIdentifier)));
+        Collections.addAll(args, "--boardconfig", getBoardConfig());
         if (apnonce != null) {
             Collections.addAll(args, "--apnonce", apnonce);
             if (generator != null) {
@@ -185,6 +205,10 @@ public class TSS extends Task<String> {
         Collections.addAll(args, "--build-manifest", "will be replaced in loop");
 
         return args;
+    }
+
+    private String getBoardConfig() {
+        return Objects.requireNonNullElse(boardConfig, Devices.getBoardConfig(deviceIdentifier));
     }
 
     @SuppressWarnings("TextBlockMigration")
@@ -228,6 +252,7 @@ public class TSS extends Task<String> {
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
         private String device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce, generator;
+        private boolean saveToTSSSaver, saveToSHSHHost;
 
         public Builder setDevice(String device) {
             this.device = device;
@@ -271,11 +296,21 @@ public class TSS extends Task<String> {
             return this;
         }
 
+        public Builder saveToTSSSaver(boolean saveToTSSSaver) {
+            this.saveToTSSSaver = saveToTSSSaver;
+            return this;
+        }
+
+        public Builder saveToSHSHHost(boolean saveToSHSHHost) {
+            this.saveToSHSHHost = saveToSHSHHost;
+            return this;
+        }
+
         public TSS build() {
             return new TSS(Objects.requireNonNull(device, "Device"),
                     Objects.requireNonNull(ecid, "ECID"),
                     Objects.requireNonNull(savePath, "Save Path"),
-                    boardConfig, manualVersion, manualIpswURL, apnonce, generator);
+                    boardConfig, manualVersion, manualIpswURL, apnonce, generator, saveToTSSSaver, saveToSHSHHost);
         }
     }
 
@@ -308,4 +343,85 @@ public class TSS extends Task<String> {
 
     }
 
+    private void saveBlobsTSSSaver(StringBuilder responseBuilder) {
+        Map<Object, Object> deviceParameters = new HashMap<>();
+
+        deviceParameters.put("ecid", String.valueOf(Long.parseLong(ecid, 16)));
+        deviceParameters.put("deviceIdentifier", deviceIdentifier);
+        deviceParameters.put("boardConfig", getBoardConfig());
+
+        if (generator != null) {
+            deviceParameters.put("generator", generator);
+        }
+        if (apnonce != null) {
+            deviceParameters.put("apnonce", apnonce);
+        }
+
+        System.out.println(deviceParameters);
+        var headers = new HashMap<String, String>();
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+
+        HttpResponse<String> response;
+        try {
+            response = Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append(e.getMessage());
+            return;
+        }
+        System.out.println(response.body());
+
+        @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
+
+        if (responseBody.containsKey("errors")) {
+            responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append(responseBody.get("errors"));
+        } else {
+            responseBuilder.append("Also saved blobs online to TSS Saver.");
+        }
+    }
+
+    private void saveBlobsSHSHHost(StringBuilder responseBuilder) {
+        if (saveToTSSSaver) {
+            responseBuilder.append("\n");
+        }
+
+        Map<Object, Object> deviceParameters = new HashMap<>();
+
+        deviceParameters.put("ecid", ecid);
+        deviceParameters.put("boardconfig", getBoardConfig());
+        deviceParameters.put("device", deviceIdentifier);
+        deviceParameters.put("selected_firmware", "All");
+
+        if (generator != null) {
+            deviceParameters.put("generator", generator);
+        }
+        if (apnonce != null) {
+            deviceParameters.put("apnonce", apnonce);
+        }
+
+        System.out.println(deviceParameters);
+        String userAgent = "Blobsaver " + Main.appVersion;
+        var headers = new HashMap<String, String>();
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("User-Agent", userAgent);
+        headers.put("X-CPU-STATE", "0000000000000000000000000000000000000000");
+
+        HttpResponse<String> response;
+        try {
+            response = Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            responseBuilder.append("Error encountered while trying to save blobs to SHSH Host: ").append(e.getMessage());
+            return;
+        }
+        System.out.println(response.body());
+
+        @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
+
+        if (responseBody.get("code").equals((double) 0)) {
+            responseBuilder.append("Also saved blobs online to SHSH Host.");
+        } else {
+            responseBuilder.append("Error encountered while trying to save blobs to SHSH Host: ").append(responseBody.get("message"));
+        }
+    }
 }

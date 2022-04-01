@@ -57,7 +57,7 @@ public class Controller {
     @FXML private TextField ecidField, boardConfigField, apnonceField, generatorField, versionField, identifierField,
             pathField, ipswField;
 
-    @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox;
+    @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox, saveToTSSSaverCheckBox, saveToSHSHHostCheckBox;
 
     @FXML private Label versionLabel, savedDevicesLabel;
 
@@ -78,6 +78,12 @@ public class Controller {
         backgroundSettingsMenu.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Hide Background Settings").otherwise("Show Background Settings"));
         backgroundSettingsMenu.setOnAction(e -> backgroundSettingsButton.fire());
+        allSignedVersionsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) {
+                saveToTSSSaverCheckBox.setSelected(false);
+                saveToSHSHHostCheckBox.setSelected(false);
+            }
+        });
         switch (Prefs.getDarkMode()) {
             case DISABLED -> darkDisabled.setSelected(true);
             case SYNC_WITH_OS -> darkSync.setSelected(true);
@@ -632,7 +638,9 @@ public class Controller {
         TSS.Builder builder = new TSS.Builder()
                 .setDevice(identifierCheckBox.isSelected() ?
                         identifierField.getText() : Devices.modelToIdentifier(deviceModelChoiceBox.getValue()))
-                .setEcid(ecidField.getText()).setSavePath(pathField.getText());
+                .setEcid(ecidField.getText()).setSavePath(pathField.getText())
+                .saveToTSSSaver(saveToTSSSaverCheckBox.isSelected())
+                .saveToSHSHHost(saveToSHSHHostCheckBox.isSelected());
         if (!boardConfigField.isDisabled()) {
             builder.setBoardConfig(boardConfigField.getText());
         }

@@ -8,4 +8,5 @@ open module airsquared.blobsaver {
     requires nsmenufx;
     requires com.google.gson;
     requires org.apache.commons.compress;
+    requires java.net.http;
 }
