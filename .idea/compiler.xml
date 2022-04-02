@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="17">
-      <module name="blobsaver_main" target="1.8" />
-      <module name="blobsaver_test" target="1.8" />
+    <bytecodeTargetLevel target="18">
+      <module name="blobsaver_main"/>
+      <module name="blobsaver_test"/>
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
