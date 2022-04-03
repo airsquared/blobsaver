@@ -262,18 +262,20 @@
             </Label>
         </HBox>
         <Region VBox.vgrow="ALWAYS"/>
-        <CheckBox fx:id="saveToTSSSaverCheckBox" mnemonicParsing="false" text="Also save to TSS Saver"
-                  disable="${!allSignedVersionsCheckBox.selected}">
+        <HBox>
             <VBox.margin>
                 <Insets left="10.0" top="5.0"/>
             </VBox.margin>
-        </CheckBox>
-        <CheckBox fx:id="saveToSHSHHostCheckBox" mnemonicParsing="false" text="Also save to SHSH Host"
-                  disable="${!allSignedVersionsCheckBox.selected}">
-            <VBox.margin>
-                <Insets left="10.0" top="5.0"/>
-            </VBox.margin>
-        </CheckBox>
+            <CheckBox fx:id="saveToTSSSaverCheckBox" mnemonicParsing="false" text="Also save to TSS Saver"
+                      disable="${!allSignedVersionsCheckBox.selected}">
+            </CheckBox>
+            <CheckBox fx:id="saveToSHSHHostCheckBox" mnemonicParsing="false" text="Also save to SHSH Host"
+                      disable="${!allSignedVersionsCheckBox.selected}">
+                <HBox.margin>
+                    <Insets left="15.0"/>
+                </HBox.margin>
+            </CheckBox>
+        </HBox>
         <Button maxWidth="Infinity" mnemonicParsing="false" onAction="#goButtonHandler" prefWidth="Infinity" text="Go"
                 defaultButton="true" disable="${backgroundSettingsButton.selected}">
             <VBox.margin>
