@@ -1,8 +1,8 @@
-Help support this project by ⭐️'ing it, [Donations](https://www.paypal.me/airsqrd) also appreciated!
+Help support this project by ⭐️'ing it; [Donations](https://www.paypal.me/airsqrd) also appreciated!
 
 # blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0d4fdc1daca5402a8c57efc3bef73d31)](https://www.codacy.com/gh/airsquared/blobsaver/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=airsquared/blobsaver&amp;utm_campaign=Badge_Grade)
 
-A cross-platform GUI for saving SHSH blobs using [tsschecker](https://github.com/tihmstar/tsschecker).
+A cross-platform GUI for saving SHSH blobs using [tsschecker](https://github.com/1Conan/tsschecker).
 
 [Download here](https://github.com/airsquared/blobsaver/releases)
 
@@ -10,7 +10,6 @@ A cross-platform GUI for saving SHSH blobs using [tsschecker](https://github.com
 see [here](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud).
 
 ![Mac Screenshot](.github/screenshots/screenshot-macos.png)
-![Windows Screenshot](.github/screenshots/screenshot-windows.png)
 
 ## Features
 
@@ -20,6 +19,7 @@ see [here](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blo
 - Store an unlimited number of devices
 - Save blobs for beta versions
 - No need to download entire .ipsw for beta versions (just specify link)
+- Save blobs to TSS Saver and SHSH Host as well with one click
 
 ## Feedback
 
@@ -28,7 +28,7 @@ bugs/problems or have a feature request.
 
 ## Built With
 
-- JDK 16
+- JDK 18
 - [IntelliJ Idea](https://www.jetbrains.com/idea/)
 - [Gradle](https://gradle.org/)
 - [JLink Plugin](https://github.com/beryx/badass-jlink-plugin)
