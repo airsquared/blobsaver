@@ -57,7 +57,8 @@ public class Controller {
     @FXML private TextField ecidField, boardConfigField, apnonceField, generatorField, versionField, identifierField,
             pathField, ipswField;
 
-    @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox, saveToTSSSaverCheckBox, saveToSHSHHostCheckBox;
+    @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox,
+            manualURLCheckBox, saveToTSSSaverCheckBox, saveToSHSHHostCheckBox;
 
     @FXML private Label versionLabel, savedDevicesLabel;
 
@@ -82,6 +83,7 @@ public class Controller {
             if (!newValue) {
                 saveToTSSSaverCheckBox.setSelected(false);
                 saveToSHSHHostCheckBox.setSelected(false);
+                betaCheckBox.setSelected(false);
             }
         });
         switch (Prefs.getDarkMode()) {
@@ -159,8 +161,8 @@ public class Controller {
         }
     }
 
-    public void betaCheckBoxHandler() {
-        if (betaCheckBox.isSelected()) {
+    public void manualURLCheckBoxHandler() {
+        if (manualURLCheckBox.isSelected()) {
             ipswField.setEffect(Utils.borderGlow);
             versionField.setEffect(null);
             versionField.setText("");
@@ -188,6 +190,9 @@ public class Controller {
 
         ecidField.setText(savedDevice.getEcid());
         pathField.setText(savedDevice.getSavePath());
+        if (!betaCheckBox.isDisabled()) {
+            betaCheckBox.setSelected(savedDevice.doesIncludeBetas());
+        }
         String identifier = savedDevice.getIdentifier();
         if (Devices.containsIdentifier(identifier)) {
             Utils.setSelectedFire(identifierCheckBox, false);
@@ -223,7 +228,7 @@ public class Controller {
         if (!Utils.isEmptyOrNull(result)) {
             Prefs.SavedDeviceBuilder builder = new Prefs.SavedDeviceBuilder(result);
 
-            builder.setEcid(ecidField.getText()).setSavePath(pathField.getText())
+            builder.setEcid(ecidField.getText()).setSavePath(pathField.getText()).setIncludeBetas(betaCheckBox.isSelected())
                     .setIdentifier(identifierField.isDisabled() ?
                             Devices.modelToIdentifier(deviceModelChoiceBox.getValue()) : identifierField.getText());
             if (!boardConfigField.isDisable()) {
@@ -415,7 +420,7 @@ public class Controller {
             updateBackgroundSettings();
         } else if (enable.get()) {
             loadSavedDevice(device);
-            Utils.setSelectedFire(betaCheckBox, false);
+            Utils.setSelectedFire(manualURLCheckBox, false);
             Utils.setSelectedFire(allSignedVersionsCheckBox, true);
             TSS tss = createTSS("Testing device...");
             EventHandler<WorkerStateEvent> oldSucceeded = tss.getOnSucceeded();
@@ -629,8 +634,8 @@ public class Controller {
         incorrect |= Utils.isFieldEmpty(!boardConfigField.isDisable(), boardConfigField);
         incorrect |= Utils.isFieldEmpty(apnonceCheckBox, apnonceField);
         incorrect |= Utils.isFieldEmpty(true, pathField);
-        incorrect |= Utils.isFieldEmpty(!allSignedVersionsCheckBox.isSelected() && !betaCheckBox.isSelected(), versionField);
-        incorrect |= Utils.isFieldEmpty(betaCheckBox, ipswField);
+        incorrect |= Utils.isFieldEmpty(!allSignedVersionsCheckBox.isSelected() && !manualURLCheckBox.isSelected(), versionField);
+        incorrect |= Utils.isFieldEmpty(manualURLCheckBox, ipswField);
         return incorrect;
     }
 
@@ -639,6 +644,7 @@ public class Controller {
                 .setDevice(identifierCheckBox.isSelected() ?
                         identifierField.getText() : Devices.modelToIdentifier(deviceModelChoiceBox.getValue()))
                 .setEcid(ecidField.getText()).setSavePath(pathField.getText())
+                .setIncludeBetas(betaCheckBox.isSelected())
                 .saveToTSSSaver(saveToTSSSaverCheckBox.isSelected())
                 .saveToSHSHHost(saveToSHSHHostCheckBox.isSelected());
         if (!boardConfigField.isDisabled()) {
@@ -693,7 +699,7 @@ public class Controller {
                 apnonceField.setEffect(Utils.errorBorder);
             } else if (message.contains("not a valid path")) {
                 pathField.setEffect(Utils.errorBorder);
-            } else if (message.contains("not being signed") && betaCheckBox.isSelected()) {
+            } else if (message.contains("not being signed") && manualURLCheckBox.isSelected()) {
                 ipswField.setEffect(Utils.errorBorder);
             } else if (message.contains("not being signed") && !allSignedVersionsCheckBox.isSelected()) {
                 versionField.setEffect(Utils.errorBorder);

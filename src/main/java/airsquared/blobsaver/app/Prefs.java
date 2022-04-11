@@ -253,6 +253,14 @@ public final class Prefs {
             node.put("Generator", generator);
         }
 
+        public boolean doesIncludeBetas() {
+            return node.getBoolean("Include Betas", false);
+        }
+
+        public void setIncludeBetas(boolean includeBetas) {
+            node.putBoolean("Include Betas", includeBetas);
+        }
+
         public boolean isBackground() {
             return node.getBoolean("Save in background", false);
         }
@@ -281,6 +289,7 @@ public final class Prefs {
     public static class SavedDeviceBuilder {
         private final String name;
         private String ecid, savePath, identifier, boardConfig, apnonce, generator;
+        private boolean includeBetas;
 
         public SavedDeviceBuilder(String name) {
             this.name = name;
@@ -316,11 +325,17 @@ public final class Prefs {
             return this;
         }
 
+        public SavedDeviceBuilder setIncludeBetas(boolean includeBetas) {
+            this.includeBetas = includeBetas;
+            return this;
+        }
+
         public SavedDevice save() {
             SavedDevice device = new SavedDevice(Objects.requireNonNull(name, "Device Name"));
             device.setEcid(Objects.requireNonNull(ecid, "ECID"));
             device.setSavePath(Objects.requireNonNull(savePath, "Save Path"));
             device.setIdentifier(Objects.requireNonNull(identifier, "Identifier"));
+            device.setIncludeBetas(includeBetas);
             if (boardConfig != null) {
                 device.setBoardConfig(boardConfig);
             }

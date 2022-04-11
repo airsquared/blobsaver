@@ -267,7 +267,8 @@ class Background {
         System.out.println("attempting to save for device " + savedDevice);
 
         TSS.Builder builder = new TSS.Builder().setDevice(savedDevice.getIdentifier())
-                .setEcid(savedDevice.getEcid()).setSavePath(savedDevice.getSavePath());
+                .setEcid(savedDevice.getEcid()).setSavePath(savedDevice.getSavePath())
+                .setIncludeBetas(savedDevice.doesIncludeBetas());
         savedDevice.getBoardConfig().ifPresent(builder::setBoardConfig);
         savedDevice.getApnonce().ifPresent(builder::setApnonce);
         savedDevice.getGenerator().ifPresent(builder::setGenerator);

@@ -18,6 +18,7 @@
 
 package airsquared.blobsaver.app;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.sun.jna.Platform;
@@ -349,13 +350,26 @@ final class Utils {
 
     static Stream<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
         String url = "https://api.ipsw.me/v4/device/" + deviceIdentifier;
-        return StreamSupport.stream(makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares").spliterator(), false)
+        return createVersionStream(makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares"));
+    }
+
+    static Stream<IOSVersion> getBetaList(String deviceIdentifier) throws IOException {
+        String url = "https://api.m1sta.xyz/betas/" + deviceIdentifier;
+        return createVersionStream(makeRequest(url).getAsJsonArray());
+    }
+
+    private static Stream<IOSVersion> createVersionStream(JsonArray array) {
+        return StreamSupport.stream(array.spliterator(), false)
                 .map(JsonElement::getAsJsonObject)
                 .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("url").getAsString(), o.get("signed").getAsBoolean()));
     }
 
     static Stream<IOSVersion> getSignedFirmwares(String deviceIdentifier) throws IOException {
         return getFirmwareList(deviceIdentifier).filter(IOSVersion::signed);
+    }
+
+    static Stream<IOSVersion> getSignedBetas(String deviceIdentifier) throws IOException {
+        return getBetaList(deviceIdentifier).filter(IOSVersion::signed);
     }
 
     record IOSVersion(String versionString, String ipswURL, Boolean signed) {

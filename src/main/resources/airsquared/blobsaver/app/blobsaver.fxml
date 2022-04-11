@@ -167,8 +167,13 @@
                 <Insets left="10.0" top="5.0"/>
             </VBox.margin>
             <CheckBox fx:id="allSignedVersionsCheckBox" mnemonicParsing="false" onAction="#versionCheckBoxHandler"
-                      selected="true" text="All Signed Versions" disable="${betaCheckBox.selected}"/>
-            <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" onAction="#betaCheckBoxHandler" text="Beta Version">
+                      selected="true" text="All Signed Versions" disable="${manualURLCheckBox.selected}"/>
+            <CheckBox fx:id="betaCheckBox" mnemonicParsing="false" text="Include Betas" disable="${!allSignedVersionsCheckBox.selected}">
+                <HBox.margin>
+                    <Insets left="10.0"/>
+                </HBox.margin>
+            </CheckBox>
+            <CheckBox fx:id="manualURLCheckBox" mnemonicParsing="false" onAction="#manualURLCheckBoxHandler" text="Manually Specify URL">
                 <HBox.margin>
                     <Insets left="10.0"/>
                 </HBox.margin>
@@ -178,9 +183,9 @@
             <VBox.margin>
                 <Insets bottom="5.0" left="10.0" right="10.0" top="5.0"/>
             </VBox.margin>
-            <TextField fx:id="versionField" disable="${allSignedVersionsCheckBox.selected || betaCheckBox.selected}"
+            <TextField fx:id="versionField" disable="${allSignedVersionsCheckBox.selected || manualURLCheckBox.selected}"
                        promptText="Version" onTextChange="#clearEffectHandler"/>
-            <TextField fx:id="ipswField" disable="${!betaCheckBox.selected}" HBox.hgrow="ALWAYS"
+            <TextField fx:id="ipswField" disable="${!manualURLCheckBox.selected}" HBox.hgrow="ALWAYS"
                        promptText="URL to .ipsw file" onTextChange="#clearEffectHandler">
                 <HBox.margin>
                     <Insets left="5.0"/>

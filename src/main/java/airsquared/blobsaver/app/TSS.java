@@ -38,11 +38,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static airsquared.blobsaver.app.Utils.containsIgnoreCase;
 import static airsquared.blobsaver.app.Utils.executeProgram;
 import static airsquared.blobsaver.app.Utils.extractBuildManifest;
 import static airsquared.blobsaver.app.Utils.getFirmwareList;
+import static airsquared.blobsaver.app.Utils.getSignedBetas;
 import static airsquared.blobsaver.app.Utils.getSignedFirmwares;
 
 public class TSS extends Task<String> {
@@ -57,6 +59,7 @@ public class TSS extends Task<String> {
 
     private final String boardConfig;
 
+    private final boolean includeBetas;
     private final String manualVersion;
     private final String manualIpswURL;
 
@@ -67,11 +70,12 @@ public class TSS extends Task<String> {
     /**
      * Private constructor; use {@link TSS.Builder} instead
      */
-    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, String manualVersion, String manualIpswURL, String apnonce, String generator, boolean saveToTSSSaver, boolean saveToSHSHHost) {
+    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, boolean includeBetas, String manualVersion, String manualIpswURL, String apnonce, String generator, boolean saveToTSSSaver, boolean saveToSHSHHost) {
         this.deviceIdentifier = deviceIdentifier;
         this.ecid = ecid;
         this.savePath = savePath;
         this.boardConfig = boardConfig;
+        this.includeBetas = includeBetas;
         this.manualVersion = manualVersion;
         this.manualIpswURL = manualIpswURL;
         this.apnonce = apnonce;
@@ -91,7 +95,6 @@ public class TSS extends Task<String> {
         List<Utils.IOSVersion> iosVersions = getIOSVersions();
         System.out.println("iosVersions = " + iosVersions);
         ArrayList<String> args = constructArgs();
-        final int urlIndex = args.size() - 1;
 
         StringBuilder responseBuilder = new StringBuilder("Successfully saved blobs in\n").append(savePath);
         if (manualIpswURL == null) {
@@ -100,18 +103,7 @@ public class TSS extends Task<String> {
 
         // can't use forEach() because exception won't be caught
         for (Utils.IOSVersion iosVersion : iosVersions) {
-            try {
-                args.set(urlIndex, extractBuildManifest(iosVersion.ipswURL()).toString());
-            } catch (IOException e) {
-                throw new TSSException("Unable to extract BuildManifest.", true, e);
-            }
-            try {
-                System.out.println("Running: " + args);
-                String tssLog = executeProgram(args);
-                parseTSSLog(tssLog);
-            } catch (IOException e) {
-                throw new TSSException("There was an error starting tsschecker.", true, e);
-            }
+            saveFor(iosVersion, args);
 
             if (iosVersion.versionString() != null) {
                 responseBuilder.append(iosVersion.versionString());
@@ -132,6 +124,29 @@ public class TSS extends Task<String> {
 
         Analytics.saveBlobs();
         return responseBuilder.toString();
+    }
+
+
+    private void saveFor(Utils.IOSVersion iosVersion, ArrayList<String> args) throws TSSException {
+        final int urlIndex = args.size() - 1;
+        try {
+            args.set(urlIndex, extractBuildManifest(iosVersion.ipswURL()).toString());
+        } catch (IOException e) {
+            throw new TSSException("Unable to extract BuildManifest.", true, e);
+        }
+        try {
+            System.out.println("Running: " + args);
+            String tssLog = executeProgram(args);
+            parseTSSLog(tssLog);
+        } catch (IOException e) {
+            throw new TSSException("There was an error starting tsschecker.", true, e);
+        } catch (TSSException e) {
+            if ((manualVersion == null && manualIpswURL == null) && e.getMessage().contains("not being signed")) {
+                System.out.println("Warning: ignoring unsigned version; API might be out of date");
+                return; // ignore not being signed (API might not be updated)
+            }
+            throw e;
+        }
     }
 
     private void checkInputs() throws TSSException {
@@ -177,6 +192,8 @@ public class TSS extends Task<String> {
                         .orElseThrow(() -> new TSSException("No versions found.", false)));
             } else if (manualIpswURL != null) {
                 return Collections.singletonList(new Utils.IOSVersion(null, manualIpswURL, null));
+            } else if (includeBetas) {
+                return Stream.concat(getSignedFirmwares(deviceIdentifier), getSignedBetas(deviceIdentifier)).toList();
             } else { // all signed firmwares
                 return getSignedFirmwares(deviceIdentifier).toList();
             }
@@ -252,7 +269,7 @@ public class TSS extends Task<String> {
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
         private String device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce, generator;
-        private boolean saveToTSSSaver, saveToSHSHHost;
+        private boolean includeBetas, saveToTSSSaver, saveToSHSHHost;
 
         public Builder setDevice(String device) {
             this.device = device;
@@ -296,6 +313,11 @@ public class TSS extends Task<String> {
             return this;
         }
 
+        public Builder setIncludeBetas(boolean includeBetas) {
+            this.includeBetas = includeBetas;
+            return this;
+        }
+
         public Builder saveToTSSSaver(boolean saveToTSSSaver) {
             this.saveToTSSSaver = saveToTSSSaver;
             return this;
@@ -310,7 +332,7 @@ public class TSS extends Task<String> {
             return new TSS(Objects.requireNonNull(device, "Device"),
                     Objects.requireNonNull(ecid, "ECID"),
                     Objects.requireNonNull(savePath, "Save Path"),
-                    boardConfig, manualVersion, manualIpswURL, apnonce, generator, saveToTSSSaver, saveToSHSHHost);
+                    boardConfig, includeBetas, manualVersion, manualIpswURL, apnonce, generator, saveToTSSSaver, saveToSHSHHost);
         }
     }
 
