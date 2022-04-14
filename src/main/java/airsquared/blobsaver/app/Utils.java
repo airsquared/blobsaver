@@ -20,7 +20,6 @@ package airsquared.blobsaver.app;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.sun.jna.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -38,14 +37,16 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -93,7 +94,7 @@ final class Utils {
 
     record LatestVersion(String version, String changelog) {
         static LatestVersion request() throws IOException {
-            JsonElement json = makeRequest("https://api.github.com/repos/airsquared/blobsaver/releases/latest");
+            JsonElement json = Network.makeRequest("https://api.github.com/repos/airsquared/blobsaver/releases/latest");
             String tempChangelog = json.getAsJsonObject().get("body").getAsString();
             return new LatestVersion(json.getAsJsonObject().get("tag_name").getAsString(), tempChangelog.substring(tempChangelog.indexOf("Changelog")));
         }
@@ -138,12 +139,6 @@ final class Utils {
                 alert.setTitle("No Updates Available");
                 alert.showAndWait();
             });
-        }
-    }
-
-    private static JsonElement makeRequest(String url) throws IOException {
-        try (var inputStream = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
-            return JsonParser.parseReader(inputStream);
         }
     }
 
@@ -217,7 +212,7 @@ final class Utils {
         Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
         StringBuilder logBuilder = new StringBuilder();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
@@ -350,12 +345,12 @@ final class Utils {
 
     static Stream<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
         String url = "https://api.ipsw.me/v4/device/" + deviceIdentifier;
-        return createVersionStream(makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares"));
+        return createVersionStream(Network.makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares"));
     }
 
     static Stream<IOSVersion> getBetaList(String deviceIdentifier) throws IOException {
         String url = "https://api.m1sta.xyz/betas/" + deviceIdentifier;
-        return createVersionStream(makeRequest(url).getAsJsonArray());
+        return createVersionStream(Network.makeRequest(url).getAsJsonArray());
     }
 
     private static Stream<IOSVersion> createVersionStream(JsonArray array) {
@@ -380,101 +375,30 @@ final class Utils {
 
     static Path extractBuildManifest(String ipswUrl) throws IOException {
         Path buildManifest = Files.createTempFile("BuildManifest", ".plist");
-        SeekableByteChannel channel = ipswUrl.startsWith("file:")
-                ? Files.newByteChannel(Path.of(URI.create(ipswUrl)), StandardOpenOption.READ)
-                : new HttpChannel(new URL(ipswUrl));
-        try (channel; ZipFile ipsw = new ZipFile(channel, "ipsw", "UTF8", true, true);
-             InputStream is = ipsw.getInputStream(ipsw.getEntry("BuildManifest.plist"))) {
-            Files.copy(is, buildManifest, StandardCopyOption.REPLACE_EXISTING);
+        if (ipswUrl.matches("https?://.*apple.*\\.ipsw")) {
+            var fileName = Path.of(new URL(ipswUrl).getPath()).getFileName().toString();
+            var manifestURL = new URL(ipswUrl.replace(fileName, "BuildManifest.plist"));
+            try (var stream = manifestURL.openStream()) {
+                Files.copy(stream, buildManifest, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Directly downloaded to " + buildManifest);
+                return buildManifest.toRealPath();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        extractManifestFromZip(ipswUrl, buildManifest);
         System.out.println("Extracted to " + buildManifest);
         return buildManifest.toRealPath();
     }
 
-    /**
-     * Source: https://github.com/jcodec/jcodec/blob/6e1ec651eca92d21b41f9790143a0e6e4d26811e/android/src/main/org/jcodec/common/io/HttpChannel.java
-     *
-     * @author The JCodec project
-     */
-    private static final class HttpChannel implements SeekableByteChannel {
-
-        private final URL url;
-        private ReadableByteChannel ch;
-        private long pos;
-        private long length;
-
-        public HttpChannel(URL url) {
-            this.url = url;
+    private static void extractManifestFromZip(String ipswUrl, Path extractTo) throws IOException {
+        SeekableByteChannel channel = ipswUrl.startsWith("file:")
+                ? Files.newByteChannel(Path.of(URI.create(ipswUrl)), StandardOpenOption.READ)
+                : new Network.HttpChannel(new URL(ipswUrl));
+        try (channel; var ipsw = new ZipFile(channel, "ipsw", "UTF8", true, true);
+             var stream = ipsw.getInputStream(ipsw.getEntry("BuildManifest.plist"))) {
+            Files.copy(stream, extractTo, StandardCopyOption.REPLACE_EXISTING);
         }
-
-        @Override
-        public long position() {
-            return pos;
-        }
-
-        @Override
-        public SeekableByteChannel position(long newPosition) throws IOException {
-            if (newPosition == pos) {
-                return this;
-            } else if (ch != null) {
-                ch.close();
-                ch = null;
-            }
-            pos = newPosition;
-            return this;
-        }
-
-        @Override
-        public long size() throws IOException {
-            ensureOpen();
-            return length;
-        }
-
-        @Override
-        public SeekableByteChannel truncate(long size) {
-            throw new UnsupportedOperationException("Truncate on HTTP is not supported.");
-        }
-
-        @Override
-        public int read(ByteBuffer buffer) throws IOException {
-            ensureOpen();
-            int read = ch.read(buffer);
-            if (read != -1)
-                pos += read;
-            return read;
-        }
-
-        @Override
-        public int write(ByteBuffer buffer) {
-            throw new UnsupportedOperationException("Write to HTTP is not supported.");
-        }
-
-        @Override
-        public boolean isOpen() {
-            return ch != null && ch.isOpen();
-        }
-
-        @Override
-        public void close() throws IOException {
-            ch.close();
-        }
-
-        private void ensureOpen() throws IOException {
-            if (ch == null) {
-                URLConnection connection = url.openConnection();
-                if (pos > 0)
-                    connection.addRequestProperty("Range", "bytes=" + pos + "-");
-                ch = Channels.newChannel(connection.getInputStream());
-                String resp = connection.getHeaderField("Content-Range");
-                if (resp != null) {
-                    length = Long.parseLong(resp.split("/")[1]);
-                } else {
-                    resp = connection.getHeaderField("Content-Length");
-                    length = Long.parseLong(resp);
-                }
-            }
-        }
-
     }
 
     /**

@@ -30,13 +30,14 @@ import java.io.PrintStream;
 class DebugWindow {
 
     private static final PrintStream sysOut = System.out;
+    private static final PrintStream sysErr = System.err;
     private static final Stage debugStage = new Stage();
     private static final PrintStream myPrintStream;
 
     static {
-        VBox vBox = new VBox();
+        var vBox = new VBox();
         vBox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        TextArea textArea = new TextArea();
+        var textArea = new TextArea();
         VBox.setVgrow(textArea, Priority.ALWAYS);
         textArea.setEditable(false);
         textArea.setWrapText(true);
@@ -67,7 +68,7 @@ class DebugWindow {
     static void hide() {
         debugStage.hide();
         System.setOut(sysOut);
-        System.setErr(sysOut);
+        System.setErr(sysErr);
     }
 
     static boolean isShowing() {

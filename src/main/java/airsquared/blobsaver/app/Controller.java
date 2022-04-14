@@ -704,13 +704,7 @@ public class Controller {
             } else if (message.contains("not being signed") && !allSignedVersionsCheckBox.isSelected()) {
                 versionField.setEffect(Utils.errorBorder);
             }
-            if (e.isReportable && e.tssLog != null) {
-                Utils.showReportableError(e.getMessage(), e.tssLog);
-            } else if (e.isReportable) {
-                Utils.showReportableError(e.getMessage(), Utils.exceptionToString(e));
-            } else {
-                Utils.showUnreportableError(e.getMessage());
-            }
+            e.showErrorAlert();
         } else {
             Utils.showReportableError("An unknown error occurred.", Utils.exceptionToString(t));
         }

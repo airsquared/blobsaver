@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -49,9 +48,8 @@ import static airsquared.blobsaver.app.Utils.getSignedFirmwares;
 
 public class TSS extends Task<String> {
 
-    // note: Matcher is NOT thread safe
-    private static final Matcher ipswURLMatcher = Pattern.compile("(https?://|file:/).*\\.ipsw").matcher("");
-    private static final Matcher versionMatcher = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)").matcher("");
+    private static final Pattern ipswURLPattern = Pattern.compile("(https?://|file:/).*\\.ipsw");
+    private static final Pattern versionPattern = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)");
 
     private final String deviceIdentifier;
     private final String ecid;
@@ -103,7 +101,15 @@ public class TSS extends Task<String> {
 
         // can't use forEach() because exception won't be caught
         for (Utils.IOSVersion iosVersion : iosVersions) {
-            saveFor(iosVersion, args);
+            try {
+                saveFor(iosVersion, args);
+            } catch (TSSException e) {
+                if ((manualVersion == null && manualIpswURL == null) && e.getMessage().contains("not being signed")) {
+                    System.out.println("Warning: ignoring unsigned version; API is likely out of date");
+                    continue; // ignore not being signed (API might not be updated)
+                }
+                throw e;
+            }
 
             if (iosVersion.versionString() != null) {
                 responseBuilder.append(iosVersion.versionString());
@@ -140,12 +146,6 @@ public class TSS extends Task<String> {
             parseTSSLog(tssLog);
         } catch (IOException e) {
             throw new TSSException("There was an error starting tsschecker.", true, e);
-        } catch (TSSException e) {
-            if ((manualVersion == null && manualIpswURL == null) && e.getMessage().contains("not being signed")) {
-                System.out.println("Warning: ignoring unsigned version; API might be out of date");
-                return; // ignore not being signed (API might not be updated)
-            }
-            throw e;
         }
     }
 
@@ -160,7 +160,7 @@ public class TSS extends Task<String> {
         }
         if (manualIpswURL != null) { // check URL
             try {
-                if (!ipswURLMatcher.reset(manualIpswURL).matches()) {
+                if (!ipswURLPattern.matcher(manualIpswURL).matches()) {
                     throw new MalformedURLException("Doesn't match ipsw URL regex");
                 }
                 new URL(manualIpswURL); // check URL
@@ -172,7 +172,7 @@ public class TSS extends Task<String> {
             } catch (IllegalArgumentException | URISyntaxException | IOException e) {
                 throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid file URL to a local .ipsw file.", false, e);
             }
-        } else if (manualVersion != null && !versionMatcher.reset(manualVersion).matches()) {
+        } else if (manualVersion != null && !versionPattern.matcher(manualVersion).matches()) {
             throw new TSSException("Invalid version. Make sure it follows the convention X.X.X or X.X, like \"13.1\" or \"13.5.5\"", false);
         }
     }
@@ -198,7 +198,11 @@ public class TSS extends Task<String> {
                 return getSignedFirmwares(deviceIdentifier).toList();
             }
         } catch (FileNotFoundException e) {
-            throw new TSSException("The device \"" + deviceIdentifier + "\" could not be found.", false, e);
+            var message = "The device \"" + deviceIdentifier + "\" could not be found.";
+            if (includeBetas) {
+                message += " This device may not have any beta versions available; try without including beta versions.";
+            }
+            throw new TSSException(message, false, e);
         } catch (IOException e) {
             throw new TSSException("Saving blobs failed. Check your internet connection.", false, e);
         }
@@ -225,7 +229,7 @@ public class TSS extends Task<String> {
     }
 
     private String getBoardConfig() {
-        return Objects.requireNonNullElse(boardConfig, Devices.getBoardConfig(deviceIdentifier));
+        return Utils.defaultIfNull(boardConfig, Devices.getBoardConfig(deviceIdentifier));
     }
 
     @SuppressWarnings("TextBlockMigration")
@@ -363,6 +367,15 @@ public class TSS extends Task<String> {
             this.tssLog = null;
         }
 
+        public void showErrorAlert() {
+            if (isReportable && tssLog != null) {
+                Utils.showReportableError(getMessage(), tssLog);
+            } else if (isReportable) {
+                Utils.showReportableError(getMessage(), Utils.exceptionToString(this));
+            } else {
+                Utils.showUnreportableError(getMessage());
+            }
+        }
     }
 
     private void saveBlobsTSSSaver(StringBuilder responseBuilder) {
