@@ -17,8 +17,7 @@ see [here](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blo
 - Read both the apnonce and generator on unjailbroken and jailbroken devices, in addition to other device information
   such as ECID
 - Store an unlimited number of devices
-- Save blobs for beta versions
-- No need to download entire .ipsw for beta versions (just specify link)
+- Save blobs for beta versions without specifying a URL and in the background
 - Save blobs to TSS Saver and SHSH Host as well with one click
 
 ## Feedback
