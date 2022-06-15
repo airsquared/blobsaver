@@ -25,10 +25,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import jdk.internal.misc.Unsafe;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.LocalDate;
+import java.util.Map;
 
 import static com.sun.jna.Platform.isMac;
 import static com.sun.jna.Platform.isWindows;
@@ -57,6 +60,7 @@ public class Main {
 
     public static void main(String[] args) {
         setJNALibraryPath();
+        fixCertificateError();
         if (args.length == 1 && args[0].equals("--background-autosave")) {
             Background.saveAllBackgroundBlobs(); // don't unnecessarily initialize any FX
             return;
@@ -80,6 +84,33 @@ public class Main {
         }
         System.setProperty("jna.library.path", path);
         System.out.println("path = " + path);
+    }
+
+    /**
+     * Apple Decided use some old distrusted certificate for the iOS 15.5 IPSW, causing this error:
+     * {@code javax.net.ssl.SSLHandshakeException: TLS Server certificate issued after 2019-12-31 and anchored by a distrusted legacy Symantec root CA: CN=GeoTrust Primary Certification Authority - G2, OU=(c) 2007 GeoTrust Inc. - For authorized use only, O=GeoTrust Inc., C=US }
+     *
+     * This uses reflection/unsafe to make the certificate "trusted" anyway.
+     *s
+     * Writing to private static final fields is from https://stackoverflow.com/a/61150853/5938387
+     */
+    @SuppressWarnings({"removal", "Java9ReflectionClassVisibility"})
+    static void fixCertificateError() {
+        try {
+            final var unsafe = Unsafe.getUnsafe();
+            var field = Class.forName("sun.security.validator.SymantecTLSPolicy").getDeclaredField("EXEMPT_SUBCAS");
+
+            var staticFieldBase = unsafe.staticFieldBase(field);
+            long staticFieldOffset = unsafe.staticFieldOffset(field);
+            unsafe.putObject(staticFieldBase, staticFieldOffset, Map.of( // Copied from SymantecTLSPolicy.EXEMPT_SUBCAS
+                    "AC2B922ECFD5E01711772FEA8ED372DE9D1E2245FCE3F57A9CDBEC77296A424B",
+                    LocalDate.MAX,
+                    "A4FE7C7F15155F3F0AEF7AAA83CF6E06DEB97CA3F909DF920AC1490882D488ED",
+                    LocalDate.MAX
+            ));
+        } catch (ClassNotFoundException | NoSuchFieldException e) {
+            e.printStackTrace();
+        }
     }
 
     public static final class JavaFxApplication extends Application {

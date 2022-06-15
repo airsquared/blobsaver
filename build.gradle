@@ -43,6 +43,9 @@ def os = DefaultNativePlatform.currentOperatingSystem
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(18)
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = 18
+}
 
 repositories {
     mavenCentral()
@@ -65,16 +68,16 @@ javafx {
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
-String addExports = '--add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver'
+def addExports = ['--add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver', '--add-exports=java.base/jdk.internal.misc=airsquared.blobsaver']
 
 compileJava {
-    options.compilerArgs.add addExports
+    options.compilerArgs.addAll addExports
 }
 
 application {
     mainModule = "airsquared.blobsaver"
     mainClass = "airsquared.blobsaver.app.Main"
-    applicationDefaultJvmArgs.add addExports
+    applicationDefaultJvmArgs.addAll addExports
 }
 
 private String getJarDirectory() {
@@ -92,14 +95,16 @@ run {
 test {
     useJUnitPlatform()
     systemProperty "jar.directory", getJarDirectory()
-    jvmArgs '--add-exports=javafx.graphics/com.sun.glass.ui=org.testfx.monocle', addExports
+    jvmArgs addExports
+    jvmArgs '--add-exports=javafx.graphics/com.sun.glass.ui=org.testfx.monocle'
 }
 
 jlink {
     addOptions '--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--strip-native-commands',
             '--dedup-legal-notices=error-if-not-same-content'
     launcher {
-        jvmArgs = [ '-Djar.directory={{BIN_DIR}}', addExports ]
+        jvmArgs = [ '-Djar.directory={{BIN_DIR}}' ]
+        jvmArgs.addAll addExports
         noConsole = true
     }
     jpackage {

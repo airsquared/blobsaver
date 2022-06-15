@@ -23,7 +23,8 @@ import org.junit.jupiter.api.BeforeAll;
 public class BlobsaverTest {
 
     @BeforeAll
-    public static void setJNALibraryPath() {
+    public static void setUp() {
         Main.setJNALibraryPath();
+        Main.fixCertificateError();
     }
 }
