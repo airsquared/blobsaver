@@ -185,13 +185,20 @@
             </VBox.margin>
             <TextField fx:id="versionField" disable="${allSignedVersionsCheckBox.selected || manualURLCheckBox.selected}"
                        promptText="Version" onTextChange="#clearEffectHandler"/>
-            <TextField fx:id="ipswField" disable="${!manualURLCheckBox.selected}" HBox.hgrow="ALWAYS"
-                       promptText="URL to .ipsw file" onTextChange="#clearEffectHandler">
+            <AnchorPane disable="${!manualURLCheckBox.selected}" HBox.hgrow="ALWAYS">
                 <HBox.margin>
                     <Insets left="5.0"/>
                 </HBox.margin>
-            </TextField>
-            <Label id="ipswURLHelp" onMouseClicked="#helpLabelHandler" text="?">
+                <TextField fx:id="ipswField" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"
+                           promptText="URL to .ipsw or build manifest .plist" onTextChange="#clearEffectHandler">
+                    <padding>
+                        <Insets left="8.0" right="33.0"/>
+                    </padding>
+                </TextField>
+                <Button mnemonicParsing="false" onAction="#ipswPickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
+            </AnchorPane>
+            <Label id="ipswURLHelp" onMouseClicked="#ipswURLHelp" text="?">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>
@@ -255,9 +262,9 @@
                     </padding>
                     <Controller fx:constant="initialPath"/>
                 </TextField>
-                <Button mnemonicParsing="false" onAction="#filePickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
+                <Button mnemonicParsing="false" onAction="#folderPickerHandler" text="..." AnchorPane.rightAnchor="0.0"/>
             </AnchorPane>
-            <Label id="locationHelp" onMouseClicked="#helpLabelHandler" text="?">
+            <Label id="locationHelp" onMouseClicked="#locationHelp" text="?">
                 <padding>
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>

@@ -36,6 +36,7 @@ import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -66,7 +67,7 @@ public class Controller {
     @FXML private ToggleButton backgroundSettingsButton;
 
     @FXML private ListView<Prefs.SavedDevice> deviceList;
-    @FXML private VBox savedDevicesVBox;
+    @FXML private Pane savedDevicesVBox;
 
     public static final String initialPath = System.getProperty("user.home") + File.separator + "Blobs";
 
@@ -174,7 +175,17 @@ public class Controller {
         }
     }
 
-    public void filePickerHandler() {
+    public void ipswPickerHandler() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose an IPSW or Build Manifest file");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("IPSW files, Plist files", "*.ipsw", "*.plist"));
+        File file = chooser.showOpenDialog(Main.primaryStage);
+        if (file != null) {
+            ipswField.setText(file.toURI().toString());
+        }
+    }
+
+    public void folderPickerHandler() {
         File result = Utils.showFilePickerDialog(Main.primaryStage, new File(pathField.getText()));
         if (result != null) {
             pathField.setText(result.getAbsolutePath());
@@ -301,35 +312,29 @@ public class Controller {
         Analytics.checkBlobs();
     }
 
-    public void helpLabelHandler(Event evt) {
+    public void locationHelp() {
+        ButtonType openURL = new ButtonType("Open URL");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                "Click \"Open URL\" to see how to automatically upload blobs you save to the cloud.", openURL, ButtonType.OK);
+        alert.setTitle("Tip: Saving Blobs to the Cloud");
+        alert.setHeaderText("Tip");
+        alert.showAndWait();
+        if (openURL.equals(alert.getResult())) {
+            Utils.openURL("https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud");
+        }
+    }
+
+    public void ipswURLHelp() {
         if (Main.SHOW_BREAKPOINT) {
             return; // remember to put a breakpoint here
         }
 
-        String labelID = ((Label) evt.getSource()).getId();
-
-        ButtonType openURL = new ButtonType("Open URL");
-        ButtonType customOK = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "", openURL, customOK);
-        ((Button) alert.getDialogPane().lookupButton(customOK)).setDefaultButton(true);
-        String url = switch (labelID) {
-            case "ipswURLHelp":
-                alert.setContentText("Get the IPSW download URL for the iOS version from theiphonewiki.com/wiki/Beta_Firmware and paste it here.\n\nIf you already have the IPSW downloaded, you can also supply a 'file:' URL.");
-                alert.setTitle("Help: IPSW URL");
-                alert.setHeaderText("Help");
-                yield "https://www.theiphonewiki.com/wiki/Beta_Firmware";
-            case "locationHelp":
-                alert.setContentText("Click \"Open URL\" to see how to automatically upload blobs you save to the cloud.");
-                alert.setTitle("Tip: Saving Blobs to the Cloud");
-                alert.setHeaderText("Tip");
-                yield "https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud";
-            default:
-                throw new IllegalStateException("Unexpected value for labelID: " + labelID);
-        };
+        Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                        "You can supply either a URL to an IPSW file or a build manifest (.plist). " +
+                        "If you already have the file downloaded, you can also use a 'file:' URL to either an IPSW or a build manifest plist.");
+        alert.setTitle("Help: IPSW URL");
+        alert.setHeaderText("Help");
         alert.showAndWait();
-        if (openURL.equals(alert.getResult())) {
-            Utils.openURL(url);
-        }
     }
 
     public void aboutMenuHandler(Event ignored) {
@@ -551,7 +556,7 @@ public class Controller {
                 boardConfigField.setText(LibimobiledeviceUtil.getBoardConfig());
             }
         } catch (LibimobiledeviceUtil.LibimobiledeviceException e) {
-            System.err.println(e.getMessage()); // don't need full stack trace
+            System.err.println(e.getMessage()); // don't need a full stack trace
             e.showErrorAlert();
         } catch (Throwable e) {
             e.printStackTrace();

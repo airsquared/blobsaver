@@ -48,7 +48,7 @@ import static airsquared.blobsaver.app.Utils.getSignedFirmwares;
 
 public class TSS extends Task<String> {
 
-    private static final Pattern ipswURLPattern = Pattern.compile("(https?://|file:/).*\\.ipsw");
+    private static final Pattern ipswURLPattern = Pattern.compile("(https?://|file:/).*\\.(ipsw|plist)");
     private static final Pattern versionPattern = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)");
 
     private final String deviceIdentifier;
@@ -165,12 +165,12 @@ public class TSS extends Task<String> {
                 }
                 new URL(manualIpswURL); // check URL
             } catch (MalformedURLException e) {
-                throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid URL that ends with \".ipsw\"", false, e);
+                throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid URL that ends with \".ipsw\" or \".plist\"", false, e);
             }
             if (manualIpswURL.startsWith("file:")) try {
                 Path.of(new URI(manualIpswURL)).toRealPath(); // check URI
             } catch (IllegalArgumentException | URISyntaxException | IOException e) {
-                throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid file URL to a local .ipsw file.", false, e);
+                throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid file URL to a local .ipsw or .plist file.", false, e);
             }
         } else if (manualVersion != null && !versionPattern.matcher(manualVersion).matches()) {
             throw new TSSException("Invalid version. Make sure it follows the convention X.X.X or X.X, like \"13.1\" or \"13.5.5\"", false);
@@ -259,8 +259,7 @@ public class TSS extends Task<String> {
 
         } else if (containsIgnoreCase(tsscheckerLog, "failed to load manifest")) {
             if (manualIpswURL != null) {
-                throw new TSSException("Failed to load manifest. The IPSW URL is not valid.\n\n" +
-                        "Make sure it starts with \"http://\" or \"https://\", has \"apple\" in it, and ends with \".ipsw\"", false);
+                throw new TSSException("Failed to load manifest. The IPSW or build manifest URL is not valid.\n\n", false);
             } else {
                 throw new TSSException("Failed to load manifest.", true, tsscheckerLog);
             }

@@ -87,7 +87,7 @@ public class Main {
     }
 
     /**
-     * Apple Decided use some old distrusted certificate for the iOS 15.5 IPSW, causing this error:
+     * Apple decided use some old distrusted certificate for the iOS 15.5 IPSW, causing this error:
      * {@code javax.net.ssl.SSLHandshakeException: TLS Server certificate issued after 2019-12-31 and anchored by a distrusted legacy Symantec root CA: CN=GeoTrust Primary Certification Authority - G2, OU=(c) 2007 GeoTrust Inc. - For authorized use only, O=GeoTrust Inc., C=US }
      *
      * This uses reflection/unsafe to make the certificate "trusted" anyway.

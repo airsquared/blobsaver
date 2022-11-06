@@ -110,7 +110,7 @@ final class Utils {
         try {
             newVersion = LatestVersion.request();
         } catch (IOException e) {
-            runLater(() -> showReportableError("Unable to check for updates.", e.toString()));
+            runLater(() -> showReportableError("Unable to check for updates.", exceptionToString(e)));
             throw new UncheckedIOException(e);
         }
 
@@ -384,6 +384,16 @@ final class Utils {
                 return buildManifest.toRealPath();
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+        } else if (ipswUrl.startsWith("file:") && ipswUrl.endsWith(".plist")) {
+            Files.copy(Path.of(URI.create(ipswUrl)), buildManifest, StandardCopyOption.REPLACE_EXISTING);
+            return buildManifest.toRealPath();
+        } else if (ipswUrl.endsWith(".plist")) {
+            var manifestURL = new URL(ipswUrl);
+            try (var stream = manifestURL.openStream()) {
+                Files.copy(stream, buildManifest, StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Directly downloaded to " + buildManifest);
+                return buildManifest.toRealPath();
             }
         }
         extractManifestFromZip(ipswUrl, buildManifest);
