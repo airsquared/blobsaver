@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-22.04, windows-latest, macOS-latest]
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK
@@ -18,7 +18,7 @@ jobs:
           java-version: '18'
           distribution: 'zulu'
       - name: Install Linux dependencies
-        run: brew install libimobiledevice libirecovery && P=/home/linuxbrew/.linuxbrew/lib; sudo ln -s $P/libimobiledevice-1.0.so $P/libirecovery-1.0.so $P/libplist-2.0.so /usr/lib/
+        run: sudo apt-get install libplist-dev libimobiledevice-dev libirecovery-1.0-dev
         if: runner.os == 'Linux'
       - name: Gradle build
         uses: eskatos/gradle-command-action@v1
