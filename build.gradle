@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.42.0'
+    id 'com.github.ben-manes.versions' version '0.43.0'
     id 'org.beryx.jlink' version '2.25.0'
     id 'org.openjfx.javafxplugin' version '0.0.13'
 
@@ -42,9 +42,9 @@ def os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(18)
+java.toolchain.languageVersion = JavaLanguageVersion.of(19)
 tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = 18
+    sourceCompatibility = 19
 }
 
 repositories {
@@ -52,19 +52,19 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'com.google.code.gson:gson:2.10'
     implementation ('de.jangassen:nsmenufx:3.1.0') {
-        exclude group: 'net.java.dev.jna', module: 'jna' //separate jna version
+        exclude group: 'net.java.dev.jna', module: 'jna' //different jna version
     }
-    implementation 'net.java.dev.jna:jna-jpms:5.11.0'
-    implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.21'
+    implementation 'net.java.dev.jna:jna-jpms:5.12.1'
+    implementation 'org.apache.commons:commons-compress:1.22'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
     testImplementation group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
 }
 
 javafx {
-    version = '18'
+    version = '19'
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 

@@ -15,7 +15,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '18'
+          java-version: '19'
           distribution: 'zulu'
       - name: Install Linux dependencies
         run: sudo apt-get install libplist-dev libimobiledevice-dev libirecovery-1.0-dev
