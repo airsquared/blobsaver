@@ -42,7 +42,8 @@ public final class Devices {
             "iPhone SE 2 (iPhone12,8)", "iPhone 12 mini (iPhone13,1)", "iPhone 12 (iPhone13,2)",
             "iPhone 12 Pro (iPhone13,3)", "iPhone 12 Pro Max (iPhone13,4)",
             "iPhone 13 Pro (iPhone14,2)", "iPhone 13 Pro Max (iPhone14,3)",
-            "iPhone 13 mini (iPhone14,4)", "iPhone 13 (iPhone14,5)", "iPhone SE 3 (iPhone14,6)"};
+            "iPhone 13 mini (iPhone14,4)", "iPhone 13 (iPhone14,5)", "iPhone SE 3 (iPhone14,6)", "iPhone 14 (iPhone14,7)",
+            "iPhone 14+ (iPhone14,8)", "iPhone 14 Pro (iPhone15,2)", "iPhone 14 Pro Max (iPhone15,3)"};
     private static final String[] iPads = {"iPad 1", "iPad 2 (WiFi)", "iPad 2 (GSM)",
             "iPad 2 (CDMA)", "iPad 2 (Mid 2012)", "iPad Mini (Wifi)", "iPad Mini (GSM)", "iPad Mini (Global)",
             "iPad 3 (WiFi)", "iPad 3 (CDMA)", "iPad 3 (GSM)", "iPad 4 (WiFi)", "iPad 4 (GSM)", "iPad 4 (Global)",
@@ -65,8 +66,10 @@ public final class Devices {
             "iPad Pro 11' (3rd gen) (Cellular) (iPad13,6)", "iPad Pro 11' (3rd gen) (Cellular) (iPad13,7)",
             "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,8)", "iPad Pro 12.9' (5th gen) (WiFi) (iPad13,9)",
             "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,10)", "iPad Pro 12.9' (5th gen) (Cellular) (iPad13,11)",
-            "iPad Mini 6 (WiFi) (iPad14,1)", "iPad Mini 6 (Cellular) (iPad14,2)", "iPad Air 5 (WiFi) (iPad13,1)",
-            "iPad Air 5 (Cellular) (iPad13,1)"};
+            "iPad Mini 6 (WiFi) (iPad14,1)", "iPad Mini 6 (Cellular) (iPad14,2)", "iPad Air 5 (WiFi) (iPad13,16)",
+            "iPad Air 5 (Cellular) (iPad13,17)", "iPad 10 (WiFi) (iPad13,18)", "iPad 10 (Cellular) (iPad13,19)",
+            "iPad Pro 11' (4th gen) (WiFi) (iPad14,3)", "iPad Pro 11' (4th gen) (Cellular) (iPad14,4)",
+            "iPad Pro 12.9' (6th gen) (WiFi) (iPad14,5)", "iPad Pro 12.9' (6th gen) (Cellular) (iPad14,6)"};
 
     private static final ObservableList<String> iPhoneList = FXCollections.observableArrayList(iPhones);
     private static final ObservableList<String> iPadList = FXCollections.observableArrayList(iPads);
