@@ -52,7 +52,7 @@ public final class Devices {
             "iPad Mini 4 (Wifi)", "iPad Mini 4 (Cellular)", "iPad Air 2 (WiFi)", "iPad Air 2 (Cellular)",
             "iPad Pro 9.7 (Wifi)", "iPad Pro 9.7 (Cellular)", "iPad Pro 12.9 (WiFi)", "iPad Pro 12.9 (Cellular)",
             "iPad 5 (Wifi)", "iPad 5 (Cellular)", "iPad Pro 2 12.9 (WiFi)(iPad7,1)", "iPad Pro 2 12.9 (Cellular)(iPad7,2)",
-            "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)",
+            "iPad Pro 10.5 (WiFi)(iPad7,3)", "iPad Pro 10.5 (Cellular)(iPad7,4)", "iPad 6 (WiFi)(iPad 7,5)",
             "iPad 6 (Cellular)(iPad7,6)", "iPad 7 (WiFi)(iPad7,11)", "iPad 7 (Cellular)(iPad7,12)",
             "iPad Pro 3 11' (WiFi)(iPad8,1)", "iPad Pro 3 11' (WiFi)(iPad8,2)", "iPad Pro 3 11' (Cellular)(iPad8,3)",
             "iPad Pro 3 11' (Cellular)(iPad8,4)", "iPad Pro 3 12.9'(WiFi)(iPad8,5)", "iPad Pro 3 12.9 (WiFi)(iPad8,6)",
