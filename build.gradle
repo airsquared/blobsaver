@@ -42,9 +42,9 @@ def os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(19)
+java.toolchain.languageVersion = JavaLanguageVersion.of(18)
 tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = 19
+    sourceCompatibility = 18
 }
 
 repositories {
