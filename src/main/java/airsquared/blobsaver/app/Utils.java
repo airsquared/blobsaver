@@ -66,8 +66,7 @@ import static javafx.application.Platform.runLater;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 final class Utils {
 
-    static final ButtonType redditPM = new ButtonType("PM on Reddit");
-    static final ButtonType githubIssue = new ButtonType("Create Issue on Github");
+    static final ButtonType githubIssue = new ButtonType("Create Issue on GitHub");
 
     static final DropShadow errorBorder = new DropShadow(9.5, 0f, 0f, Color.RED);
     static final DropShadow borderGlow = new DropShadow(9.5, 0f, 0f, Color.DARKCYAN);
@@ -201,7 +200,7 @@ final class Utils {
     }
 
     static void sendRedditPM() {
-        openURL("https://www.reddit.com/message/compose?to=01110101_00101111&subject=Blobsaver%20Bug%20Report");
+        openURL("https://www.reddit.com/message/compose?to=01110101_00101111&subject=Blobsaver");
     }
 
     static void openURL(String url) {
@@ -228,8 +227,6 @@ final class Utils {
     static void reportError(Alert alert) {
         if (alert.getResult().equals(githubIssue)) {
             newGithubIssue();
-        } else if (alert.getResult().equals(redditPM)) {
-            sendRedditPM();
         }
     }
 
@@ -239,14 +236,14 @@ final class Utils {
     }
 
     static void showReportableError(String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit.", githubIssue, redditPM, ButtonType.CANCEL);
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github if you need more help.", githubIssue, ButtonType.CANCEL);
         resizeAlertButtons(alert);
         alert.showAndWait();
         reportError(alert);
     }
 
     static void showReportableError(String msg, String toCopy) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github or PM me on Reddit. The log has been copied to your clipboard.", githubIssue, redditPM, ButtonType.CANCEL);
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nThe log has been copied to your clipboard. You may create a new issue on GitHub.", githubIssue, ButtonType.CANCEL);
         resizeAlertButtons(alert);
         alert.showAndWait();
         reportError(alert, toCopy);

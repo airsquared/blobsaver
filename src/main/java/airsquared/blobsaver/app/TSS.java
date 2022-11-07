@@ -418,7 +418,9 @@ public class TSS extends Task<String> {
 
         @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
 
-        if (responseBody.containsKey("errors")) {
+        if (responseBody == null) {
+            responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append("Response code=").append(response.statusCode());
+        } else if (responseBody.containsKey("errors")) {
             responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append(responseBody.get("errors"));
         } else {
             responseBuilder.append("Also saved blobs online to TSS Saver.");
