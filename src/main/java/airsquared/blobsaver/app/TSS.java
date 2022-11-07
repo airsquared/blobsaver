@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -135,8 +136,10 @@ public class TSS extends Task<String> {
 
     private void saveFor(Utils.IOSVersion iosVersion, ArrayList<String> args) throws TSSException {
         final int urlIndex = args.size() - 1;
+        Path manifest;
         try {
-            args.set(urlIndex, extractBuildManifest(iosVersion.ipswURL()).toString());
+            manifest = extractBuildManifest(iosVersion.ipswURL());
+            args.set(urlIndex, manifest.toString());
         } catch (IOException e) {
             throw new TSSException("Unable to extract BuildManifest.", true, e);
         }
@@ -146,6 +149,15 @@ public class TSS extends Task<String> {
             parseTSSLog(tssLog);
         } catch (IOException e) {
             throw new TSSException("There was an error starting tsschecker.", true, e);
+        } finally {
+            deleteIfPossible(manifest);
+        }
+    }
+
+    private void deleteIfPossible(Path file) {
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException ignored) {
         }
     }
 
@@ -232,7 +244,6 @@ public class TSS extends Task<String> {
         return Utils.defaultIfNull(boardConfig, Devices.getBoardConfig(deviceIdentifier));
     }
 
-    @SuppressWarnings("TextBlockMigration")
     private void parseTSSLog(String tsscheckerLog) throws TSSException {
         if (containsIgnoreCase(tsscheckerLog, "Saved shsh blobs")) {
             return; // success
