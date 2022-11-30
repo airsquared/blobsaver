@@ -387,11 +387,11 @@ public class TSS extends Task<String> {
             }
         }
     }
-
+    
     private void saveBlobsTSSSaver(StringBuilder responseBuilder) {
         Map<Object, Object> deviceParameters = new HashMap<>();
 
-        deviceParameters.put("ecid", String.valueOf(Long.parseLong(ecid, 16)));
+        deviceParameters.put("ecid", String.valueOf(Long.parseLong(ecid.startsWith("0x") ? ecid.substring(2) : ecid, 16)));
         deviceParameters.put("deviceIdentifier", deviceIdentifier);
         deviceParameters.put("boardConfig", getBoardConfig());
 
