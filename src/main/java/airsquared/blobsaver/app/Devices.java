@@ -71,8 +71,19 @@ public final class Devices {
             "iPad Pro 11' (4th gen) (WiFi) (iPad14,3)", "iPad Pro 11' (4th gen) (Cellular) (iPad14,4)",
             "iPad Pro 12.9' (6th gen) (WiFi) (iPad14,5)", "iPad Pro 12.9' (6th gen) (Cellular) (iPad14,6)"};
 
+    private static final String[] iBridges = {"iMac Pro (2017) (iMacPro1,1)", "MacBook Pro 15' (2018-2019) (MacBookPro15,1)",
+            "MacBook Pro 13' 2018-2019) Four Thunderbolt 3 ports, (MacBookPro15,2)", "Mac mini (2018) (Macmini8,1)",
+            "Mac Pro (2019) (MacPro7,1)", "MacBook Pro 15' (2019, AMD Radeon Pro Vega graphics) (MacBookPro15,3)",
+            "MacBook Air 13' (Retina, 2018) (MacBookAir8,1)", "MacBook Pro 13' (2019, Two Thunderbolt 3 ports) (MacBookPro15,4)",
+            "MacBook Air 13' (Retina, 2019) (MacBookAir8,2)", "MacBook Pro 16' (2019) (MacBookPro16,1)",
+            "MacBook Air 13' (Retina, 2020) (MacBookAir9,1)", "MacBook Pro 13' (2020, Four Thunderbolt 3 ports) (MacBookPro16,2)",
+            "iMac 27' (Retina 5K, 2020) (iMac20,1)", "iMac 27' (Retina 5K, 2020) (iMac20,2)",
+            "MacBook Pro 13' (2020, Two Thunderbolt 3 ports) (MacBookPro16,3)",
+            "MacBook Pro 16' (2019, AMD Radeon Pro 5600M graphics) (MacBookPro16,4)"};
+
     private static final ObservableList<String> iPhoneList = FXCollections.observableArrayList(iPhones);
     private static final ObservableList<String> iPadList = FXCollections.observableArrayList(iPads);
+    private static final ObservableList<String> iBridgeList = FXCollections.observableArrayList(iBridges);
 
     private static final ObservableList<String> iPodList = unmodifiableArrayList("iPod Touch 3", "iPod Touch 4",
             "iPod Touch 5", "iPod Touch 6", "iPod Touch 7 (iPod9,1)");
@@ -80,7 +91,7 @@ public final class Devices {
     private static final ObservableList<String> AppleTVList = unmodifiableArrayList("Apple TV 2G", "Apple TV 3",
             "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
 
-    private static final ObservableList<String> deviceTypes = unmodifiableArrayList("iPhone", "iPod", "iPad", "AppleTV");
+    private static final ObservableList<String> deviceTypes = unmodifiableArrayList("iPhone", "iPod", "iPad", "AppleTV", "T2 Mac");
 
     private static final Map<String, String> boardConfigs;
 
@@ -147,7 +158,7 @@ public final class Devices {
     }
 
     /**
-     * @return either "iPhone", "iPod", "iPad", or "AppleTV"
+     * @return either "iPhone", "iPod", "iPad", "AppleTV", or "T2 Mac".
      */
     public static String getDeviceType(String identifier) {
         if (identifier.startsWith("iPhone")) {
@@ -158,6 +169,8 @@ public final class Devices {
             return "iPad";
         } else if (identifier.startsWith("AppleTV")) {
             return "AppleTV";
+        } else if (identifier.startsWith("iBridge")) {
+            return "T2 Mac";
         }
         throw new IllegalArgumentException("Not found: " + identifier);
     }
@@ -168,6 +181,7 @@ public final class Devices {
             case "iPod" -> iPodList;
             case "iPad" -> iPadList;
             case "AppleTV" -> AppleTVList;
+            case "T2 Mac" -> iBridgeList;
             default -> FXCollections.emptyObservableList();
         };
     }
@@ -177,6 +191,7 @@ public final class Devices {
             case "iPhone", "iPod" -> "iOS";
             case "iPad" -> "iOS/iPadOS";
             case "AppleTV" -> "tvOS";
+            case "T2 Mac" -> "bridgeOS";
             default -> null;
         };
     }
