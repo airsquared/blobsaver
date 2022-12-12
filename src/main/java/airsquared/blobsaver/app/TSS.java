@@ -163,7 +163,8 @@ public class TSS extends Task<String> {
 
     private void checkInputs() throws TSSException {
         boolean hasCorrectIdentifierPrefix = deviceIdentifier.startsWith("iPad") || deviceIdentifier.startsWith("iPod")
-                || deviceIdentifier.startsWith("iPhone") || deviceIdentifier.startsWith("AppleTV");
+                || deviceIdentifier.startsWith("iPhone") || deviceIdentifier.startsWith("AppleTV")
+                || deviceIdentifier.startsWith("iBridge");
         if (!deviceIdentifier.contains(",") || !hasCorrectIdentifierPrefix) {
             throw new TSSException("\"" + deviceIdentifier + "\" is not a valid identifier", false);
         }
