@@ -91,6 +91,7 @@ class Background {
         }
         Path path = Path.of(dataHome + "/systemd/user");
         try {
+            Files.createDirectories(path);
             Files.writeString(path.resolve("blobsaver.service"), service);
             Files.writeString(path.resolve("blobsaver.timer"), timer);
         } catch (IOException e) {
