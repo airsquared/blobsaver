@@ -236,14 +236,14 @@ final class Utils {
     }
 
     static void showReportableError(String msg) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nPlease create a new issue on Github if you need more help.", githubIssue, ButtonType.CANCEL);
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nIf you need more help, you can create a new issue on GitHub.", githubIssue, ButtonType.CANCEL);
         resizeAlertButtons(alert);
         alert.showAndWait();
         reportError(alert);
     }
 
     static void showReportableError(String msg, String toCopy) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nThe log has been copied to your clipboard. You may create a new issue on GitHub.", githubIssue, ButtonType.CANCEL);
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg + "\n\nThe log has been copied to your clipboard. If you need more help, you can create a new issue on GitHub.", githubIssue, ButtonType.CANCEL);
         resizeAlertButtons(alert);
         alert.showAndWait();
         reportError(alert, toCopy);
@@ -251,6 +251,7 @@ final class Utils {
 
     static ButtonType showUnreportableError(String msg, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.ERROR, msg, buttons);
+        resizeAlertButtons(alert);
         alert.showAndWait();
         return alert.getResult();
     }

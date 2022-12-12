@@ -359,12 +359,18 @@ public class LibimobiledeviceUtil {
 
         public void showErrorAlert() {
             String message = getMessage();
-            if (reportable) {
+            if (reportable && (errorType == ErrorCodeType.lockdownd_error || errorType == ErrorCodeType.idevice_error
+                || errorType == ErrorCodeType.irecv_error)) {
+                ButtonType help = new ButtonType("Help");
+                if (help.equals(Utils.showUnreportableError(message, help, ButtonType.OK))) {
+                    Utils.openURL("https://github.com/airsquared/blobsaver/wiki/Errors-reading-from-device");
+                }
+            } else if (reportable) {
                 Utils.showReportableError(message);
-            } else if (ErrorCodeType.idevice_error.equals(errorType) && errorCode == -3 && Platform.isWindows()) {
+            } else if (ErrorCodeType.idevice_error.equals(errorType) && errorCode == -3) {
                 message += "\n\nEnsure iTunes or Apple's iOS Drivers are installed.";
                 ButtonType downloadItunes = new ButtonType("Download iTunes");
-                if (downloadItunes.equals(Utils.showUnreportableError(message, downloadItunes))) {
+                if (downloadItunes.equals(Utils.showUnreportableError(message, downloadItunes, ButtonType.OK))) {
                     Utils.openURL("https://www.apple.com/itunes/download/win64");
                 }
             } else {
