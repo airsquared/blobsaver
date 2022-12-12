@@ -387,7 +387,7 @@ public class TSS extends Task<String> {
             }
         }
     }
-    
+
     private void saveBlobsTSSSaver(StringBuilder responseBuilder) {
         Map<Object, Object> deviceParameters = new HashMap<>();
 
