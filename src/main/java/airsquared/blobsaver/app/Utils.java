@@ -354,7 +354,7 @@ final class Utils {
     private static Stream<IOSVersion> createVersionStream(JsonArray array) {
         return StreamSupport.stream(array.spliterator(), false)
                 .map(JsonElement::getAsJsonObject)
-                .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("url").getAsString(), o.get("signed").getAsBoolean()));
+                .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("buildid").getAsString(), o.get("url").getAsString(), o.get("signed").getAsBoolean()));
     }
 
     static Stream<IOSVersion> getSignedFirmwares(String deviceIdentifier) throws IOException {
@@ -365,7 +365,7 @@ final class Utils {
         return getBetaList(deviceIdentifier).filter(IOSVersion::signed);
     }
 
-    record IOSVersion(String versionString, String ipswURL, Boolean signed) {
+    record IOSVersion(String versionString, String buildid, String ipswURL, Boolean signed) {
         public IOSVersion {
             Objects.requireNonNull(ipswURL, "ipsw url cannot be null");
         }

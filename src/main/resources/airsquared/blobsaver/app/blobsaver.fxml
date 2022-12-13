@@ -81,6 +81,12 @@
                         <Prefs fx:factory="getDisableAnalytics"/>
                     </selected>
                 </CheckMenuItem>
+                <CheckMenuItem mnemonicParsing="false" text="Always Save New Blobs"
+                               onAction="#alwaysSaveNewBlobsHandler">
+                    <selected>
+                        <Prefs fx:factory="getAlwaysSaveNewBlobs"/>
+                    </selected>
+                </CheckMenuItem>
                 <SeparatorMenuItem mnemonicParsing="false"/>
                 <MenuItem mnemonicParsing="false" onAction="#showWiki" text="blobsaver Help/Wiki"/>
                 <MenuItem mnemonicParsing="false" onAction="#newGithubIssue" text="Send Feedback (Github Issue)"/>
@@ -312,6 +318,9 @@
             <VBox.margin>
                 <Insets bottom="15.0"/>
             </VBox.margin>
+            <contextMenu>
+                <ContextMenu items="$deleteDeviceMenu"/>
+            </contextMenu>
         </ListView>
         <!--suppress JavaFxUnresolvedFxIdReference -->
         <Button fx:id="saveDeviceButton" prefWidth="Infinity" maxWidth="Infinity" mnemonicParsing="false"

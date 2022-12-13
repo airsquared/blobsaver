@@ -141,6 +141,14 @@ public final class Prefs {
         appPrefs.put("Dark Mode", darkMode.name());
     }
 
+    public static boolean getAlwaysSaveNewBlobs() {
+        return appPrefs.getBoolean("Always save new blobs", false);
+    }
+
+    public static void setAlwaysSaveNewBlobs(boolean alwaysSaveNewBlobs) {
+        appPrefs.putBoolean("Always save new blobs", alwaysSaveNewBlobs);
+    }
+
     private static Stream<SavedDevice> savedDevices() {
         try {
             return Arrays.stream(savedDevicesPrefs.childrenNames()).map(SavedDevice::new);

@@ -197,7 +197,7 @@ public class Controller {
             deleteDeviceMenu.setText("Remove Saved Device");
             return;
         }
-        deleteDeviceMenu.setText("Remove Saved Device \"" + savedDevice + "\"");
+        deleteDeviceMenu.setText("Remove \"" + savedDevice + "\"");
 
         ecidField.setText(savedDevice.getEcid());
         pathField.setText(savedDevice.getSavePath());
@@ -307,6 +307,10 @@ public class Controller {
         Prefs.setDisableAnalytics(((CheckMenuItem) evt.getSource()).isSelected());
     }
 
+    public void alwaysSaveNewBlobsHandler(Event evt) {
+        Prefs.setAlwaysSaveNewBlobs(((CheckMenuItem) evt.getSource()).isSelected());
+    }
+
     public void checkBlobs() {
         Utils.openURL("https://verify.shsh.host");
         Analytics.checkBlobs();
@@ -380,7 +384,7 @@ public class Controller {
                 new SeparatorMenuItem(), tk.createBringAllToFrontItem());
         tk.autoAddWindowMenuItems(menuBar.getMenus().get(3));
 
-        menuBar.getMenus().get(4).getItems().remove(10); // remove about
+        menuBar.getMenus().get(4).getItems().remove(11); // remove about
 
         tk.setApplicationMenu(applicationMenu);
         tk.setGlobalMenuBar(menuBar);

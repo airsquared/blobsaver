@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -46,6 +47,7 @@ import static airsquared.blobsaver.app.Utils.extractBuildManifest;
 import static airsquared.blobsaver.app.Utils.getFirmwareList;
 import static airsquared.blobsaver.app.Utils.getSignedBetas;
 import static airsquared.blobsaver.app.Utils.getSignedFirmwares;
+import static airsquared.blobsaver.app.Utils.isNumeric;
 
 public class TSS extends Task<String> {
 
@@ -95,13 +97,14 @@ public class TSS extends Task<String> {
         System.out.println("iosVersions = " + iosVersions);
         ArrayList<String> args = constructArgs();
 
-        StringBuilder responseBuilder = new StringBuilder("Successfully saved blobs in\n").append(savePath);
-        if (manualIpswURL == null) {
-            responseBuilder.append(iosVersions.size() == 1 ? "\n\nFor version " : "\n\nFor versions ");
-        }
-
-        // can't use forEach() because exception won't be caught
+        var alreadySaved = new StringJoiner(", ");
+        var savedFor = new StringJoiner(", ");
         for (Utils.IOSVersion iosVersion : iosVersions) {
+            if (!Prefs.getAlwaysSaveNewBlobs() && checkAlreadySaved(iosVersion)) {
+                alreadySaved.add(iosVersion.versionString());
+                continue;
+            }
+
             try {
                 saveFor(iosVersion, args);
             } catch (TSSException e) {
@@ -113,10 +116,21 @@ public class TSS extends Task<String> {
             }
 
             if (iosVersion.versionString() != null) {
-                responseBuilder.append(iosVersion.versionString());
-                if (iosVersion != iosVersions.get(iosVersions.size() - 1))
-                    responseBuilder.append(", ");
+                savedFor.add(iosVersion.versionString());
             }
+        }
+        StringBuilder responseBuilder = new StringBuilder();
+        if (manualIpswURL != null || savedFor.length() > 0) {
+            responseBuilder.append("Successfully saved blobs in\n").append(savePath);
+            if (savedFor.length() > 0) {
+                responseBuilder.append("\n\nFor version").append(iosVersions.size() == 1 ? " " : "s ").append(savedFor);
+            }
+            if (alreadySaved.length() > 0) {
+                responseBuilder.append("\n\n");
+            }
+        }
+        if (alreadySaved.length() > 0) {
+            responseBuilder.append("Already saved for ").append(alreadySaved);
         }
 
         if (saveToTSSSaver || saveToSHSHHost) {
@@ -131,6 +145,27 @@ public class TSS extends Task<String> {
 
         Analytics.saveBlobs();
         return responseBuilder.toString();
+    }
+
+    private boolean checkAlreadySaved(Utils.IOSVersion ios) {
+        if (ios.versionString() == null) {
+            return false;
+        }
+        var versionStringOnly = ios.versionString().trim().replaceFirst(" .*", ""); // strip out 'beta' labels
+        // https://github.com/1Conan/tsschecker/blob/0bc6174c3c2f77a0de525b71e7d8ec0987f07aa1/tsschecker/tsschecker.c#L1262
+        String fileName = "%s_%s_%s_%s-%s_%s.shsh2"
+                .formatted(parseECID(), deviceIdentifier, getBoardConfig(), versionStringOnly, ios.buildid(), apnonce);
+
+        if (Files.exists(Path.of(savePath, fileName))) {
+            System.out.println("Already Saved: " + fileName);
+            return true;
+        }
+        return false;
+    }
+
+    private long parseECID() {
+        return isNumeric(ecid) ? Long.parseLong(ecid)
+                : Long.parseLong(ecid.startsWith("0x") ? ecid.substring(2) : ecid, 16);
     }
 
 
@@ -203,7 +238,7 @@ public class TSS extends Task<String> {
                                 manualVersion.equals(iosVersion.versionString())).findFirst()
                         .orElseThrow(() -> new TSSException("No versions found.", false)));
             } else if (manualIpswURL != null) {
-                return Collections.singletonList(new Utils.IOSVersion(null, manualIpswURL, null));
+                return Collections.singletonList(new Utils.IOSVersion(null, null, manualIpswURL, null));
             } else if (includeBetas) {
                 return Stream.concat(getSignedFirmwares(deviceIdentifier), getSignedBetas(deviceIdentifier)).toList();
             } else { // all signed firmwares
@@ -391,7 +426,7 @@ public class TSS extends Task<String> {
     private void saveBlobsTSSSaver(StringBuilder responseBuilder) {
         Map<Object, Object> deviceParameters = new HashMap<>();
 
-        deviceParameters.put("ecid", String.valueOf(Long.parseLong(ecid.startsWith("0x") ? ecid.substring(2) : ecid, 16)));
+        deviceParameters.put("ecid", String.valueOf(parseECID()));
         deviceParameters.put("deviceIdentifier", deviceIdentifier);
         deviceParameters.put("boardConfig", getBoardConfig());
 
