@@ -319,9 +319,12 @@ public class Controller {
     public void locationHelp() {
         ButtonType openURL = new ButtonType("Open URL");
         Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                "Click \"Open URL\" to see how to automatically upload blobs you save to the cloud.", openURL, ButtonType.OK);
-        alert.setTitle("Tip: Saving Blobs to the Cloud");
-        alert.setHeaderText("Tip");
+                "You can use the following variables which will be automatically replaced by their respective values: ${DeviceIdentifier}, ${BoardConfig}, ${APNonce}, ${Generator}, ${DeviceModel}, ${ECID}, ${FullVersionString}, ${BuildID}, and ${MajorVersion}." +
+                        "\n\nExamples: /Users/airsquared/Blobs/${DeviceModel}/${MajorVersion}" +
+                        "\n/Users/airsquared/Blobs/${DeviceIdentifier}/${MajorVersion}/${FullVersionString}\n\n" +
+                        "Click \"Open URL\" to see how to automatically upload blobs you save to the cloud.", openURL, ButtonType.OK);
+        alert.setTitle("Tips: Blob File Directory");
+        alert.setHeaderText("Tips");
         alert.showAndWait();
         if (openURL.equals(alert.getResult())) {
             Utils.openURL("https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud");

@@ -21,7 +21,6 @@ package airsquared.blobsaver.app;
 import com.google.gson.Gson;
 import javafx.concurrent.Task;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -74,7 +73,6 @@ public class TSS extends Task<String> {
     private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, boolean includeBetas, String manualVersion, String manualIpswURL, String apnonce, String generator, boolean saveToTSSSaver, boolean saveToSHSHHost) {
         this.deviceIdentifier = deviceIdentifier;
         this.ecid = ecid;
-        this.savePath = savePath;
         this.boardConfig = boardConfig;
         this.includeBetas = includeBetas;
         this.manualVersion = manualVersion;
@@ -83,6 +81,7 @@ public class TSS extends Task<String> {
         this.generator = generator;
         this.saveToTSSSaver = saveToTSSSaver;
         this.saveToSHSHHost = saveToSHSHHost;
+        this.savePath = parsePath(savePath);
     }
 
     /**
@@ -98,7 +97,7 @@ public class TSS extends Task<String> {
         ArrayList<String> args = constructArgs();
 
         var alreadySaved = new StringJoiner(", ");
-        var savedFor = new StringJoiner(", ");
+        var newlySaved = new StringJoiner(", ");
         for (Utils.IOSVersion iosVersion : iosVersions) {
             if (!Prefs.getAlwaysSaveNewBlobs() && checkAlreadySaved(iosVersion)) {
                 alreadySaved.add(iosVersion.versionString());
@@ -116,14 +115,14 @@ public class TSS extends Task<String> {
             }
 
             if (iosVersion.versionString() != null) {
-                savedFor.add(iosVersion.versionString());
+                newlySaved.add(iosVersion.versionString());
             }
         }
-        StringBuilder responseBuilder = new StringBuilder();
-        if (manualIpswURL != null || savedFor.length() > 0) {
+        var responseBuilder = new StringBuilder();
+        if (manualIpswURL != null || newlySaved.length() > 0) {
             responseBuilder.append("Successfully saved blobs in\n").append(savePath);
-            if (savedFor.length() > 0) {
-                responseBuilder.append("\n\nFor version").append(iosVersions.size() == 1 ? " " : "s ").append(savedFor);
+            if (newlySaved.length() > 0) {
+                responseBuilder.append("\n\nFor version").append(iosVersions.size() == 1 ? " " : "s ").append(newlySaved);
             }
             if (alreadySaved.length() > 0) {
                 responseBuilder.append("\n\n");
@@ -156,7 +155,7 @@ public class TSS extends Task<String> {
         String fileName = "%s_%s_%s_%s-%s_%s.shsh2"
                 .formatted(parseECID(), deviceIdentifier, getBoardConfig(), versionStringOnly, ios.buildid(), apnonce);
 
-        if (Files.exists(Path.of(savePath, fileName))) {
+        if (Files.exists(Path.of(parsePathWithVersion(ios), fileName))) {
             System.out.println("Already Saved: " + fileName);
             return true;
         }
@@ -168,15 +167,58 @@ public class TSS extends Task<String> {
                 : Long.parseLong(ecid.startsWith("0x") ? ecid.substring(2) : ecid, 16);
     }
 
+    private String parsePath(String input) {
+        if (!input.contains("${")) return input;
+        String template = input;
+
+        var variables = Map.of("${DeviceIdentifier}", deviceIdentifier,
+                            "${BoardConfig}", getBoardConfig(),
+                            "${APNonce}", apnonce,
+                            "${Generator}", generator,
+                            "${DeviceModel}", Devices.identifierToModel(deviceIdentifier),
+                            "${ECID}", ecid);
+        for (Map.Entry<String, String> entry : variables.entrySet()) {
+            template = template.replace(entry.getKey(), entry.getValue());
+        }
+        return template;
+    }
+
+    private String parsePathWithVersion(Utils.IOSVersion ios) {
+        if (!savePath.contains("${")) return savePath;
+        var template = savePath;
+
+        Map<String, String> variables;
+        if (ios.versionString() != null) {
+            variables = Map.of("${FullVersionString}", ios.versionString(),
+                            "${BuildID}", ios.buildid(),
+                            "${MajorVersion}", ios.versionString().replaceFirst("\\..*", ""));
+        } else {
+            variables = Map.of("${FullVersionString}", "UnknownVersion",
+                            "${BuildID}", "UnknownBuildID",
+                            "${MajorVersion}", "UnknownVersion");
+        }
+        for (Map.Entry<String, String> entry : variables.entrySet()) {
+            template = template.replace(entry.getKey(), entry.getValue());
+        }
+
+        return template;
+    }
 
     private void saveFor(Utils.IOSVersion iosVersion, ArrayList<String> args) throws TSSException {
         final int urlIndex = args.size() - 1;
+        final int pathIndex = args.size() - 3;
         Path manifest;
         try {
             manifest = extractBuildManifest(iosVersion.ipswURL());
             args.set(urlIndex, manifest.toString());
         } catch (IOException e) {
             throw new TSSException("Unable to extract BuildManifest.", true, e);
+        }
+        try {
+            args.set(pathIndex, parsePathWithVersion(iosVersion));
+            Files.createDirectories(Path.of(args.get(pathIndex)));
+        } catch (IOException e) {
+            throw new TSSException("Unable to create save directory. Try with a different save path. If you are using variables, make sure they are spelled correctly.", false, e);
         }
         try {
             System.out.println("Running: " + args);
@@ -258,9 +300,7 @@ public class TSS extends Task<String> {
     private ArrayList<String> constructArgs() {
         ArrayList<String> args = new ArrayList<>(17);
         String tsscheckerPath = Utils.getTsschecker().getAbsolutePath();
-        //noinspection ResultOfMethodCallIgnored
-        new File(savePath).mkdirs();
-        Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid, "--save-path", savePath);
+        Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid);
         Collections.addAll(args, "--boardconfig", getBoardConfig());
         if (apnonce != null) {
             Collections.addAll(args, "--apnonce", apnonce);
@@ -270,7 +310,9 @@ public class TSS extends Task<String> {
         } else {
             Collections.addAll(args, "--generator", "0x1111111111111111");
         }
-        Collections.addAll(args, "--build-manifest", "will be replaced in loop");
+
+        Collections.addAll(args, "--save-path", "will be replaced in loop",
+                "--build-manifest", "will be replaced in loop");
 
         return args;
     }
@@ -294,7 +336,7 @@ public class TSS extends Task<String> {
         } else if (containsIgnoreCase(tsscheckerLog, "Could not resolve host")) {
             throw new TSSException("Saving blobs failed. Check your internet connection.", false, tsscheckerLog);
         } else if (containsIgnoreCase(tsscheckerLog, "can't save shsh at")) {
-            throw new TSSException("'" + savePath + "' is not a valid path", false);
+            throw new TSSException("'" + savePath + "' is not a valid path. If you are using variables, make sure they are spelled correctly.", false);
         } else if (containsIgnoreCase(tsscheckerLog, "IS NOT being signed")) {
             if (manualVersion == null) {
                 throw new TSSException("The " + Devices.getOSNameForType(Devices.getDeviceType(deviceIdentifier)) + " version is not being signed for device " + deviceIdentifier, false);
