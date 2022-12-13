@@ -173,8 +173,8 @@ public class TSS extends Task<String> {
 
         var variables = Map.of("${DeviceIdentifier}", deviceIdentifier,
                             "${BoardConfig}", getBoardConfig(),
-                            "${APNonce}", apnonce,
-                            "${Generator}", generator,
+                            "${APNonce}", Utils.defIfNull(apnonce, "UnknownAPNonce"),
+                            "${Generator}", Utils.defIfNull(generator, "UnknownGenerator"),
                             "${DeviceModel}", Devices.identifierToModel(deviceIdentifier),
                             "${ECID}", ecid);
         for (Map.Entry<String, String> entry : variables.entrySet()) {
@@ -187,16 +187,11 @@ public class TSS extends Task<String> {
         if (!savePath.contains("${")) return savePath;
         var template = savePath;
 
-        Map<String, String> variables;
-        if (ios.versionString() != null) {
-            variables = Map.of("${FullVersionString}", ios.versionString(),
-                            "${BuildID}", ios.buildid(),
-                            "${MajorVersion}", ios.versionString().replaceFirst("\\..*", ""));
-        } else {
-            variables = Map.of("${FullVersionString}", "UnknownVersion",
-                            "${BuildID}", "UnknownBuildID",
-                            "${MajorVersion}", "UnknownVersion");
-        }
+        var majorVersion = ios.versionString() != null ? ios.versionString().replaceFirst("\\..*", "") : "UnknownVersion";
+        Map<String, String> variables = Map.of(
+                "${FullVersionString}", Utils.defIfNull(ios.versionString(), "UnknownVersion"),
+                "${BuildID}", Utils.defIfNull(ios.buildid(), "UnknownBuildID"),
+                "${MajorVersion}", majorVersion);
         for (Map.Entry<String, String> entry : variables.entrySet()) {
             template = template.replace(entry.getKey(), entry.getValue());
         }
@@ -318,7 +313,7 @@ public class TSS extends Task<String> {
     }
 
     private String getBoardConfig() {
-        return Utils.defaultIfNull(boardConfig, Devices.getBoardConfig(deviceIdentifier));
+        return Utils.defIfNull(boardConfig, Devices.getBoardConfig(deviceIdentifier));
     }
 
     private void parseTSSLog(String tsscheckerLog) throws TSSException {

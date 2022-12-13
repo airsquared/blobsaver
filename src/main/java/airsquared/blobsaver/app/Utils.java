@@ -444,7 +444,7 @@ final class Utils {
         return s == null || s.isEmpty();
     }
 
-    static <T> T defaultIfNull(T object, T def) {
+    static <T> T defIfNull(T object, T def) {
         return (object == null) ? def : object;
     }
 

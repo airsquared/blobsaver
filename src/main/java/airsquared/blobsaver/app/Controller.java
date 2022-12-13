@@ -104,7 +104,7 @@ public class Controller {
 
     @SuppressWarnings("unused")
     public void checkRequirements(ObservableValue<?> ignored, String ignored2, String identifier) {
-        identifier = Utils.defaultIfNull(Devices.modelToIdentifier(identifier), identifier);
+        identifier = Utils.defIfNull(Devices.modelToIdentifier(identifier), identifier);
         if (!Utils.isEmptyOrNull(identifier) && Devices.doesRequireBoardConfig(identifier)) {
             boardConfigField.setDisable(false);
             boardConfigField.setEffect(Utils.borderGlow);
@@ -125,7 +125,7 @@ public class Controller {
     @SuppressWarnings("unused")
     public void deviceTypeChoiceBoxHandler() {
         deviceModelChoiceBox.setItems(Devices.getModelsForType(deviceTypeChoiceBox.getValue()));
-        versionLabel.setText(Utils.defaultIfNull(Devices.getOSNameForType(deviceTypeChoiceBox.getValue()), "Version"));
+        versionLabel.setText(Utils.defIfNull(Devices.getOSNameForType(deviceTypeChoiceBox.getValue()), "Version"));
     }
 
     public void checkForUpdatesHandler() { Utils.checkForUpdates(true); }
