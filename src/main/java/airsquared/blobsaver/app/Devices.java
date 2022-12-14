@@ -41,7 +41,7 @@ public final class Devices {
             "iPod Touch 5", "iPod Touch 6", "iPod Touch 7 (iPod9,1)");
 
     private static final ObservableList<String> AppleTVList = unmodifiableArrayList("Apple TV 2G", "Apple TV 3",
-            "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K");
+            "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K", "Apple TV 4K (2021) (AppleTV11,1)", "Apple TV 4K (2022) (AppleTV14,1)");
 
     private static final ObservableList<String> deviceTypes = unmodifiableArrayList("iPhone", "iPod", "iPad", "AppleTV", "T2 Mac");
 
