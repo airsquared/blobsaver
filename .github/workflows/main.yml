@@ -11,9 +11,9 @@ jobs:
       matrix:
         os: [ubuntu-22.04, windows-latest, macOS-latest]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '18'
           distribution: 'zulu'
@@ -21,18 +21,16 @@ jobs:
         run: sudo apt-get install libplist-dev libimobiledevice-dev libirecovery-1.0-dev
         if: runner.os == 'Linux'
       - name: Gradle build
-        uses: eskatos/gradle-command-action@v1
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: build --no-daemon
-          distributions-cache-enabled: true
-          dependencies-cache-enabled: true
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }}
           path: build/distributions/*
       - name: Upload reports on failure
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: failure-${{ runner.os }}
           path: build/reports/
@@ -43,7 +41,7 @@ jobs:
     if: "startsWith(github.event.head_commit.message, 'Release')"
     steps:
       - name: Get artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Get version from commit
         run: echo "VERSION=$(echo ${{ github.event.commits[0].message }} | awk '{print $2}')" >> $GITHUB_ENV
       - name: Release public builds

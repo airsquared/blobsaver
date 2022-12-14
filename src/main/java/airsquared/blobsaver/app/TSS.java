@@ -288,7 +288,11 @@ public class TSS extends Task<String> {
             }
             throw new TSSException(message, false, e);
         } catch (IOException e) {
-            throw new TSSException("Saving blobs failed. Check your internet connection.", false, e);
+            var message = "Saving blobs failed. Check your internet connection.";
+            if (includeBetas) {
+                message += " There may be an error with the beta API; try without including beta versions.";
+            }
+            throw new TSSException(message, false, e);
         }
     }
 
