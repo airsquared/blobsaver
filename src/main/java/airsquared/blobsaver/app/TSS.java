@@ -136,10 +136,20 @@ public class TSS extends Task<String> {
             responseBuilder.append("\n\n");
         }
         if (saveToTSSSaver) {
-            saveBlobsTSSSaver(responseBuilder);
+            try {
+                saveBlobsTSSSaver(responseBuilder);
+            } catch (Exception e) {
+                e.printStackTrace();
+                responseBuilder.append("Error encountered while trying to save blobs to TSS Saver: ").append(e.getMessage());
+            }
         }
         if (saveToSHSHHost) {
-            saveBlobsSHSHHost(responseBuilder);
+            try {
+                saveBlobsSHSHHost(responseBuilder);
+            } catch (Exception e) {
+                e.printStackTrace();
+                responseBuilder.append("Error encountered while trying to save blobs to SHSH Host: ").append(e.getMessage());
+            }
         }
 
         Analytics.saveBlobs();
@@ -464,7 +474,7 @@ public class TSS extends Task<String> {
         }
     }
 
-    private void saveBlobsTSSSaver(StringBuilder responseBuilder) {
+    private void saveBlobsTSSSaver(StringBuilder responseBuilder) throws IOException, InterruptedException {
         Map<Object, Object> deviceParameters = new HashMap<>();
 
         deviceParameters.put("ecid", String.valueOf(parseECID()));
@@ -482,14 +492,8 @@ public class TSS extends Task<String> {
         var headers = new HashMap<String, String>();
         headers.put("Content-Type", "application/x-www-form-urlencoded");
 
-        HttpResponse<String> response;
-        try {
-            response = Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append(e.getMessage());
-            return;
-        }
+        HttpResponse<String> response =
+                Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
         System.out.println(response.body());
 
         @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
@@ -503,7 +507,7 @@ public class TSS extends Task<String> {
         }
     }
 
-    private void saveBlobsSHSHHost(StringBuilder responseBuilder) {
+    private void saveBlobsSHSHHost(StringBuilder responseBuilder) throws IOException, InterruptedException {
         if (saveToTSSSaver) {
             responseBuilder.append("\n");
         }
@@ -529,14 +533,8 @@ public class TSS extends Task<String> {
         headers.put("User-Agent", userAgent);
         headers.put("X-CPU-STATE", "0000000000000000000000000000000000000000");
 
-        HttpResponse<String> response;
-        try {
-            response = Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            responseBuilder.append("Error encountered while trying to save blobs to SHSH Host: ").append(e.getMessage());
-            return;
-        }
+        HttpResponse<String> response =
+                Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
         System.out.println(response.body());
 
         @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
