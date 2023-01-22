@@ -63,9 +63,11 @@ public class Main {
         fixCertificateError();
         if (args.length == 1 && args[0].equals("--background-autosave")) {
             Background.saveAllBackgroundBlobs(); // don't unnecessarily initialize any FX
-            return;
+        } else if (args.length > 0) {
+            System.exit(CLI.launch(args));
+        } else {
+            JavaFxApplication.launch(JavaFxApplication.class, args);
         }
-        JavaFxApplication.launch(JavaFxApplication.class, args);
     }
 
     public static void exit() {
@@ -83,7 +85,7 @@ public class Main {
             path = new File(jarDirectory, "lib/").getAbsolutePath();
         }
         System.setProperty("jna.library.path", path);
-        System.out.println("path = " + path);
+//        System.out.println("path = " + path);
     }
 
     /**
