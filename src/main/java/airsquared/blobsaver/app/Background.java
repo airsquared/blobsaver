@@ -260,13 +260,15 @@ class Background {
     }
 
     public static void saveAllBackgroundBlobs() {
-        Prefs.getBackgroundDevices().forEach(Background::saveBlobs);
+        Prefs.getBackgroundDevices().forEach(savedDevice -> {
+            System.out.println("attempting to save for device " + savedDevice);
+
+            saveBlobs(savedDevice);
+        });
         System.out.println("Done saving all background blobs");
     }
 
-    private static void saveBlobs(Prefs.SavedDevice savedDevice) {
-        System.out.println("attempting to save for device " + savedDevice);
-
+    public static void saveBlobs(Prefs.SavedDevice savedDevice) {
         TSS.Builder builder = new TSS.Builder().setDevice(savedDevice.getIdentifier())
                 .setEcid(savedDevice.getEcid()).setSavePath(savedDevice.getSavePath())
                 .setIncludeBetas(savedDevice.doesIncludeBetas());

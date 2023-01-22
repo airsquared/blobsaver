@@ -25,7 +25,7 @@ class CLITest extends BlobsaverTest {
 
     @Test
     public void test1() {
-        int exitCode = CLI.launch("--version");
+        int exitCode = CLI.launch("--help");
         assertEquals(0, exitCode, "Exit Code");
     }
 }

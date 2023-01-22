@@ -19,96 +19,211 @@
 package airsquared.blobsaver.app;
 
 import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
+import picocli.CommandLine.*;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.concurrent.Callable;
 import java.util.prefs.InvalidPreferencesFormatException;
+import java.util.stream.Collectors;
 
-@Command(name = "blobsaver", version = Main.appVersion, mixinStandardHelpOptions = true)
+@Command(name = "blobsaver", version = {CLI.warning, Main.appVersion}, header = CLI.warning,
+        optionListHeading = "  You can separate options and their parameters with either a space or '='.%n",
+        mixinStandardHelpOptions = true, sortOptions = false, sortSynopsis = false, usageHelpAutoWidth = true, abbreviateSynopsis = true)
 public class CLI implements Callable<Void> {
 
-    @Option(names = {"-f", "--save-blobs"})
+    public static final String warning = "Warning: blobsaver's CLI is in alpha. Commands, options, and exit codes may change at any time.%n";
+
+    @Option(names = {"-s", "--save-blobs"})
     boolean saveBlobs;
 
-    @Option(names = {"-s", "--save-device"})
+    @Option(names = "--save-device", paramLabel = "<name>", description = "Create a new saved device.")
     String saveDevice;
 
-    @Option(names = {"--remove"})
-    String removeDevice;
+    @Option(names = "--remove-device", paramLabel = "<Saved Device>", description = "Remove a saved device.")
+    Prefs.SavedDevice removeDevice;
 
-    @Option(names = "--enable-background")
-    String enableBackground;
+    @Option(names = "--enable-background", paramLabel = "<Saved Device>", description = "Enable background saving for a device.%nUse '--start-background-service' once devices are added.")
+    Prefs.SavedDevice enableBackground;
 
-    @Option(names = "--export")
-    File exportTo;
+    @Option(names = "--disable-background", paramLabel = "<Saved Device>", description = "Disable background saving for a device.")
+    Prefs.SavedDevice disableBackground;
 
-    @Option(names = "--import")
-    File importFrom;
+    @ArgGroup
+    BackgroundControls backgroundControls;
+    static class BackgroundControls {
+        @Option(names = "--start-background-service", description = "Register background saving service with the OS.")
+        boolean startBackground;
+        @Option(names = "--stop-background-service", description = "Deregister background saving service from the OS.")
+        boolean stopBackground;
 
-    @Option(names = {"-i", "--identifier"})
+        @Option(names = "--background-autosave", description = "Save blobs for all devices configured to save in background. All other options have no effect on this option. Useful in scripts.")
+        boolean backgroundAutosave;
+    }
+
+    @Option(names = "--export", paramLabel = "<path>", description = "Export saved devices in XML format to the directory.")
+    File exportPath;
+
+    @Option(names = "--import", paramLabel = "<path>", description = "Import saved devices from a blobsaver XML file.")
+    File importPath;
+
+    @Option(names = "--identifier")
     String device;
-    @Option(names = {"-e", "--ecid"})
+    @Option(names = "--ecid")
     String ecid;
 
-    @Option(names = {"-p", "--save-path"})
-    String savePath;
-
-    @Option(names = {"-b", "--boardconfig"})
+    @Option(names = "--boardconfig")
     String boardConfig;
 
-    @Option(names = {"-v", "--ios-version"})
-    String manualVersion;
-    @Option(names = {"-u", "--url"})
-    String manualIpswURL;
-
-    @Option(names = {"-a", "--apnonce"})
+    @Option(names = "--apnonce")
     String apnonce;
 
-    @Option(names = {"-g", "--generator"})
+    @Option(names = "--generator")
     String generator;
-    @Option(names = {"-t", "--include-betas"})
-    boolean includeBetas;
+
+    @Option(names = "--save-path", paramLabel = "<path>",
+            description = "Directory to save blobs in. Can use the following variables: " +
+                    "$${DeviceIdentifier}, $${BoardConfig}, $${APNonce}, $${Generator}, $${DeviceModel}, $${ECID}, $${FullVersionString}, $${BuildID}, and $${MajorVersion}.")
+    File savePath;
+
+    @ArgGroup
+    Version version;
+    static class Version {
+        @Option(names = "--ios-version", paramLabel = "<version>")
+        String manualVersion;
+        @Option(names = "--ipsw-url", paramLabel = "<url>", description = "Either a URL to an IPSW file or a build manifest. Local 'file:' URLs are accepted.")
+        String manualIpswURL;
+
+        @Option(names = {"-b", "--include-betas"})
+        boolean includeBetas;
+    }
+
+    @Spec CommandSpec spec;
 
     @Override
     public Void call() throws TSS.TSSException, IOException, InvalidPreferencesFormatException {
-        if (importFrom != null) {
-            Prefs.importXML(importFrom);
+        if (importPath != null) {
+            Prefs.importXML(importPath);
+            System.out.println("Successfully imported saved devices.");
         }
         if (saveBlobs) {
-            var builder = new TSS.Builder()
-                    .setDevice(device).setEcid(ecid).setSavePath(savePath).setBoardConfig(boardConfig)
-                    .setManualVersion(manualVersion).setManualIpswURL(manualIpswURL).setApnonce(apnonce)
-                    .setGenerator(generator).setIncludeBetas(includeBetas);
-            builder.build().call();
+            checkArgs("identifier", "ecid", "save-path");
+            var tss = new TSS.Builder()
+                    .setDevice(device).setEcid(ecid).setSavePath(savePath.getCanonicalPath()).setBoardConfig(boardConfig)
+                    .setManualVersion(version.manualVersion).setManualIpswURL(version.manualIpswURL).setApnonce(apnonce)
+                    .setGenerator(generator).setIncludeBetas(version.includeBetas).build();
+            System.out.println(tss.call());
         }
         if (removeDevice != null) {
-            Prefs.getSavedDevices().stream()
-                    .filter(savedDevice -> savedDevice.getName().equalsIgnoreCase(removeDevice))
-                    .findAny().get().delete();
+            removeDevice.delete();
+            System.out.println("Deleted " + removeDevice + ".");
         }
         if (saveDevice != null) {
-            new Prefs.SavedDeviceBuilder(saveDevice)
-                    .setIdentifier(device).setEcid(ecid).setSavePath(savePath).setBoardConfig(boardConfig)
-                    .setApnonce(apnonce).setGenerator(generator).setIncludeBetas(includeBetas).save();
+            checkArgs("ecid", "save-path", "identifier");
+            var saved = new Prefs.SavedDeviceBuilder(saveDevice)
+                    .setIdentifier(device).setEcid(ecid).setSavePath(savePath.getCanonicalPath()).setBoardConfig(boardConfig)
+                    .setApnonce(apnonce).setGenerator(generator).setIncludeBetas(version.includeBetas).save();
+            System.out.println("Saved " + saved + ".");
         }
         if (enableBackground != null) {
-
+            if (!saveBlobs) {
+                System.out.println("Testing device\n");
+                Background.saveBlobs(enableBackground);
+            }
+            enableBackground.setBackground(true);
+            System.out.println("Enabled background for " + enableBackground + ".");
         }
-        if (exportTo != null) {
-            Prefs.export(exportTo);
+        if (disableBackground != null) {
+            disableBackground.setBackground(false);
+            System.out.println("Disabled background for " + enableBackground + ".");
+        }
+        if (backgroundControls.startBackground) {
+            Background.startBackground();
+            if (Background.isBackgroundEnabled()) {
+                System.out.println("A background saving task has been scheduled.");
+            } else {
+                throw new ExecutionException(spec.commandLine(), "Error: Unable to enable background saving.");
+            }
+        } else if (backgroundControls.stopBackground) {
+            Background.stopBackground();
+        } else if (backgroundControls.backgroundAutosave) {
+            Background.saveAllBackgroundBlobs();
+        }
+        if (exportPath != null) {
+            Prefs.export(exportPath);
+            System.out.println("Successfully exported saved devices.");
         }
         return null;
+    }
+
+    private void checkArgs(String... names) {
+        var missing = new HashSet<ArgSpec>();
+        for (String name : names) {
+            if (!spec.commandLine().getParseResult().hasMatchedOption(name)) {
+                missing.add(spec.findOption(name));
+            }
+        }
+        if (!missing.isEmpty()) {
+            String miss = missing.stream().map(OptionSpec.class::cast)
+                    .map(OptionSpec::longestName).collect(Collectors.joining(", "));
+            throw new MissingParameterException(spec.commandLine(), missing, "Missing required options: " + miss);
+        }
+    }
+
+    private static Prefs.SavedDevice savedDeviceConverter(String name) {
+        return Prefs.getSavedDevices().stream()
+                .filter(savedDevice -> savedDevice.getName().equalsIgnoreCase(name))
+                .findAny().orElseThrow(() -> new TypeConversionException("Must be one of " + Prefs.getSavedDevices() + "\n"));
+    }
+
+    public static int handleExecutionException(Exception ex, CommandLine cmd, ParseResult parseResult) throws Exception {
+        boolean messageOnly = ex instanceof ExecutionException
+                // if either the exception is not reportable or there is a tssLog present
+                || ex instanceof TSS.TSSException e && (!e.isReportable || e.tssLog != null);
+        if (messageOnly) {
+            cmd.getErr().println(cmd.getColorScheme().errorText(ex.getMessage()));
+
+            return cmd.getExitCodeExceptionMapper() != null
+                    ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
+                    : cmd.getCommandSpec().exitCodeOnExecutionException();
+        }
+        throw ex;
+    }
+
+    public static int handleParseException(ParameterException ex, String[] args) {
+        CommandLine cmd = ex.getCommandLine();
+        PrintWriter err = cmd.getErr();
+
+        // if tracing at DEBUG level, show the location of the issue
+        if ("DEBUG".equalsIgnoreCase(System.getProperty("picocli.trace"))) {
+            err.println(cmd.getColorScheme().stackTraceText(ex));
+        }
+
+        err.println(cmd.getColorScheme().errorText(ex.getMessage())); // bold red
+        UnmatchedArgumentException.printSuggestions(ex, err);
+        err.print(cmd.getHelp().fullSynopsis());
+
+        CommandSpec spec = cmd.getCommandSpec();
+        err.printf("Try '%s --help' for more information.%n", spec.qualifiedName());
+
+        return cmd.getExitCodeExceptionMapper() != null
+                ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
+                : spec.exitCodeOnInvalidInput();
     }
 
     /**
      * @return the exit code
      */
     public static int launch(String... args) {
-        System.err.println("Warning: blobsaver's CLI is in alpha. Commands, options, and exit codes may change at any time.");
-        var c = new CommandLine(new CLI());
+        var c = new CommandLine(new CLI())
+                .setExecutionExceptionHandler(CLI::handleExecutionException)
+                .setParameterExceptionHandler(CLI::handleParseException)
+                .registerConverter(Prefs.SavedDevice.class, CLI::savedDeviceConverter);
         return c.execute(args);
     }
 }
