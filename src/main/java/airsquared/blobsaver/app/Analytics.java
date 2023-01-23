@@ -86,7 +86,7 @@ final class Analytics {
     }
 
     private static String getUUID() {
-        if (System.getenv("GITHUB_ACTIONS").equals("true")) {
+        if (System.getenv().containsKey("GITHUB_ACTIONS")) {
             return "GITHUB_ACTIONS";
         }
         if (Prefs.getAnalyticsUUID() == null) {

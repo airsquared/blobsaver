@@ -357,7 +357,7 @@ public class Controller {
 
         alert.setTitle("About");
         alert.setHeaderText("blobsaver " + Main.appVersion);
-        alert.setContentText("blobsaver Copyright (c) 2021 airsquared\n\n" +
+        alert.setContentText("blobsaver " + Main.copyright + "\n\n" +
                 "This program is licensed under GNU GPL v3.0-only");
         Utils.resizeAlertButtons(alert);
 
@@ -498,7 +498,7 @@ public class Controller {
     public void resetAppHandler() {
         ButtonType result = Utils.showConfirmAlert("Are you sure you would like to clear all blobsaver data?");
         if (ButtonType.OK.equals(result)) {
-            Prefs.resetPrefs();
+            Utils.clearAppData();
             Utils.showInfoAlert("The application data has been removed. \nThe application will now exit.");
             Main.exit();
         }

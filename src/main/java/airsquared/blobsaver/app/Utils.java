@@ -195,6 +195,16 @@ final class Utils {
         return librariesUsedFile;
     }
 
+    static void clearAppData() {
+        try {
+            if (Background.isBackgroundEnabled()) {
+                Background.stopBackground();
+            }
+        } catch (Exception ignored) {
+        }
+        Prefs.resetPrefs();
+    }
+
     static void newGithubIssue() {
         openURL("https://github.com/airsquared/blobsaver/issues/new/choose");
     }

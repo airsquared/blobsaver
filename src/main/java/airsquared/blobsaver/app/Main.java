@@ -39,6 +39,7 @@ import static com.sun.jna.Platform.isWindows;
 public class Main {
 
     static final String appVersion = "v3.4.1";
+    static final String copyright = "Copyright (c) 2023 airsquared";
     static Stage primaryStage;
     // make sure to set system property before running (automatically set if running from gradle)
     static final File jarDirectory;
@@ -63,7 +64,7 @@ public class Main {
         fixCertificateError();
         if (args.length == 1 && args[0].equals("--background-autosave")) {
             Background.saveAllBackgroundBlobs(); // don't unnecessarily initialize any FX
-        } else if (args.length > 0) {
+        } else if (args.length > 0 || System.getenv().containsKey("BLOBSAVER_CLI_ONLY")) {
             System.exit(CLI.launch(args));
         } else {
             JavaFxApplication.launch(JavaFxApplication.class, args);

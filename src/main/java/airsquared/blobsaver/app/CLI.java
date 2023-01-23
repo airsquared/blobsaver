@@ -28,13 +28,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.stream.Collectors;
 
-@Command(name = "blobsaver", version = {CLI.warning, Main.appVersion}, header = CLI.warning,
+@Command(name = "blobsaver", versionProvider = CLI.VersionProvider.class, header = CLI.warning,
         optionListHeading = "  You can separate options and their parameters with either a space or '='.%n",
-        mixinStandardHelpOptions = true, sortOptions = false, sortSynopsis = false, usageHelpAutoWidth = true, abbreviateSynopsis = true)
+        mixinStandardHelpOptions = true, sortOptions = false, usageHelpAutoWidth = true, sortSynopsis = false,
+        abbreviateSynopsis = true, synopsisSubcommandLabel = "")
 public class CLI implements Callable<Void> {
 
     public static final String warning = "Warning: blobsaver's CLI is in alpha. Commands, options, and exit codes may change at any time.%n";
@@ -55,7 +57,7 @@ public class CLI implements Callable<Void> {
     Prefs.SavedDevice disableBackground;
 
     @ArgGroup
-    BackgroundControls backgroundControls;
+    BackgroundControls backgroundControls = new BackgroundControls();
     static class BackgroundControls {
         @Option(names = "--start-background-service", description = "Register background saving service with the OS.")
         boolean startBackground;
@@ -155,10 +157,50 @@ public class CLI implements Callable<Void> {
             Background.saveAllBackgroundBlobs();
         }
         if (exportPath != null) {
+            if (!exportPath.isFile() && !exportPath.getName().endsWith(".xml") && !exportPath.toString().startsWith("/dev")) {
+                exportPath.mkdirs();
+                exportPath = new File(exportPath, "blobsaver.xml");
+            }
             Prefs.export(exportPath);
             System.out.println("Successfully exported saved devices.");
         }
         return null;
+    }
+
+    @SuppressWarnings("unused")
+    @Command(name = "clear-app-data", description = "Remove all of blobsaver's data including saved devices.")
+    void clearAppData() {
+        System.out.print("Are you sure you would like to permanently clear all blobsaver data? ");
+        var answer = new Scanner(System.in).nextLine();
+        if (answer.toLowerCase().matches("y|ye|yes")) {
+            Utils.clearAppData();
+            System.out.println("The application data has been removed.");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    @Command(name = "donate", description = "https://www.paypal.me/airsqrd")
+    void donate() {
+        System.out.println("You can donate at https://www.paypal.me/airsqrd or with GitHub Sponsors at https://github.com/sponsors/airsquared.");
+    }
+
+    public static class VersionProvider implements IVersionProvider {
+        @Override
+        public String[] getVersion() {
+            String[] output = {CLI.warning, "blobsaver " + Main.appVersion, Main.copyright, null};
+            try {
+                var newVersion = Utils.LatestVersion.request();
+                if (Main.appVersion.equals(newVersion.toString())) {
+                    output[3] = "You are on the latest version.";
+                } else {
+                    output[3] = "New Update Available: " + newVersion + ". Update at%n https://github.com/airsquared/blobsaver/releases";
+                }
+            } catch (Exception e) {
+                output[3] = "Unable to check for updates.";
+            }
+
+            return output;
+        }
     }
 
     private void checkArgs(String... names) {
