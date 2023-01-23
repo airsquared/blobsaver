@@ -287,7 +287,14 @@ public class TSS extends Task<String> {
             } else if (manualIpswURL != null) {
                 return Collections.singletonList(new Utils.IOSVersion(null, null, manualIpswURL, null));
             } else if (includeBetas) {
-                return Stream.concat(getSignedFirmwares(deviceIdentifier), getSignedBetas(deviceIdentifier)).toList();
+                var signedFirmwares = getSignedFirmwares(deviceIdentifier);
+                Stream<Utils.IOSVersion> signedBetas;
+                try {
+                    signedBetas = getSignedBetas(deviceIdentifier);
+                } catch (IOException e) {
+                    throw new TSSException("There was an error with the beta API; try without including beta versions.", false, e);
+                }
+                return Stream.concat(signedFirmwares, signedBetas).toList();
             } else { // all signed firmwares
                 return getSignedFirmwares(deviceIdentifier).toList();
             }
@@ -299,9 +306,6 @@ public class TSS extends Task<String> {
             throw new TSSException(message, false, e);
         } catch (IOException e) {
             var message = "Saving blobs failed. Check your internet connection.";
-            if (includeBetas) {
-                message += " There may be an error with the beta API; try without including beta versions.";
-            }
             throw new TSSException(message, false, e);
         }
     }

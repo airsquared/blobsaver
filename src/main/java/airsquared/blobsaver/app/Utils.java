@@ -353,12 +353,38 @@ final class Utils {
 
     static Stream<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
         String url = "https://api.ipsw.me/v4/device/" + deviceIdentifier;
-        return createVersionStream(Network.makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares"));
+        try {
+            return createVersionStream(Network.makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares"));
+        } catch (IOException e) {
+            try {
+                return getBetaHubList(deviceIdentifier, false);
+            } catch (Exception ex) {
+                e.addSuppressed(ex);
+                throw e;
+            }
+        }
     }
 
     static Stream<IOSVersion> getBetaList(String deviceIdentifier) throws IOException {
-        String url = "https://api.m1sta.xyz/betas/" + deviceIdentifier;
-        return createVersionStream(Network.makeRequest(url).getAsJsonArray());
+        try {
+            String url = "https://api.m1sta.xyz/betas/" + deviceIdentifier;
+            return createVersionStream(Network.makeRequest(url).getAsJsonArray());
+        } catch (Exception e) {
+            try {
+                return getBetaHubList(deviceIdentifier, true);
+            } catch (Exception ex) {
+                e.addSuppressed(ex);
+                throw e;
+            }
+        }
+    }
+
+    static Stream<IOSVersion> getBetaHubList(String deviceIdentifier, boolean betas) throws IOException {
+        String url = "https://www.betahub.cn/api/apple/firmwares/" + deviceIdentifier + "?type=" + (betas ? 2 : 1);
+        JsonArray firmwares = Network.makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares");
+        return StreamSupport.stream(firmwares.spliterator(), false)
+                .map(JsonElement::getAsJsonObject)
+                .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("build_id").getAsString(), o.get("url").getAsString(), o.get("signing").getAsInt() == 1));
     }
 
     private static Stream<IOSVersion> createVersionStream(JsonArray array) {
@@ -425,6 +451,7 @@ final class Utils {
      * <p>
      * Maybe replace with https://github.com/patrickfav/bytes-java ?
      */
+    @SuppressWarnings("JavadocLinkAsPlainText")
     public static String bytesToHex(byte[] byteArray, ByteOrder byteOrder) {
         final char[] lookup = new char[]{0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66};
 
