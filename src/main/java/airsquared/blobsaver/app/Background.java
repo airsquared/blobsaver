@@ -217,7 +217,7 @@ class Background {
         if (Platform.isMac()) {
             launchctl("start", backgroundLabel);
         } else if (Platform.isWindows()) {
-            schtasks("/run", windowsTaskName);
+            schtasks("/run", "/tn", windowsTaskName);
         } else {
             systemctl("start", "--user", "blobsaver.service");
         }
