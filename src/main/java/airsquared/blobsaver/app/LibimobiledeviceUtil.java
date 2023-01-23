@@ -54,12 +54,19 @@ public class LibimobiledeviceUtil {
     }
 
     public static String getApNonceNormalMode() throws LibimobiledeviceException {
-        return plistDataToHexString(LibimobiledeviceUtil.getLockdownValuePlist("ApNonce"), ByteOrder.BIG_ENDIAN);
+        return plistDataToHexString(getLockdownValuePlist("ApNonce"), ByteOrder.BIG_ENDIAN);
     }
 
     public static String getGenerator() throws LibimobiledeviceException {
         return "0x" + plistDataToHexString(getLockdownValuePlist("BootNonce"), ByteOrder.LITTLE_ENDIAN);
     }
+
+    public static void exitRecovery() throws LibimobiledeviceException {
+        PointerByReference irecvClient = new PointerByReference();
+        throwIfNeeded(Libirecovery.open(irecvClient), ErrorCodeType.irecv_error);
+        exitRecovery(irecvClient.getValue());
+    }
+
 
     public static void exitRecovery(Pointer irecvClient) throws LibimobiledeviceException {
         throwIfNeeded(Libirecovery.setEnv(irecvClient, "auto-boot", "true"), ErrorCodeType.irecv_error);
@@ -68,7 +75,7 @@ public class LibimobiledeviceUtil {
         throwIfNeeded(Libirecovery.close(irecvClient), ErrorCodeType.irecv_error);
     }
 
-    public static final class GetApnonceTask extends Task<Void> {
+    public static class GetApnonceTask extends Task<Void> {
         private String apnonceResult, generatorResult;
         private boolean tryAgain;
         /**
@@ -109,13 +116,13 @@ public class LibimobiledeviceUtil {
             if (irecvClient == null) return null;
 
             if (apnonceResult.equals(getApnonce(irecvClient.getValue()))) {
-                Utils.runSafe(() -> updateMessage("Successfully got APNonce, exiting recovery mode..."));
+                updateMessage("Successfully got APNonce, exiting recovery mode...");
                 tryAgain = false;
             } else if (tryAgain) { // already tried again
-                Utils.runSafe(() -> updateMessage("Warning: Got APNonce, but APNonce is not frozen. This could mean the generator wasn't set correctly.\n\nExiting recovery mode..."));
+                updateMessage("Warning: Got APNonce, but APNonce is not frozen. This could mean the generator wasn't set correctly.\n\nExiting recovery mode...");
                 tryAgain = false;
             } else {
-                Utils.runSafe(() -> updateMessage("APNonce is not frozen, trying again.\n\nExiting recovery mode..."));
+                updateMessage("APNonce is not frozen, trying again.\n\nExiting recovery mode...");
                 tryAgain = true;
             }
 
@@ -234,7 +241,7 @@ public class LibimobiledeviceUtil {
      * }
      * </pre>
      */
-    private static Pointer getLockdownValuePlist(String key) throws LibimobiledeviceException {
+    static Pointer getLockdownValuePlist(String key) throws LibimobiledeviceException {
         Pointer client = lockdowndClientFromConnectedDevice();
         PointerByReference plist = new PointerByReference();
         int lockdowndGetValueErrorCode = lockdownd_get_value(client, Pointer.NULL, key, plist);
@@ -252,23 +259,25 @@ public class LibimobiledeviceUtil {
         return plist.getValue();
     }
 
-    private static String plistDataToHexString(Pointer plist, ByteOrder byteOrder) {
+    static byte[] plistDataBytes(Pointer plist) {
         IntByReference apnonceLength = new IntByReference();
         byte[] apnonceBytes = Libplist.getDataPtr(plist, apnonceLength).getByteArray(0, apnonceLength.getValue());
-        String toReturn = Utils.bytesToHex(apnonceBytes, byteOrder);
         Libplist.free(plist);
-
-        return toReturn;
+        return apnonceBytes;
     }
 
-    private static long getPlistLong(Pointer plist) {
+    static String plistDataToHexString(Pointer plist, ByteOrder byteOrder) {
+        return Utils.bytesToHex(plistDataBytes(plist), byteOrder);
+    }
+
+    static long getPlistLong(Pointer plist) {
         LongByReference reference = new LongByReference();
         Libplist.getUintVal(plist, reference);
         Libplist.free(plist);
         return reference.getValue();
     }
 
-    private static String getPlistString(Pointer plist) {
+    static String getPlistString(Pointer plist) {
         PointerByReference reference = new PointerByReference();
         Libplist.getStringVal(plist, reference);
         Libplist.free(plist);
@@ -276,7 +285,7 @@ public class LibimobiledeviceUtil {
     }
 
     // Useful for debugging
-    private static String plistToXml(Pointer plist) {
+    static String plistToXml(Pointer plist) {
         PointerByReference xml_doc = new PointerByReference();
         Libplist.toXml(plist, xml_doc, new PointerByReference());
         return xml_doc.getValue().getString(0, "UTF-8");

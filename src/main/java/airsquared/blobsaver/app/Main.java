@@ -64,7 +64,8 @@ public class Main {
         fixCertificateError();
         if (args.length == 1 && args[0].equals("--background-autosave")) {
             Background.saveAllBackgroundBlobs(); // don't unnecessarily initialize any FX
-        } else if (args.length > 0 || System.getenv().containsKey("BLOBSAVER_CLI_ONLY")) {
+        } else if (args.length > 0
+                || System.getenv().containsKey("BLOBSAVER_CLI_ONLY") || System.getProperties().containsKey("BLOBSAVER_CLI_ONLY")) {
             System.exit(CLI.launch(args));
         } else {
             JavaFxApplication.launch(JavaFxApplication.class, args);

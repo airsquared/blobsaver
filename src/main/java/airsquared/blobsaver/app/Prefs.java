@@ -60,6 +60,7 @@ public final class Prefs {
         } catch (BackingStoreException e) {
             throw new RuntimeException(e);
         }
+        Analytics.exportPrefs();
     }
 
     public static void importXML(File file) throws IOException, InvalidPreferencesFormatException {
@@ -67,6 +68,7 @@ public final class Prefs {
         if (savedDevicesList != null) {
             savedDevicesList.setAll(savedDevices().toList());
         }
+        Analytics.importPrefs();
     }
 
     public static void importOldVersion() {

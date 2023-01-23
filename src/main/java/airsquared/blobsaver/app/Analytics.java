@@ -66,6 +66,14 @@ final class Analytics {
         collect("/exit-recovery");
     }
 
+    public static void importPrefs() {
+        collect("/prefs/import");
+    }
+
+    public static void exportPrefs() {
+        collect("/prefs/export");
+    }
+
     public static void resetPrefs() {
         collect("/clear-app-data");
     }

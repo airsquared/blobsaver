@@ -18,6 +18,7 @@
 
 package airsquared.blobsaver.app;
 
+import airsquared.blobsaver.app.LibimobiledeviceUtil.LibimobiledeviceException;
 import picocli.CommandLine;
 import picocli.CommandLine.*;
 import picocli.CommandLine.Model.ArgSpec;
@@ -27,19 +28,19 @@ import picocli.CommandLine.Model.OptionSpec;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.stream.Collectors;
 
-@Command(name = "blobsaver", versionProvider = CLI.VersionProvider.class, header = CLI.warning,
+@Command(name = "blobsaver", versionProvider = CLI.VersionProvider.class, mixinStandardHelpOptions = true,
+        sortOptions = false, usageHelpAutoWidth = true, sortSynopsis = false, abbreviateSynopsis = true,
         optionListHeading = "  You can separate options and their parameters with either a space or '='.%n",
-        mixinStandardHelpOptions = true, sortOptions = false, usageHelpAutoWidth = true, sortSynopsis = false,
-        abbreviateSynopsis = true, synopsisSubcommandLabel = "")
+        commandListHeading = "Commands:%n  See @|bold,white blobsaver help [COMMAND]|@ for more information about each command.%n%n",
+        subcommands = HelpCommand.class)
 public class CLI implements Callable<Void> {
-
-    public static final String warning = "Warning: blobsaver's CLI is in alpha. Commands, options, and exit codes may change at any time.%n";
 
     @Option(names = {"-s", "--save-blobs"})
     boolean saveBlobs;
@@ -50,10 +51,12 @@ public class CLI implements Callable<Void> {
     @Option(names = "--remove-device", paramLabel = "<Saved Device>", description = "Remove a saved device.")
     Prefs.SavedDevice removeDevice;
 
-    @Option(names = "--enable-background", paramLabel = "<Saved Device>", description = "Enable background saving for a device.%nUse '--start-background-service' once devices are added.")
+    @Option(names = "--enable-background", paramLabel = "<Saved Device>",
+            description = "Enable background saving for a device.%nUse '--start-background-service' once devices are added.")
     Prefs.SavedDevice enableBackground;
 
-    @Option(names = "--disable-background", paramLabel = "<Saved Device>", description = "Disable background saving for a device.")
+    @Option(names = "--disable-background", paramLabel = "<Saved Device>",
+            description = "Disable background saving for a device.")
     Prefs.SavedDevice disableBackground;
 
     @ArgGroup
@@ -68,7 +71,7 @@ public class CLI implements Callable<Void> {
         boolean backgroundAutosave;
     }
 
-    @Option(names = "--export", paramLabel = "<path>", description = "Export saved devices in XML format to the directory.")
+    @Option(names = "--export", paramLabel = "<path>", description = "Export saved devices in XML format to a directory.")
     File exportPath;
 
     @Option(names = "--import", paramLabel = "<path>", description = "Import saved devices from a blobsaver XML file.")
@@ -94,7 +97,7 @@ public class CLI implements Callable<Void> {
     File savePath;
 
     @ArgGroup
-    Version version;
+    Version version = new Version();
     static class Version {
         @Option(names = "--ios-version", paramLabel = "<version>")
         String manualVersion;
@@ -111,7 +114,7 @@ public class CLI implements Callable<Void> {
     public Void call() throws TSS.TSSException, IOException, InvalidPreferencesFormatException {
         if (importPath != null) {
             Prefs.importXML(importPath);
-            System.out.println("Successfully imported saved devices.");
+            System.out.println(success("Successfully imported saved devices."));
         }
         if (saveBlobs) {
             checkArgs("identifier", "ecid", "save-path");
@@ -119,7 +122,7 @@ public class CLI implements Callable<Void> {
                     .setDevice(device).setEcid(ecid).setSavePath(savePath.getCanonicalPath()).setBoardConfig(boardConfig)
                     .setManualVersion(version.manualVersion).setManualIpswURL(version.manualIpswURL).setApnonce(apnonce)
                     .setGenerator(generator).setIncludeBetas(version.includeBetas).build();
-            System.out.println(tss.call());
+            System.out.println(success("\n" + tss.call()));
         }
         if (removeDevice != null) {
             removeDevice.delete();
@@ -130,7 +133,7 @@ public class CLI implements Callable<Void> {
             var saved = new Prefs.SavedDeviceBuilder(saveDevice)
                     .setIdentifier(device).setEcid(ecid).setSavePath(savePath.getCanonicalPath()).setBoardConfig(boardConfig)
                     .setApnonce(apnonce).setGenerator(generator).setIncludeBetas(version.includeBetas).save();
-            System.out.println("Saved " + saved + ".");
+            System.out.println(success("Saved " + saved + "."));
         }
         if (enableBackground != null) {
             if (!saveBlobs) {
@@ -138,7 +141,7 @@ public class CLI implements Callable<Void> {
                 Background.saveBlobs(enableBackground);
             }
             enableBackground.setBackground(true);
-            System.out.println("Enabled background for " + enableBackground + ".");
+            System.out.println(success("\nEnabled background for " + enableBackground + "."));
         }
         if (disableBackground != null) {
             disableBackground.setBackground(false);
@@ -147,7 +150,7 @@ public class CLI implements Callable<Void> {
         if (backgroundControls.startBackground) {
             Background.startBackground();
             if (Background.isBackgroundEnabled()) {
-                System.out.println("A background saving task has been scheduled.");
+                System.out.println(success("A background saving task has been scheduled."));
             } else {
                 throw new ExecutionException(spec.commandLine(), "Error: Unable to enable background saving.");
             }
@@ -162,12 +165,11 @@ public class CLI implements Callable<Void> {
                 exportPath = new File(exportPath, "blobsaver.xml");
             }
             Prefs.export(exportPath);
-            System.out.println("Successfully exported saved devices.");
+            System.out.println(success("Successfully exported saved devices."));
         }
         return null;
     }
 
-    @SuppressWarnings("unused")
     @Command(name = "clear-app-data", description = "Remove all of blobsaver's data including saved devices.")
     void clearAppData() {
         System.out.print("Are you sure you would like to permanently clear all blobsaver data? ");
@@ -178,29 +180,85 @@ public class CLI implements Callable<Void> {
         }
     }
 
-    @SuppressWarnings("unused")
-    @Command(name = "donate", description = "https://www.paypal.me/airsqrd")
+    @Command(description = "Help support me and the development of this application! (I'm only a student)")
     void donate() {
-        System.out.println("You can donate at https://www.paypal.me/airsqrd or with GitHub Sponsors at https://github.com/sponsors/airsquared.");
+        System.out.println("""
+                You can donate with GitHub Sponsors at
+                https://github.com/sponsors/airsquared
+                or with PayPal at
+                https://www.paypal.me/airsqrd.
+                Thank you!""");
     }
+
+    @Command(name = "read-info", description = "Reads ECID, identifier, board configuration, device type, and device name.")
+    void readInfo() throws LibimobiledeviceException {
+        long ecid = LibimobiledeviceUtil.getECID();
+        System.out.println("ECID (hex): " + Long.toHexString(ecid).toUpperCase());
+        System.out.println("ECID (dec): " + ecid);
+        String identifier = LibimobiledeviceUtil.getDeviceModelIdentifier();
+        System.out.println("Identifier: " + identifier);
+        System.out.println("Board Configuration: " + LibimobiledeviceUtil.getBoardConfig()
+                + (Devices.doesRequireBoardConfig(identifier) ? " (Required)" : " (Not Required)"));
+        System.out.println("Device Type: " + Devices.getDeviceType(identifier));
+        System.out.println("Device Name: " + Devices.identifierToModel(identifier));
+
+        Analytics.readInfo();
+    }
+
+    @Command(name = "read-apnonce", description = "Enters recovery mode to read APNonce, and freezes it if needed.")
+    void readAPNonce(@Option(names = "--force-new", description = "Generate a new APNonce, even if it is already frozen.") boolean forceNew) throws LibimobiledeviceException {
+        var task = new LibimobiledeviceUtil.GetApnonceTask(forceNew) {
+            @Override
+            protected void updateMessage(String message) {
+                System.out.println(message);
+            }
+        };
+        task.call();
+        System.out.println("APNonce: " + task.getApnonceResult());
+        System.out.println("Generator: " + task.getGeneratorResult());
+    }
+
+    @Command(name = "exit-recovery")
+    void exitRecovery() throws LibimobiledeviceException {
+        LibimobiledeviceUtil.exitRecovery();
+        Analytics.exitRecovery();
+    }
+
+    @Command(description = "Read a key from lockdownd.", showDefaultValues = true)
+    void read(@Parameters(paramLabel = "<key>") String key,
+              @Parameters(paramLabel = "[output-type]", defaultValue = "xml", description = "Can be any of [xml, string, integer, base64]") PlistOutputType type) throws LibimobiledeviceException {
+        var plist = LibimobiledeviceUtil.getLockdownValuePlist(key);
+        System.out.println(switch (type) {
+            case XML -> LibimobiledeviceUtil.plistToXml(plist);
+            case STRING -> LibimobiledeviceUtil.getPlistString(plist);
+            case INTEGER -> LibimobiledeviceUtil.getPlistLong(plist);
+            case BASE64 -> Base64.getEncoder().encodeToString(LibimobiledeviceUtil.plistDataBytes(plist));
+        });
+    }
+    enum PlistOutputType {XML, STRING, INTEGER, BASE64}
 
     public static class VersionProvider implements IVersionProvider {
         @Override
         public String[] getVersion() {
-            String[] output = {CLI.warning, "blobsaver " + Main.appVersion, Main.copyright, null};
+            String[] output = {"blobsaver " + Main.appVersion, Main.copyright, "Licence: GNU GPL v3.0-only", null,
+                    "%nHomepage: https://github.com/airsquared/blobsaver"};
             try {
                 var newVersion = Utils.LatestVersion.request();
                 if (Main.appVersion.equals(newVersion.toString())) {
-                    output[3] = "You are on the latest version.";
+                    output[3] = "%nYou are on the latest version.";
                 } else {
-                    output[3] = "New Update Available: " + newVersion + ". Update at%n https://github.com/airsquared/blobsaver/releases";
+                    output[3] = "%nNew Update Available: " + newVersion + ". Update using your package manager or at%n https://github.com/airsquared/blobsaver/releases";
                 }
             } catch (Exception e) {
-                output[3] = "Unable to check for updates.";
+                output[3] = "%nUnable to check for updates.";
             }
 
             return output;
         }
+    }
+
+    private static String success(String s) {
+        return Help.Ansi.AUTO.string("@|bold,green " + s + "|@");
     }
 
     private void checkArgs(String... names) {
@@ -223,10 +281,11 @@ public class CLI implements Callable<Void> {
                 .findAny().orElseThrow(() -> new TypeConversionException("Must be one of " + Prefs.getSavedDevices() + "\n"));
     }
 
-    public static int handleExecutionException(Exception ex, CommandLine cmd, ParseResult parseResult) throws Exception {
+    private static int handleExecutionException(Exception ex, CommandLine cmd, ParseResult parseResult) throws Exception {
         boolean messageOnly = ex instanceof ExecutionException
                 // if either the exception is not reportable or there is a tssLog present
-                || ex instanceof TSS.TSSException e && (!e.isReportable || e.tssLog != null);
+                || ex instanceof TSS.TSSException e && (!e.isReportable || e.tssLog != null)
+                || ex instanceof LibimobiledeviceException;
         if (messageOnly) {
             cmd.getErr().println(cmd.getColorScheme().errorText(ex.getMessage()));
 
@@ -237,8 +296,10 @@ public class CLI implements Callable<Void> {
         throw ex;
     }
 
-    public static int handleParseException(ParameterException ex, String[] args) {
+    private static int handleParameterException(ParameterException ex, String[] args) {
         CommandLine cmd = ex.getCommandLine();
+        CommandSpec spec = cmd.getCommandSpec();
+        boolean isRootCommand = spec == spec.root();
         PrintWriter err = cmd.getErr();
 
         // if tracing at DEBUG level, show the location of the issue
@@ -248,10 +309,12 @@ public class CLI implements Callable<Void> {
 
         err.println(cmd.getColorScheme().errorText(ex.getMessage())); // bold red
         UnmatchedArgumentException.printSuggestions(ex, err);
-        err.print(cmd.getHelp().fullSynopsis());
-
-        CommandSpec spec = cmd.getCommandSpec();
-        err.printf("Try '%s --help' for more information.%n", spec.qualifiedName());
+        if (isRootCommand) {
+            err.print(cmd.getHelp().fullSynopsis());
+            err.printf("Try '%s help' for more information.%n", spec.name());
+        } else {
+            cmd.usage(err); // print full help
+        }
 
         return cmd.getExitCodeExceptionMapper() != null
                 ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
@@ -262,10 +325,20 @@ public class CLI implements Callable<Void> {
      * @return the exit code
      */
     public static int launch(String... args) {
+        Analytics.startup();
         var c = new CommandLine(new CLI())
+                .setCaseInsensitiveEnumValuesAllowed(true)
                 .setExecutionExceptionHandler(CLI::handleExecutionException)
-                .setParameterExceptionHandler(CLI::handleParseException)
+                .setParameterExceptionHandler(CLI::handleParameterException)
                 .registerConverter(Prefs.SavedDevice.class, CLI::savedDeviceConverter);
+        if (args.length == 0) { // happens when environment variable $BLOBSAVER_CLI_ONLY is set to some value
+            args = new String[]{"help"};
+        }
         return c.execute(args);
     }
+
+    /**
+     * Private Constructor; Use {@link CLI#launch(String...)} instead
+     */
+    private CLI() {}
 }
