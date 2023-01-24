@@ -2,12 +2,9 @@ Help support this project by ⭐️'ing it; [Donations](https://www.paypal.me/ai
 
 # blobsaver [![GitHub All Releases](https://img.shields.io/github/downloads/airsquared/blobsaver/total.svg)](https://github.com/airsquared/blobsaver/releases) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0d4fdc1daca5402a8c57efc3bef73d31)](https://www.codacy.com/gh/airsquared/blobsaver/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=airsquared/blobsaver&amp;utm_campaign=Badge_Grade)
 
-A cross-platform GUI for saving SHSH blobs using [tsschecker](https://github.com/1Conan/tsschecker).
+A cross-platform GUI and CLI for automatically saving SHSH blobs. [Download](https://github.com/airsquared/blobsaver/releases)
 
-[Download here](https://github.com/airsquared/blobsaver/releases)
-
-**Tip:** if you want blobs you save to automatically be uploaded to the cloud,
-see [here](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud).
+[Need help?](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud)
 
 ![Mac Screenshot](.github/screenshots/screenshot-macos.png)
 
@@ -18,6 +15,7 @@ see [here](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blo
   such as ECID
 - Store an unlimited number of devices
 - Save blobs for beta versions without specifying a URL and in the background
+- Automate all features with the CLI
 - Save blobs to TSS Saver and SHSH Host as well with one click
 
 ## Feedback
