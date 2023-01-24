@@ -4,7 +4,7 @@ Help support this project by ⭐️'ing it; [Donations](https://www.paypal.me/ai
 
 A cross-platform GUI and CLI for automatically saving SHSH blobs. [Download](https://github.com/airsquared/blobsaver/releases)
 
-[Need help?](https://github.com/airsquared/blobsaver/wiki/Automatically-saving-blobs-to-the-cloud)
+[Need help?](https://github.com/airsquared/blobsaver/wiki)
 
 ![Mac Screenshot](.github/screenshots/screenshot-macos.png)
 
