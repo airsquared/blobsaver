@@ -4,10 +4,6 @@ updates:
   directory: "/"
   schedule:
     interval: daily
-    time: "12:00"
+    time: "03:00"
     timezone: US/Pacific
   open-pull-requests-limit: 99
-  reviewers:
-  - airsquared
-  assignees:
-  - airsquared
