@@ -1,1 +1,12 @@
 blank_issues_enabled: false
+
+contact_links:
+- name: Wiki & FAQ
+  url: https://github.com/airsquared/blobsaver/wiki
+  about: "Make sure you've checked the Wiki for solutions to your problem."
+- name: Discord (FDR Bureau)
+  url: https://discord.gg/96wCSnwYVX
+  about: "Get help on the 'FDR Bureau' discord server."
+- name: Discord (r/Jailbreak)
+  url: https://discord.gg/jb
+  about: "Get help on the 'r/Jailbreak' discord server."
