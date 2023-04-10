@@ -57,7 +57,7 @@ dependencies {
     }
     implementation 'net.java.dev.jna:jna-jpms:5.13.0'
     implementation 'org.apache.commons:commons-compress:1.22'
-    implementation 'info.picocli:picocli:4.7.1'
+    implementation 'info.picocli:picocli:4.7.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
