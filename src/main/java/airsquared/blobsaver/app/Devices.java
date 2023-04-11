@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021  airsquared
+ * Copyright (c) 2023  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -173,7 +173,6 @@ public final class Devices {
     }
 
     private static void loadProperties() throws IOException {
-
         var loader = new Properties() {
             private Consumer<String> keyProcessor;
 
@@ -196,7 +195,6 @@ public final class Devices {
         loader.load("devicemodels/iPhones.properties", iPhones::add);
         loader.load("devicemodels/iPads.properties", iPads::add);
         loader.load("devicemodels/iBridges.properties", iBridgeList::add);
-        loader.load("devicemodels/others.properties", o -> {
-        });
+        loader.load("devicemodels/others.properties", o -> {});
     }
 }

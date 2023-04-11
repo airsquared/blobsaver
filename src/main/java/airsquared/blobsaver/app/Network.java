@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2023  airsquared
+ *
+ * This file is part of blobsaver.
+ *
+ * blobsaver is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * blobsaver is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with blobsaver.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package airsquared.blobsaver.app;
 
 import com.google.gson.Gson;
@@ -20,25 +38,26 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Map;
+
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class Network {
 
     // one instance, reuse
-    private static final HttpClient httpClient = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_2)
-            .build();
+    private static final HttpClient httpClient = HttpClient.newHttpClient();
 
     // Performs a POST Request with the specified URL and Parameters
     public static HttpResponse<String> makePOSTRequest(String url, Map<Object, Object> parameters, Map<String, String> headers, boolean convertParamtersToJSON) throws IOException, InterruptedException {
-
         // convert Arguments to JSON (and use them if convertParametersToJSON is true)
         Gson gson = new Gson();
         String JSONParameters = gson.toJson(parameters);
 
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .POST(convertParamtersToJSON ? BodyPublishers.ofString(JSONParameters) : buildFormDataFromMap(parameters))
-                .uri(URI.create(url));
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(url))
+                .POST(convertParamtersToJSON ? BodyPublishers.ofString(JSONParameters) : buildFormDataFromMap(parameters));
 
         for (Map.Entry<String, String> entry : headers.entrySet())
             requestBuilder.header(entry.getKey(), entry.getValue());
@@ -61,10 +80,19 @@ public class Network {
         return HttpRequest.BodyPublishers.ofString(builder.toString());
     }
 
-    static JsonElement makeRequest(String url) throws IOException {
+    static JsonElement makeJsonRequest(String url) throws IOException {
         try (var inputStream = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
             return JsonParser.parseReader(inputStream);
         }
+    }
+
+    static void makeVoidRequest(String url) throws IOException, InterruptedException {
+        httpClient.send(HttpRequest.newBuilder(URI.create(url)).build(), HttpResponse.BodyHandlers.discarding());
+    }
+
+    static HttpResponse<Path> downloadFile(String url, Path dir) throws IOException, InterruptedException {
+        return httpClient.send(HttpRequest.newBuilder(URI.create(url)).build(),
+                HttpResponse.BodyHandlers.ofFile(dir, WRITE, CREATE, TRUNCATE_EXISTING));
     }
 
     /**

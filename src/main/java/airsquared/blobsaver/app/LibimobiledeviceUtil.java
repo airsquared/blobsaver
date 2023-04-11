@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021  airsquared
+ * Copyright (c) 2023  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -66,7 +66,6 @@ public class LibimobiledeviceUtil {
         throwIfNeeded(Libirecovery.open(irecvClient), ErrorCodeType.irecv_error);
         exitRecovery(irecvClient.getValue());
     }
-
 
     public static void exitRecovery(Pointer irecvClient) throws LibimobiledeviceException {
         throwIfNeeded(Libirecovery.setEnv(irecvClient, "auto-boot", "true"), ErrorCodeType.irecv_error);
@@ -321,14 +320,14 @@ public class LibimobiledeviceUtil {
 
         String message = "";
         boolean reportableError = false;
-        if (errorType.equals(ErrorCodeType.idevice_error)) {
+        if (errorType == ErrorCodeType.idevice_error) {
             if (errorCode == -3) { // IDEVICE_E_NO_DEVICE
                 message = "No devices found/connected. Make sure your device is connected via USB and unlocked.";
             } else {
                 message = "idevice error: code=" + errorCode;
                 reportableError = true;
             }
-        } else if (errorType.equals(ErrorCodeType.lockdownd_error)) {
+        } else if (errorType == ErrorCodeType.lockdownd_error) {
             message = switch (errorCode) {
                 case -17:  // LOCKDOWN_E_PASSWORD_PROTECTED
                     yield "The device is locked.\n\nPlease unlock your device and go to the homescreen then try again.\n\nLOCKDOWN_E_PASSWORD_PROTECTED (-17)";
@@ -345,7 +344,7 @@ public class LibimobiledeviceUtil {
                     reportableError = true;
                     yield "lockdownd error: code=" + errorCode;
             };
-        } else if (errorType.equals(ErrorCodeType.irecv_error)) {
+        } else if (errorType == ErrorCodeType.irecv_error) {
             message = "irecovery error: code=" + errorCode +
                     "\n\nIf your device is still in recovery mode, use the \"Exit Recovery Mode\" option from the help menu.";
             reportableError = true;
@@ -376,7 +375,7 @@ public class LibimobiledeviceUtil {
                 }
             } else if (reportable) {
                 Utils.showReportableError(message);
-            } else if (ErrorCodeType.idevice_error.equals(errorType) && errorCode == -3) {
+            } else if (errorType == ErrorCodeType.idevice_error && errorCode == -3 && Platform.isWindows()) {
                 message += "\n\nEnsure iTunes or Apple's iOS Drivers are installed.";
                 ButtonType downloadItunes = new ButtonType("Download iTunes");
                 if (downloadItunes.equals(Utils.showUnreportableError(message, downloadItunes, ButtonType.OK))) {

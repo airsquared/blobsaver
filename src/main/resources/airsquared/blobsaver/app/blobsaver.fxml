@@ -127,7 +127,7 @@
                 <Insets bottom="5.0" top="5.0"/>
             </VBox.margin>
             <ChoiceBox fx:id="deviceTypeChoiceBox" prefWidth="150.0" disable="${identifierCheckBox.selected}"
-                       onAction="#clearEffectHandler" onValueChange="#deviceTypeChoiceBoxHandler" value="iPhone">
+                       onAction="#clearEffectHandler" value="iPhone">
                 <HBox.margin>
                     <Insets left="10.0"/>
                 </HBox.margin>

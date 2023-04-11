@@ -18,9 +18,6 @@
 
 package airsquared.blobsaver.app;
 
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -103,11 +100,9 @@ final class Analytics {
         return Prefs.getAnalyticsUUID();
     }
 
-    @SuppressWarnings({"EmptyTryBlock", "unused"})
     private static void sendRequest(String url) {
-        try (InputStream is = new URL(url).openStream()) {
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException(e);
+        try {
+            Network.makeVoidRequest(url);
         } catch (Throwable e) { // don't interrupt application if error occurs
             e.printStackTrace();
         }

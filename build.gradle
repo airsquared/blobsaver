@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021  airsquared
+ * Copyright (c) 2023  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -20,9 +20,8 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
-    id 'java'
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.45.0'
+    id 'com.github.ben-manes.versions' version '0.46.0'
     id 'org.beryx.jlink' version '2.26.0'
     id 'org.openjfx.javafxplugin' version '0.0.13'
 
@@ -34,17 +33,14 @@ idea.module.outputDir file("out/production/classes") // fix running via IntelliJ
  * REMEMBER: also update the version string in Main.java
  */
 version = "3.5.0"
-description = "A cross-platform GUI app for saving SHSH blobs"
+description = "A cross-platform GUI and CLI app for saving SHSH blobs"
 String appIdentifier = "airsquared.blobsaver.app"
-String copyright = "Copyright (c) 2021 airsquared"
+String copyright = "Copyright (c) 2023 airsquared"
 def os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(18)
-tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = 18
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(19)
 
 repositories {
     mavenCentral()
@@ -56,15 +52,15 @@ dependencies {
         exclude group: 'net.java.dev.jna', module: 'jna' //different jna version
     }
     implementation 'net.java.dev.jna:jna-jpms:5.13.0'
-    implementation 'org.apache.commons:commons-compress:1.22'
-    implementation 'info.picocli:picocli:4.7.1'
+    implementation 'org.apache.commons:commons-compress:1.23.0'
+    implementation 'info.picocli:picocli:4.7.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
 }
 
 javafx {
-    version = '19'
+    version = '20'
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
@@ -107,8 +103,17 @@ jlink {
         jvmArgs.addAll addExports
         noConsole = true
     }
+    if (os.isWindows()) secondaryLauncher {
+        name = 'blobsaver-console'
+        moduleName = application.mainModule
+        mainClass = application.mainClass
+        jvmArgs = [ '-Djar.directory={{BIN_DIR}}' ]
+        jvmArgs.addAll addExports
+        winConsole = true
+    }
     jpackage {
         imageOptions = [ '--copyright', copyright, '--description', description]
+        installerOptions.addAll '--about-url', 'https://github.com/airsquared/blobsaver'
         vendor = 'airsquared'
         installerOutputDir = file("${buildDir}/distributions/")
 
