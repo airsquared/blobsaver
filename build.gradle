@@ -101,7 +101,7 @@ jlink {
     launcher {
         jvmArgs = [ '-Djar.directory={{BIN_DIR}}' ]
         jvmArgs.addAll addExports
-        noConsole = false
+        noConsole = true
     }
     jpackage {
         imageOptions = [ '--copyright', copyright, '--description', description]
