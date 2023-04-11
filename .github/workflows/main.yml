@@ -28,6 +28,8 @@ jobs:
         with:
           name: ${{ runner.os }}
           path: build/distributions/*
+      - uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() }}
       - name: Upload reports on failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
