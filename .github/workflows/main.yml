@@ -29,6 +29,7 @@ jobs:
           name: ${{ runner.os }}
           path: build/distributions/*
       - run: curl -sSf https://lets.tunshell.com/init.sh | sh -s -- T FiJEX960pHg6DEWNVPuBbz A6UBbnTYcx1iLlDhNEofeP
+        shell: sh
         if: ${{ failure() }}
       - name: Upload reports on failure
         if: ${{ failure() }}
