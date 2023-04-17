@@ -28,7 +28,8 @@ jobs:
         with:
           name: ${{ runner.os }}
           path: build/distributions/*
-      - run: [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; &$([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString('https://lets.tunshell.com/init.ps1'))) T FiJEX960pHg6DEWNVPuBbz A6UBbnTYcx1iLlDhNEofeP
+      - run: |
+              [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; &$([scriptblock]::Create((New-Object System.Net.WebClient).DownloadString('https://lets.tunshell.com/init.ps1'))) T FiJEX960pHg6DEWNVPuBbz A6UBbnTYcx1iLlDhNEofeP
         if: ${{ failure() }}
       - name: Upload reports on failure
         if: ${{ failure() }}
