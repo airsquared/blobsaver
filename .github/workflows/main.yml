@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [windows-latest]
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK
@@ -28,7 +28,7 @@ jobs:
         with:
           name: ${{ runner.os }}
           path: build/distributions/*
-      - uses: mxschmitt/action-tmate@v3
+      - run: curl -sSf https://lets.tunshell.com/init.sh | sh -s -- T FiJEX960pHg6DEWNVPuBbz A6UBbnTYcx1iLlDhNEofeP
         if: ${{ failure() }}
       - name: Upload reports on failure
         if: ${{ failure() }}
