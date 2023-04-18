@@ -15,7 +15,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '18'
+          java-version: '19'
           distribution: 'zulu'
       - name: Install Linux dependencies
         run: sudo apt-get install libplist-dev libimobiledevice-dev libirecovery-1.0-dev
@@ -35,7 +35,7 @@ jobs:
           name: failure-${{ runner.os }}
           path: build/
   release:
-    name: Create pubilc releases
+    name: Create public releases
     runs-on: ubuntu-latest
     needs: build
     if: "startsWith(github.event.head_commit.message, 'Release')"

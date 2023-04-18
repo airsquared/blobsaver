@@ -29,7 +29,7 @@ DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
 OutputBaseFilename=blobsaver-{#MyAppVersion}
-SetupIconFile=blobsaver\blobsaver.ico
+SetupIconFile=blob.ico
 Compression=lzma
 SolidCompression=yes
 

@@ -40,7 +40,7 @@ def os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(18)
+java.toolchain.languageVersion = JavaLanguageVersion.of(19)
 
 repositories {
     mavenCentral()
@@ -171,6 +171,9 @@ task createLinuxTargz(type: Tar, dependsOn: jpackageImage) {
 
 task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be installed
     doFirst {
+        copy {
+            from "${projectDir}/dist/windows/blob.ico" into "${buildDir}/jpackage"
+        }
         copy {
             from "${projectDir}/dist/windows/blobsaver.iss" into "${buildDir}/jpackage"
             filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright,
