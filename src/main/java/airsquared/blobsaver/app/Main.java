@@ -144,8 +144,7 @@ public class Main {
             primaryStage.setTitle("blobsaver");
             primaryStage.setScene(new Scene(root));
             if (isWindows()) {
-                primaryStage.getIcons().clear();
-                primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("blob_emoji.png")));
+                primaryStage.getIcons().setAll(new Image(Main.class.getResourceAsStream("blob_emoji.png")));
             }
             primaryStage.setResizable(false);
             Utils.checkForUpdates(false);
