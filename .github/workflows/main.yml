@@ -33,7 +33,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: failure-${{ runner.os }}
-          path: build/reports/
+          path: build/
   release:
     name: Create pubilc releases
     runs-on: ubuntu-latest
