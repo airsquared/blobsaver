@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021  airsquared
+ * Copyright (c) 2023  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -33,8 +33,22 @@ import java.util.function.Predicate;
 class Background {
 
     private static final String backgroundLabel = "airsquared.blobsaver.BackgroundService";
-    private static final Path plistFilePath = Path.of(System.getProperty("user.home"), "Library/LaunchAgents",
-            backgroundLabel + ".plist").toAbsolutePath();
+    private static final Path plistFilePath = Platform.isMac() ?
+            Path.of(System.getProperty("user.home"), "Library/LaunchAgents", backgroundLabel + ".plist")
+                    .toAbsolutePath()
+            : null;
+
+    private static final Path systemdDir;
+    static {
+        if (!Platform.isMac() && !Platform.isWindows()) {
+            String dataHome = System.getenv("XDG_DATA_HOME");
+            if (dataHome == null) {
+                dataHome = System.getProperty("user.home") + "/.local/share";
+            }
+            systemdDir = Path.of(dataHome + "/systemd/user");
+        } else systemdDir = null;
+    }
+
     private static final String windowsTaskName = "\\airsquared\\blobsaver\\BackgroundService";
 
 
@@ -85,15 +99,10 @@ class Background {
                 [Install]
                 WantedBy=timers.target
                 """.formatted(Prefs.getBackgroundIntervalMinutes());
-        String dataHome = System.getenv("XDG_DATA_HOME");
-        if (dataHome == null) {
-            dataHome = System.getProperty("user.home") + "/.local/share";
-        }
-        Path path = Path.of(dataHome + "/systemd/user");
         try {
-            Files.createDirectories(path);
-            Files.writeString(path.resolve("blobsaver.service"), service);
-            Files.writeString(path.resolve("blobsaver.timer"), timer);
+            Files.createDirectories(systemdDir);
+            Files.writeString(systemdDir.resolve("blobsaver.service"), service);
+            Files.writeString(systemdDir.resolve("blobsaver.timer"), timer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -220,6 +229,15 @@ class Background {
             schtasks("/run", "/tn", windowsTaskName);
         } else {
             systemctl("start", "--user", "blobsaver.service");
+        }
+    }
+
+    public static void deleteBackgroundFile() throws IOException {
+        if (Platform.isMac()) {
+            Files.deleteIfExists(plistFilePath);
+        } else if (!Platform.isWindows()) {
+            Files.deleteIfExists(systemdDir.resolve("blobsaver.service"));
+            Files.deleteIfExists(systemdDir.resolve("blobsaver.timer"));
         }
     }
 

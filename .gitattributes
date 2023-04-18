@@ -8,3 +8,5 @@ gradlew text eol=lf
 
 # Tell GitHub’s linguist which files to ignore
 gradle/InnoSetup6/* linguist-vendored
+gradlew linguist-vendored
+gradlew.bat linguist-vendored

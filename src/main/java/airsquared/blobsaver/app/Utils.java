@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021  airsquared
+ * Copyright (c) 2023  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -93,7 +93,7 @@ final class Utils {
 
     record LatestVersion(String version, String changelog) {
         static LatestVersion request() throws IOException {
-            JsonElement json = Network.makeRequest("https://api.github.com/repos/airsquared/blobsaver/releases/latest");
+            JsonElement json = Network.makeJsonRequest("https://api.github.com/repos/airsquared/blobsaver/releases/latest");
             String tempChangelog = json.getAsJsonObject().get("body").getAsString();
             return new LatestVersion(json.getAsJsonObject().get("tag_name").getAsString(), tempChangelog.substring(tempChangelog.indexOf("Changelog")));
         }
@@ -200,6 +200,7 @@ final class Utils {
             if (Background.isBackgroundEnabled()) {
                 Background.stopBackground();
             }
+            Background.deleteBackgroundFile();
         } catch (Exception ignored) {
         }
         Prefs.resetPrefs();
@@ -218,13 +219,19 @@ final class Utils {
     }
 
     static String executeProgram(List<String> command) throws IOException {
+        return executeProgram(command, true);
+    }
+
+    static String executeProgram(List<String> command, boolean print) throws IOException {
         Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
         StringBuilder logBuilder = new StringBuilder();
 
         try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                if (print) {
+                    System.out.println(line);
+                }
                 logBuilder.append(line).append("\n");
             }
             process.waitFor();
@@ -354,7 +361,7 @@ final class Utils {
     static Stream<IOSVersion> getFirmwareList(String deviceIdentifier) throws IOException {
         String url = "https://api.ipsw.me/v4/device/" + deviceIdentifier;
         try {
-            return createVersionStream(Network.makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares"));
+            return createVersionStream(Network.makeJsonRequest(url).getAsJsonObject().getAsJsonArray("firmwares"));
         } catch (IOException e) {
             try {
                 return getBetaHubList(deviceIdentifier, false);
@@ -368,7 +375,7 @@ final class Utils {
     static Stream<IOSVersion> getBetaList(String deviceIdentifier) throws IOException {
         try {
             String url = "https://api.m1sta.xyz/betas/" + deviceIdentifier;
-            return createVersionStream(Network.makeRequest(url).getAsJsonArray());
+            return createVersionStream(Network.makeJsonRequest(url).getAsJsonArray());
         } catch (Exception e) {
             try {
                 return getBetaHubList(deviceIdentifier, true);
@@ -381,7 +388,7 @@ final class Utils {
 
     static Stream<IOSVersion> getBetaHubList(String deviceIdentifier, boolean betas) throws IOException {
         String url = "https://www.betahub.cn/api/apple/firmwares/" + deviceIdentifier + "?type=" + (betas ? 2 : 1);
-        JsonArray firmwares = Network.makeRequest(url).getAsJsonObject().getAsJsonArray("firmwares");
+        JsonArray firmwares = Network.makeJsonRequest(url).getAsJsonObject().getAsJsonArray("firmwares");
         return StreamSupport.stream(firmwares.spliterator(), false)
                 .map(JsonElement::getAsJsonObject)
                 .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("build_id").getAsString(), o.get("url").getAsString(), o.get("signing").getAsInt() == 1));
@@ -409,13 +416,12 @@ final class Utils {
 
     static Path extractBuildManifest(String ipswUrl) throws IOException {
         Path buildManifest = Files.createTempFile("BuildManifest", ".plist");
+        buildManifest.toFile().deleteOnExit();
         if (ipswUrl.matches("https?://.*apple.*\\.ipsw")) {
             var fileName = Path.of(new URL(ipswUrl).getPath()).getFileName().toString();
-            var manifestURL = new URL(ipswUrl.replace(fileName, "BuildManifest.plist"));
-            try (var stream = manifestURL.openStream()) {
-                Files.copy(stream, buildManifest, StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("Directly downloaded to " + buildManifest);
-                return buildManifest.toRealPath();
+            var manifestURL = ipswUrl.replace(fileName, "BuildManifest.plist");
+            try {
+                return Network.downloadFile(manifestURL, buildManifest).body().toRealPath();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -423,11 +429,12 @@ final class Utils {
             Files.copy(Path.of(URI.create(ipswUrl)), buildManifest, StandardCopyOption.REPLACE_EXISTING);
             return buildManifest.toRealPath();
         } else if (ipswUrl.endsWith(".plist")) {
-            var manifestURL = new URL(ipswUrl);
-            try (var stream = manifestURL.openStream()) {
-                Files.copy(stream, buildManifest, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                buildManifest = Network.downloadFile(ipswUrl, buildManifest).body().toRealPath();
                 System.out.println("Directly downloaded to " + buildManifest);
-                return buildManifest.toRealPath();
+                return buildManifest;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
         extractManifestFromZip(ipswUrl, buildManifest);

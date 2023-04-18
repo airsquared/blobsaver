@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021  airsquared
+ * Copyright (c) 2023  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -33,11 +33,11 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxListCell;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 
@@ -75,13 +75,23 @@ public class Controller {
         if (Platform.isMac()) {
             useMacOSMenuBar();
         }
+        deviceModelChoiceBox.itemsProperty().bind(deviceTypeChoiceBox.valueProperty().map(Devices::getModelsForType)
+                .orElse(FXCollections.emptyObservableList()));
+        versionLabel.textProperty().bind(deviceTypeChoiceBox.valueProperty().map(Devices::getOSNameForType)
+                .orElse("Version"));
         deviceList.getSelectionModel().selectedItemProperty().addListener((a, b, device) -> loadSavedDevice(device));
-        deleteDeviceMenu.disableProperty().bind(Bindings.isNull(deviceList.getSelectionModel().selectedItemProperty()));
+        deleteDeviceMenu.disableProperty().bind(deviceList.getSelectionModel().selectedItemProperty().isNull());
         backgroundSettingsMenu.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Hide Background Settings").otherwise("Show Background Settings"));
         backgroundSettingsMenu.setOnAction(e -> backgroundSettingsButton.fire());
-        allSignedVersionsCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue) {
+        savedDevicesLabel.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
+                .then("Select Devices").otherwise("Saved Devices"));
+        backgroundSettingsButton.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
+                .then("Back").otherwise("Auto-Save Settings"));
+        savedDevicesVBox.effectProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
+                .then(Utils.borderGlow).otherwise((DropShadow) null));
+        allSignedVersionsCheckBox.selectedProperty().addListener(ignored -> {
+            if (!allSignedVersionsCheckBox.isSelected()) {
                 saveToTSSSaverCheckBox.setSelected(false);
                 saveToSHSHHostCheckBox.setSelected(false);
                 betaCheckBox.setSelected(false);
@@ -120,12 +130,6 @@ public class Controller {
             apnonceCheckBox.setDisable(false);
             Utils.setSelectedFire(apnonceCheckBox, false);
         }
-    }
-
-    @SuppressWarnings("unused")
-    public void deviceTypeChoiceBoxHandler() {
-        deviceModelChoiceBox.setItems(Devices.getModelsForType(deviceTypeChoiceBox.getValue()));
-        versionLabel.setText(Utils.defIfNull(Devices.getOSNameForType(deviceTypeChoiceBox.getValue()), "Version"));
     }
 
     public void checkForUpdatesHandler() { Utils.checkForUpdates(true); }
@@ -370,7 +374,7 @@ public class Controller {
     }
 
     private void useMacOSMenuBar() {
-        ((VBox) menuBar.getParent()).getChildren().remove(menuBar);
+        ((Pane) menuBar.getParent()).getChildren().remove(menuBar);
         menuBar.getMenus().get(0).getItems().remove(5, 8); // clear old options menu
 
         MenuToolkit tk = MenuToolkit.toolkit();
@@ -399,6 +403,10 @@ public class Controller {
         forceCheckForBlobs.setDisable(disableBackgroundSettings || !Background.isBackgroundEnabled());
         chooseTimeToRunButton.setDisable(disableBackgroundSettings);
 
+        if (disableBackgroundSettings && Background.isBackgroundEnabled()) {
+            Background.stopBackground();
+        }
+
         if (Background.isBackgroundEnabled()) {
             startBackgroundButton.setText("Stop background");
         } else {
@@ -409,19 +417,12 @@ public class Controller {
     public void backgroundSettingsHandler() {
         updateBackgroundSettings();
         if (backgroundSettingsButton.isSelected()) {
-            savedDevicesLabel.setText("Select Devices");
-            backgroundSettingsButton.setText("Back");
-            savedDevicesVBox.setEffect(Utils.borderGlow);
-
             deviceList.setCellFactory(CheckBoxListCell.forListView(device -> {
                 final SimpleBooleanProperty property = new SimpleBooleanProperty(device.isBackground());
                 property.addListener((obs, old, newValue) -> addBackgroundHandler(device, property));
                 return property;
             }));
         } else {
-            savedDevicesVBox.setEffect(null);
-            savedDevicesLabel.setText("Saved Devices");
-            backgroundSettingsButton.setText("Auto-Save Settings");
             deviceList.setCellFactory(null);
         }
     }

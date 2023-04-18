@@ -22,14 +22,14 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 AppCopyright={#MyAppCopyright}
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64 arm64
+ArchitecturesInstallIn64BitMode=x64 arm64
 Uninstallable=not IsTaskSelected('portableMode')
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
 OutputBaseFilename=blobsaver-{#MyAppVersion}
-SetupIconFile=blobsaver\blobsaver.ico
+SetupIconFile=blob.ico
 Compression=lzma
 SolidCompression=yes
 
