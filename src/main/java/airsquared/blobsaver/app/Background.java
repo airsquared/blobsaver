@@ -75,6 +75,7 @@ class Background {
         try {
             Files.createDirectories(Path.of(System.getProperty("user.home"), "Library/LaunchAgents"));
             Files.writeString(plistFilePath, plist);
+            System.out.println("Wrote to: " + plistFilePath);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -103,6 +104,7 @@ class Background {
             Files.createDirectories(systemdDir);
             Files.writeString(systemdDir.resolve("blobsaver.service"), service);
             Files.writeString(systemdDir.resolve("blobsaver.timer"), timer);
+            System.out.println("Wrote to: " + systemdDir);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -173,6 +175,7 @@ class Background {
         try {
             Path path = Files.createTempFile("blobsaver_background_service", ".xml");
             Files.writeString(path, xml);
+            System.out.println("Wrote to: " + path);
             return path;
         } catch (IOException e) {
             throw new UncheckedIOException(e);

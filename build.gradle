@@ -23,7 +23,7 @@ plugins {
     id 'application'
     id 'com.github.ben-manes.versions' version '0.46.0'
     id 'org.beryx.jlink' version '2.26.0'
-    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
 
     id 'idea'
 }
@@ -53,9 +53,9 @@ dependencies {
     }
     implementation 'net.java.dev.jna:jna-jpms:5.13.0'
     implementation 'org.apache.commons:commons-compress:1.23.0'
-    implementation 'info.picocli:picocli:4.7.2'
+    implementation 'info.picocli:picocli:4.7.4'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
     testImplementation group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
 }
 

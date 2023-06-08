@@ -244,7 +244,7 @@ public class CLI implements Callable<Void> {
                     "%nHomepage: https://github.com/airsquared/blobsaver"};
             try {
                 var newVersion = Utils.LatestVersion.request();
-                if (Main.appVersion.equals(newVersion.toString())) {
+                if (Main.appVersion.equals(newVersion.version())) {
                     output[3] = "%nYou are on the latest version.";
                 } else {
                     output[3] = "%nNew Update Available: " + newVersion + ". Update using your package manager or at%n https://github.com/airsquared/blobsaver/releases";

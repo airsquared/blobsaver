@@ -177,7 +177,7 @@ public final class Devices {
             private Consumer<String> keyProcessor;
 
             void load(String resourceName, Consumer<String> keyProcessor) throws IOException {
-                this.keyProcessor = keyProcessor;
+                this.keyProcessor = keyProcessor; // not thread safe
                 try (var stream = Devices.class.getResourceAsStream(resourceName)) {
                     load(stream);
                 }

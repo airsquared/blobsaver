@@ -113,7 +113,7 @@ final class Utils {
             throw new UncheckedIOException(e);
         }
 
-        if (!Main.appVersion.equals(newVersion.toString()) && (forceCheck || !Prefs.shouldIgnoreVersion(newVersion.toString()))) {
+        if (!Main.appVersion.equals(newVersion.version()) && (forceCheck || !Prefs.shouldIgnoreVersion(newVersion.version()))) {
             runLater(() -> {
                 ButtonType downloadNow = new ButtonType("Download");
                 ButtonType ignore = new ButtonType("Ignore this update");
@@ -128,7 +128,7 @@ final class Utils {
                 if (alert.getResult().equals(downloadNow)) {
                     openURL("https://github.com/airsquared/blobsaver/releases");
                 } else if (alert.getResult().equals(ignore)) {
-                    Prefs.setIgnoreVersion(newVersion.toString());
+                    Prefs.setIgnoreVersion(newVersion.version());
                 }
             });
         } else if (forceCheck) {

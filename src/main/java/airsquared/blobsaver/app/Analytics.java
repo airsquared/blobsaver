@@ -104,7 +104,7 @@ final class Analytics {
         try {
             Network.makeVoidRequest(url);
         } catch (Throwable e) { // don't interrupt application if error occurs
-            e.printStackTrace();
+            System.err.println(e);
         }
     }
 
