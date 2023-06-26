@@ -275,7 +275,7 @@
                     <Insets bottom="5.0" left="5.0"/>
                 </padding>
                 <tooltip>
-                    <Tooltip text="Click to see how to automatically upload to a cloud service"/>
+                    <Tooltip text="Click to see how to customize where blobs are saved"/>
                 </tooltip>
             </Label>
         </HBox>

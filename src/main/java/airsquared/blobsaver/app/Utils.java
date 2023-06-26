@@ -373,17 +373,7 @@ final class Utils {
     }
 
     static Stream<IOSVersion> getBetaList(String deviceIdentifier) throws IOException {
-        try {
-            String url = "https://api.m1sta.xyz/betas/" + deviceIdentifier;
-            return createVersionStream(Network.makeJsonRequest(url).getAsJsonArray());
-        } catch (Exception e) {
-            try {
-                return getBetaHubList(deviceIdentifier, true);
-            } catch (Exception ex) {
-                e.addSuppressed(ex);
-                throw e;
-            }
-        }
+        return getBetaHubList(deviceIdentifier, true);
     }
 
     static Stream<IOSVersion> getBetaHubList(String deviceIdentifier, boolean betas) throws IOException {

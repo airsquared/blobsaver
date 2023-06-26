@@ -19,15 +19,16 @@
 package airsquared.blobsaver.app;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public class TSSTest extends BlobsaverTest {
 
     @Test
-    public void call() throws TSS.TSSException {
-        TSS tss = new TSS.Builder().setDevice("iPhone8,4").setEcid("1").setIncludeBetas(true)
-                .setSavePath(System.getProperty("user.home") + File.separator + "Blobs").setBoardConfig("n69ap").build();
+    public void call(@TempDir Path savePath) throws TSS.TSSException {
+        TSS tss = new TSS.Builder().setDevice("iPhone12,8").setEcid("1").setIncludeBetas(true)
+                .setSavePath(savePath.toString()).build();
         tss.call(); // don't create another thread
     }
 }

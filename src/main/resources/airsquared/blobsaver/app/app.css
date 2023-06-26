@@ -24,3 +24,8 @@
   -fx-max-width: Infinity;
   -fx-pref-width: Infinity;
 }
+
+.tooltip {
+  -fx-show-delay: 100ms;
+  -fx-show-duration: 20s;
+}

@@ -107,9 +107,17 @@ public class TSS extends Task<String> {
             try {
                 saveFor(iosVersion, args);
             } catch (TSSException e) {
-                if ((manualVersion == null && manualIpswURL == null) && e.getMessage().contains("not being signed")) {
-                    System.out.println("Warning: ignoring unsigned version; API is likely out of date");
-                    continue; // ignore not being signed (API might not be updated)
+                if (manualVersion == null && manualIpswURL == null) {
+                    if (e.getMessage().contains("not being signed")) {
+                        System.err.println("Warning: ignoring unsigned version; API is likely out of date");
+                        continue; // ignore not being signed (API might not be updated)
+                    }
+                    if (e.getMessage().contains("Failed to load manifest") && includeBetas
+                            && containsIgnoreCase(iosVersion.versionString(), "beta")
+                            && iosVersion.ipswURL().contains("developer.apple")) {
+                        System.err.println("Warning: ignoring developer beta");
+                        continue;
+                    }
                 }
                 throw e;
             }
@@ -362,7 +370,7 @@ public class TSS extends Task<String> {
             if (manualIpswURL != null) {
                 throw new TSSException("Failed to load manifest. The IPSW or build manifest URL is not valid.\n\n", false);
             } else {
-                throw new TSSException("Failed to load manifest.", true, tsscheckerLog);
+                throw new TSSException("Failed to load manifest.", true, tsscheckerLog); // this exact message is used elsewhere; do not modify
             }
         } else if (containsIgnoreCase(tsscheckerLog, "selected device can't be used with that buildmanifest")) {
             throw new TSSException("Device and build manifest don't match.", false);
