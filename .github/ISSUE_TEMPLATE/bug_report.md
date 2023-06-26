@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a bug report
+about: Create a bug report. Make sure to check other issues to see if it's already been reported.
 title: ''
 labels: bug
 assignees: ''
