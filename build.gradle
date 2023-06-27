@@ -96,12 +96,16 @@ test {
 }
 
 jlink {
-    addOptions '--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--strip-native-commands',
-            '--dedup-legal-notices=error-if-not-same-content'
+    if (findProperty('noCompress') != 'true') {
+        addOptions '--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--strip-native-commands',
+                '--dedup-legal-notices=error-if-not-same-content'
+    }
     launcher {
         jvmArgs = [ '-Djar.directory={{BIN_DIR}}' ]
         jvmArgs.addAll addExports
-        noConsole = true
+        if (findProperty("noConsole") != 'false') {
+            noConsole = true
+        }
     }
     jpackage {
         imageOptions = [ '--copyright', copyright, '--description', description]
@@ -122,6 +126,9 @@ jlink {
             installerOptions.addAll '--linux-shortcut', '--linux-menu-group', 'Utility;Archiving;Java',
                     '--linux-rpm-license-type', 'GPLv3'
             icon = "${projectDir}/src/main/resources/airsquared/blobsaver/app/blob_emoji.png"
+        }
+        if (findProperty('installerType') != null) {
+            installerType = findProperty('installerType')
         }
     }
     if (os.isMacOsX()) jpackageImage.doLast {
@@ -154,8 +161,12 @@ jlink {
 
 }
 
-if (!os.isWindows()) {
+if (!os.isWindows() && findProperty('installerType') != "tar.gz") {
     assemble.dependsOn jpackage
+}
+if (findProperty('installerType') == "tar.gz") {
+    jpackage.enabled = false
+    assemble.dependsOn createLinuxTargz
 }
 
 task createLinuxTargz(type: Tar, dependsOn: jpackageImage) {
@@ -185,7 +196,7 @@ task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be i
         delete "${buildDir}/jpackage/blobsaver.iss"
     }
 
-    if (os.isWindows()) {
+    if (os.isWindows() && findProperty('installerType') != "portable") {
         assemble.dependsOn windowsInstaller
     }
 }
