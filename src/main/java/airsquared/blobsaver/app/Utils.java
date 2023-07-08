@@ -37,10 +37,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Window;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
@@ -57,6 +55,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -224,21 +223,18 @@ final class Utils {
 
     static String executeProgram(List<String> command, boolean print) throws IOException {
         Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-        StringBuilder logBuilder = new StringBuilder();
-
-        try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (print) {
-                    System.out.println(line);
-                }
-                logBuilder.append(line).append("\n");
+        String log;
+        try (var reader = process.inputReader()) {
+            if (print) {
+                log = reader.lines().peek(System.out::println).collect(Collectors.joining("\n"));
+            } else {
+                log = reader.lines().collect(Collectors.joining("\n"));
             }
             process.waitFor();
+            return log;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return logBuilder.toString();
     }
 
     static void reportError(Alert alert) {

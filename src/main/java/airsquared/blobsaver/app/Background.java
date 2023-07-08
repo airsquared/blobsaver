@@ -20,9 +20,7 @@ package airsquared.blobsaver.app;
 
 import com.sun.jna.Platform;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,7 +71,7 @@ class Background {
                 "</dict>" +
                 "</plist>";
         try {
-            Files.createDirectories(Path.of(System.getProperty("user.home"), "Library/LaunchAgents"));
+            Files.createDirectories(plistFilePath.getParent());
             Files.writeString(plistFilePath, plist);
             System.out.println("Wrote to: " + plistFilePath);
         } catch (IOException e) {
@@ -272,8 +270,7 @@ class Background {
     }
 
     private static boolean outputMatches(Predicate<String> predicate, String... args) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                new ProcessBuilder(args).redirectErrorStream(true).start().getInputStream()))) {
+        try (var reader = new ProcessBuilder(args).redirectErrorStream(true).start().inputReader()) {
             return reader.lines().anyMatch(predicate);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

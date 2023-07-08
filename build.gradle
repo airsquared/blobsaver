@@ -27,15 +27,15 @@ plugins {
 
     id 'idea'
 }
-idea.module.outputDir file("out/production/classes") // fix running via IntelliJ
+idea.module.outputDir file('out/production/classes') // fix running via IntelliJ
 
 /*
  * REMEMBER: also update the version string in Main.java
  */
-version = "3.5.1"
-description = "A cross-platform GUI and CLI app for saving SHSH blobs"
-String appIdentifier = "airsquared.blobsaver.app"
-String copyright = "Copyright (c) 2023 airsquared"
+version = '3.5.1'
+description = 'A cross-platform GUI and CLI app for saving SHSH blobs'
+String appIdentifier = 'airsquared.blobsaver.app'
+String copyright = 'Copyright (c) 2023 airsquared'
 def os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
@@ -56,7 +56,7 @@ dependencies {
     implementation 'info.picocli:picocli:4.7.4'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
-    testImplementation group: 'org.testfx', name: 'openjfx-monocle', version: 'jdk-12.0.1+2'
+    testImplementation 'org.testfx:openjfx-monocle:jdk-12.0.1+2'
 }
 
 javafx {
@@ -71,26 +71,26 @@ compileJava {
 }
 
 application {
-    mainModule = "airsquared.blobsaver"
-    mainClass = "airsquared.blobsaver.app.Main"
+    mainModule = 'airsquared.blobsaver'
+    mainClass = 'airsquared.blobsaver.app.Main'
     applicationDefaultJvmArgs.addAll addExports
 }
 
 private String getJarDirectory() {
     String dir = ""
-    if (DefaultNativePlatform.currentOperatingSystem.isMacOsX()) dir = "macos/Contents"
-    else if (DefaultNativePlatform.currentOperatingSystem.isWindows()) dir = "windows/files"
-    else if (DefaultNativePlatform.currentOperatingSystem.isLinux()) dir = "linux"
+    if (DefaultNativePlatform.currentOperatingSystem.isMacOsX()) dir = 'macos/Contents'
+    else if (DefaultNativePlatform.currentOperatingSystem.isWindows()) dir = 'windows/files'
+    else if (DefaultNativePlatform.currentOperatingSystem.isLinux()) dir = 'linux'
     return "${projectDir}/dist/${dir}"
 }
 
 run {
-    systemProperty "jar.directory", getJarDirectory()
+    systemProperty 'jar.directory', getJarDirectory()
 }
 
 test {
     useJUnitPlatform()
-    systemProperty "jar.directory", getJarDirectory()
+    systemProperty 'jar.directory', getJarDirectory()
     jvmArgs addExports
     jvmArgs '--add-exports=javafx.graphics/com.sun.glass.ui=org.testfx.monocle'
 }
@@ -103,7 +103,7 @@ jlink {
     launcher {
         jvmArgs = [ '-Djar.directory={{BIN_DIR}}' ]
         jvmArgs.addAll addExports
-        if (findProperty("noConsole") != 'false') {
+        if (findProperty('noConsole') != 'false') {
             noConsole = true
         }
     }
@@ -114,9 +114,9 @@ jlink {
         installerOutputDir = file("${buildDir}/distributions/")
 
         if (os.isMacOsX()) {
-            installerType = "dmg"
-            String arch = DefaultNativePlatform.currentArchitecture.amd64 ? "intel" : "arm"
-            installerName = name + "-" + arch
+            installerType = 'dmg'
+            String arch = DefaultNativePlatform.currentArchitecture.amd64 ? 'intel' : 'arm'
+            installerName = "${name}-${arch}"
             imageOptions.addAll '--mac-package-identifier', appIdentifier
             icon = "${projectDir}/dist/macos/Contents/Resources/blob.icns"
         } else if (os.isWindows()) {
@@ -143,13 +143,13 @@ jlink {
             into "${buildDir}/jpackage/blobsaver.app/Contents/Resources"
         }
         exec { // needed to prevent "application is damaged" error when opening quarantined app
-            commandLine "codesign", "--force", "--deep", "--sign", "-", "${buildDir}/jpackage/blobsaver.app"
+            commandLine 'codesign', '--force', '--deep', '--sign', '-', "${buildDir}/jpackage/blobsaver.app"
         }
     } else if (os.isWindows()) jpackageImage.doLast {
         copy {
             from "${projectDir}/dist/windows/files", "${buildDir}/jpackage/blobsaver/runtime/bin/zip.dll"
-            rename "LICENSE_windows", "LICENSE"
-            rename "libraries_used_windows.txt", "libraries_used.txt"
+            rename 'LICENSE_windows', 'LICENSE'
+            rename 'libraries_used_windows.txt', 'libraries_used.txt'
             into "${buildDir}/jpackage/blobsaver"
         }
     } else jpackageImage.doLast {
@@ -161,23 +161,22 @@ jlink {
 
 }
 
-if (!os.isWindows() && findProperty('installerType') != "tar.gz") {
-    assemble.dependsOn jpackage
-}
-if (findProperty('installerType') == "tar.gz") {
-    jpackage.enabled = false
-    assemble.dependsOn createLinuxTargz
+task createZip(type: Zip, dependsOn: jpackageImage) {
+    if (os.isMacOsX()) {
+        String arch = DefaultNativePlatform.currentArchitecture.amd64 ? 'intel' : 'arm'
+        archiveFileName = "${project.name}-${arch}-${project.version}.zip"
+    } else {
+        archiveFileName = "${project.name}-${project.version}.zip"
+    }
+    from "${buildDir}/jpackage"
+    destinationDirectory = file("${buildDir}/distributions/")
 }
 
 task createLinuxTargz(type: Tar, dependsOn: jpackageImage) {
     archiveFileName = "blobsaver-${project.version}.tar.gz"
     compression = Compression.GZIP
-    destinationDirectory = file("${buildDir}/distributions/")
     from "${buildDir}/jpackage/blobsaver"
-
-    if (os.isLinux()) {
-        jpackage.finalizedBy createLinuxTargz
-    }
+    destinationDirectory = file("${buildDir}/distributions/")
 }
 
 task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be installed
@@ -191,12 +190,36 @@ task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be i
                                            OutputDir: "${buildDir}\\distributions".toString()])
         }
         exec {
-            commandLine "iscc", "/Qp", "${buildDir}\\jpackage\\blobsaver.iss"
+            commandLine 'iscc', '/Qp', "${buildDir}\\jpackage\\blobsaver.iss"
         }
         delete "${buildDir}/jpackage/blobsaver.iss"
     }
+}
 
-    if (os.isWindows() && findProperty('installerType') != "portable") {
-        assemble.dependsOn windowsInstaller
-    }
+task bumpCaskPR(type: Exec) {
+    commandLine 'brew', 'bump-cask-pr', 'blobsaver', '--no-audit', '--no-style', '--version', version
+}
+
+if (!os.isWindows()) { // never do jpackage on windows
+    assemble.dependsOn jpackage // will be disabled on other OS if installerType is set to certain values
+}
+if (findProperty('installerType') == 'tar.gz') {
+    jpackage.enabled = false
+    assemble.dependsOn createLinuxTargz
+}
+if (findProperty('installerType') == 'zip') {
+    jpackage.enabled = false
+    assemble.dependsOn createZip
+}
+if (findProperty('installerType') == 'portable') {
+    jpackage.enabled = false
+}
+if (os.isMacOsX() && findProperty('installerType') == null) {
+    jpackage.finalizedBy createZip
+}
+if (os.isLinux() && findProperty('installerType') == null) {
+    jpackage.finalizedBy createLinuxTargz
+}
+if (os.isWindows() && findProperty('installerType') == null) {
+    assemble.dependsOn windowsInstaller
 }

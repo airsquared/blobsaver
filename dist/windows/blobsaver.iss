@@ -4,8 +4,8 @@
 #define MyAppName "@AppName@"
 #define MyAppVersion "@AppVersion@"
 #define MyAppPublisher "airsquared"
-#define MyAppURL "https://www.github.com/airsquared/blobsaver"
-#define MyAppExeName "blobsaver.exe"
+#define MyAppURL "https://www.github.com/airsquared/@AppName@"
+#define MyAppExeName "@AppName@.exe"
 #define MyAppCopyright "@AppCopyright@"
 #define OutputDir "@OutputDir@"
 
@@ -28,7 +28,7 @@ Uninstallable=not IsTaskSelected('portableMode')
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
-OutputBaseFilename=blobsaver-{#MyAppVersion}
+OutputBaseFilename={#MyAppName}-{#MyAppVersion}
 SetupIconFile=blob.ico
 Compression=lzma
 SolidCompression=yes
