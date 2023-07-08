@@ -24,9 +24,10 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build --no-daemon
-      - uses: actions/upload-artifact@v3
+      - uses: initdc/upload-artifact@feat/artifact-per-file
         with:
-          name: ${{ runner.os }}
+          artifact-per-file: true
+          artifact-name-rule: ${{ runner.os }}${ext}
           path: build/distributions/*
       - name: Upload reports on failure
         if: ${{ failure() }}

@@ -172,10 +172,15 @@ task createZip(type: Zip, dependsOn: jpackageImage) {
     destinationDirectory = file("${buildDir}/distributions/")
 }
 
-task createLinuxTargz(type: Tar, dependsOn: jpackageImage) {
-    archiveFileName = "blobsaver-${project.version}.tar.gz"
+task createTgz(type: Tar, dependsOn: jpackageImage) {
+    if (os.isMacOsX()) {
+        String arch = DefaultNativePlatform.currentArchitecture.amd64 ? 'intel' : 'arm'
+        archiveFileName = "${project.name}-${arch}-${project.version}.tgz"
+    } else {
+        archiveFileName = "${project.name}-${project.version}.tgz"
+    }
     compression = Compression.GZIP
-    from "${buildDir}/jpackage/blobsaver"
+    from "${buildDir}/jpackage"
     destinationDirectory = file("${buildDir}/distributions/")
 }
 
@@ -203,9 +208,9 @@ task bumpCaskPR(type: Exec) {
 if (!os.isWindows()) { // never do jpackage on windows
     assemble.dependsOn jpackage // will be disabled on other OS if installerType is set to certain values
 }
-if (findProperty('installerType') == 'tar.gz') {
+if (findProperty('installerType') == 'tar.gz' || findProperty('installerType') == 'tgz') {
     jpackage.enabled = false
-    assemble.dependsOn createLinuxTargz
+    assemble.dependsOn createTgz
 }
 if (findProperty('installerType') == 'zip') {
     jpackage.enabled = false
@@ -218,7 +223,7 @@ if (os.isMacOsX() && findProperty('installerType') == null) {
     jpackage.finalizedBy createZip
 }
 if (os.isLinux() && findProperty('installerType') == null) {
-    jpackage.finalizedBy createLinuxTargz
+    jpackage.finalizedBy createTgz
 }
 if (os.isWindows() && findProperty('installerType') == null) {
     assemble.dependsOn windowsInstaller

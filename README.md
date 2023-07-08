@@ -18,6 +18,10 @@ A cross-platform GUI and CLI for automatically saving SHSH blobs. [Download](htt
 - Automate all features with the CLI
 - Save blobs to TSS Saver and SHSH Host as well with one click
 
+## Nightly Builds
+
+You can get the latest nightly build [here](https://nightly.link/airsquared/blobsaver/workflows/main/master) or get older nightly builds at [Actions](https://github.com/airsquared/blobsaver/actions).
+
 ## Feedback
 
 Please send feedback via [Github Issue](https://github.com/airsquared/blobsaver/issues/new/choose) if you encounter any
@@ -25,11 +29,11 @@ bugs/problems or have a feature request.
 
 ## Built With
 
-- JDK 18
+- JDK 19
 - [IntelliJ Idea](https://www.jetbrains.com/idea/)
 - [Gradle](https://gradle.org/)
 - [JLink Plugin](https://github.com/beryx/badass-jlink-plugin)
-- [Inno Setup](http://www.jrsoftware.org/isinfo.php) (creating Windows installer)
+- [Inno Setup](http://www.jrsoftware.org/isinfo.php) (Windows installer)
 
 See the full credits [here](libraries_used.txt).
 
