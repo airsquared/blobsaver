@@ -91,8 +91,12 @@ public class Network {
     }
 
     static HttpResponse<Path> downloadFile(String url, Path dir) throws IOException, InterruptedException {
-        return httpClient.send(HttpRequest.newBuilder(URI.create(url)).build(),
+        var response = httpClient.send(HttpRequest.newBuilder(URI.create(url)).build(),
                 HttpResponse.BodyHandlers.ofFile(dir, WRITE, CREATE, TRUNCATE_EXISTING));
+        if (response.statusCode() != 200) {
+            throw new IOException("HTTP Response was " + response);
+        }
+        return response;
     }
 
     /**
