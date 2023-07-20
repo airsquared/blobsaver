@@ -296,13 +296,12 @@ public class TSS extends Task<String> {
                 return Collections.singletonList(new Utils.IOSVersion(null, null, manualIpswURL, null));
             } else if (includeBetas) {
                 var signedFirmwares = getSignedFirmwares(deviceIdentifier);
-                Stream<Utils.IOSVersion> signedBetas;
                 try {
-                    signedBetas = getSignedBetas(deviceIdentifier);
-                } catch (IOException e) {
-                    throw new TSSException("There was an error with the beta API; try without including beta versions.", false, e);
+                    Stream<Utils.IOSVersion> signedBetas = getSignedBetas(deviceIdentifier);
+                    return Stream.concat(signedFirmwares, signedBetas).toList();
+                } catch (Exception e) {
+                    throw new TSSException("There was an error retrieving beta versions; try without including beta versions.", false, e);
                 }
-                return Stream.concat(signedFirmwares, signedBetas).toList();
             } else { // all signed firmwares
                 return getSignedFirmwares(deviceIdentifier).toList();
             }

@@ -97,6 +97,7 @@ public class Controller {
                 betaCheckBox.setSelected(false);
             }
         });
+        betaCheckBox.selectedProperty().addListener(__ -> betaCheckBox.setEffect(null));
         switch (Prefs.getDarkMode()) {
             case DISABLED -> darkDisabled.setSelected(true);
             case SYNC_WITH_OS -> darkSync.setSelected(true);
@@ -716,6 +717,8 @@ public class Controller {
                 ipswField.setEffect(Utils.errorBorder);
             } else if (message.contains("not being signed") && !allSignedVersionsCheckBox.isSelected()) {
                 versionField.setEffect(Utils.errorBorder);
+            } else if (message.contains("without including beta versions") && betaCheckBox.isSelected()) {
+                betaCheckBox.setEffect(Utils.errorBorder);
             }
             e.showErrorAlert();
         } else {

@@ -22,13 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.sun.jna.Platform;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextFormatter;
+import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -51,6 +45,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -269,6 +264,16 @@ final class Utils {
         return alert.getResult();
     }
 
+    static ButtonType showUnreportableError(String msg, String toShow, ButtonType... buttons) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, msg, buttons);
+        resizeAlertButtons(alert);
+        var text = new TextArea(toShow);
+        text.setEditable(false);
+        alert.getDialogPane().setExpandableContent(text);
+        alert.showAndWait();
+        return alert.getResult();
+    }
+
     static void showInfoAlert(String msg, ButtonType... buttons) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, buttons);
         alert.showAndWait();
@@ -374,10 +379,16 @@ final class Utils {
 
     static Stream<IOSVersion> getBetaHubList(String deviceIdentifier, boolean betas) throws IOException {
         String url = "https://www.betahub.cn/api/apple/firmwares/" + deviceIdentifier + "?type=" + (betas ? 2 : 1);
-        JsonArray firmwares = Network.makeJsonRequest(url).getAsJsonObject().getAsJsonArray("firmwares");
-        return StreamSupport.stream(firmwares.spliterator(), false)
-                .map(JsonElement::getAsJsonObject)
-                .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("build_id").getAsString(), o.get("url").getAsString(), o.get("signing").getAsInt() == 1));
+
+        JsonElement response = Network.makeJsonRequest(url);
+        try {
+            var firmwares = response.getAsJsonObject().getAsJsonArray("firmwares");
+            return StreamSupport.stream(firmwares.spliterator(), false)
+                    .map(JsonElement::getAsJsonObject)
+                    .map(o -> new IOSVersion(o.get("version").getAsString(), o.get("build_id").getAsString(), o.get("url").getAsString(), o.get("signing").getAsInt() == 1));
+        } catch (NullPointerException e) {
+            throw new NoSuchElementException("Unable to extract iOS Versions from JSON:\n" + response, e);
+        }
     }
 
     private static Stream<IOSVersion> createVersionStream(JsonArray array) {
