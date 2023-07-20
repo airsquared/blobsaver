@@ -25,6 +25,7 @@ import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -173,11 +174,17 @@ public class Network {
                 if (pos > 0)
                     connection.addRequestProperty("Range", "bytes=" + pos + "-");
                 ch = Channels.newChannel(connection.getInputStream());
+                if (connection instanceof HttpURLConnection c && c.getResponseCode() != 200) {
+                    throw new IOException("HTTP Response was " + c.getResponseCode() + " " + Utils.defIfNull(c.getResponseMessage(), ""));
+                }
                 String resp = connection.getHeaderField("Content-Range");
                 if (resp != null) {
                     length = Long.parseLong(resp.split("/")[1]);
                 } else {
                     resp = connection.getHeaderField("Content-Length");
+                    if (resp == null) {
+                        throw new IOException("No Content-Range or Content-Length header");
+                    }
                     length = Long.parseLong(resp);
                 }
             }

@@ -108,11 +108,13 @@ public class TSS extends Task<String> {
                 saveFor(iosVersion, args);
             } catch (TSSException e) {
                 if (manualVersion == null && manualIpswURL == null) {
-                    if (e.getMessage().contains("not being signed")) {
+                    var msg = e.getMessage();
+                    if (msg.contains("not being signed")) {
                         System.err.println("Warning: ignoring unsigned version; API is likely out of date");
                         continue; // ignore not being signed (API might not be updated)
                     }
-                    if (e.getMessage().contains("Failed to load manifest") && includeBetas
+                    if ((msg.contains("Failed to load manifest") || msg.contains("Unable to extract BuildManifest"))
+                            && includeBetas
                             && containsIgnoreCase(iosVersion.versionString(), "beta")
                             && iosVersion.ipswURL().contains("developer.apple")) {
                         System.err.println("Warning: ignoring developer beta");
