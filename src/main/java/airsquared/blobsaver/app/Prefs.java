@@ -211,6 +211,16 @@ public final class Prefs {
             }
         }
 
+        public void rename(String name) { // intentionally different name
+            if (getName().equals(name) || Utils.isEmptyOrNull(name)) {
+                return;
+            }
+            new SavedDeviceBuilder(name).setEcid(getEcid()).setSavePath(getSavePath()).setIdentifier(getIdentifier())
+                    .setBoardConfig(getBoardConfig().orElse(null)).setApnonce(getApnonce().orElse(null))
+                    .setGenerator(getGenerator().orElse(null)).setIncludeBetas(doesIncludeBetas()).save().setBackground(isBackground());
+            delete();
+        }
+
         public String getName() {
             return node.name();
         }
