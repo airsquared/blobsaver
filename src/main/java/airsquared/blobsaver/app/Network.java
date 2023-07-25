@@ -174,7 +174,7 @@ public class Network {
                 if (pos > 0)
                     connection.addRequestProperty("Range", "bytes=" + pos + "-");
                 ch = Channels.newChannel(connection.getInputStream());
-                if (connection instanceof HttpURLConnection c && c.getResponseCode() != 200) {
+                 if (connection instanceof HttpURLConnection c && (c.getResponseCode() < 200 || c.getResponseCode() > 299)) {
                     throw new IOException("HTTP Response was " + c.getResponseCode() + " " + Utils.defIfNull(c.getResponseMessage(), ""));
                 }
                 String resp = connection.getHeaderField("Content-Range");
