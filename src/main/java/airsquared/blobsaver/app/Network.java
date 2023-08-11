@@ -24,6 +24,7 @@ import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -82,8 +83,15 @@ public class Network {
     }
 
     static JsonElement makeJsonRequest(String url) throws IOException {
-        try (var inputStream = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
-            return JsonParser.parseReader(inputStream);
+        try {
+            HttpResponse<InputStream> response = httpClient.send(HttpRequest.newBuilder(URI.create(url)).build(),
+                    HttpResponse.BodyHandlers.ofInputStream());
+            if (failure(response.statusCode())) {
+                throw new IOException("HTTP Response was " + response);
+            }
+            return JsonParser.parseReader(new BufferedReader(new InputStreamReader(response.body())));
+        } catch (InterruptedException e) {
+            throw new IOException(e);
         }
     }
 
@@ -94,10 +102,14 @@ public class Network {
     static HttpResponse<Path> downloadFile(String url, Path dir) throws IOException, InterruptedException {
         var response = httpClient.send(HttpRequest.newBuilder(URI.create(url)).build(),
                 HttpResponse.BodyHandlers.ofFile(dir, WRITE, CREATE, TRUNCATE_EXISTING));
-        if (response.statusCode() != 200) {
+        if (failure(response.statusCode())) {
             throw new IOException("HTTP Response was " + response);
         }
         return response;
+    }
+
+    private static boolean failure(int statusCode) {
+        return statusCode < 200 || statusCode > 299;
     }
 
     /**

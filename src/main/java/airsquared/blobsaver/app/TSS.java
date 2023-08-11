@@ -302,7 +302,7 @@ public class TSS extends Task<String> {
                     Stream<Utils.IOSVersion> signedBetas = getSignedBetas(deviceIdentifier);
                     return Stream.concat(signedFirmwares, signedBetas).toList();
                 } catch (Exception e) {
-                    throw new TSSException("There was an error retrieving beta versions; try without including beta versions.", false, e);
+                    throw new TSSException("There was an error retrieving beta versions; try without including beta versions. For more information, try again with the debug log open.", false, e);
                 }
             } else { // all signed firmwares
                 return getSignedFirmwares(deviceIdentifier).toList();
