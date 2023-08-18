@@ -7,6 +7,7 @@
       <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">
         <value>
           <package name="airsquared.blobsaver.app.Libimobiledevice" withSubpackages="true" static="true" />
+          <package name="org.junit.jupiter.api.Assertions" withSubpackages="true" static="true" />
         </value>
       </option>
     </JavaCodeStyleSettings>

@@ -23,7 +23,7 @@ jobs:
       - name: Gradle build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build --no-daemon
+          arguments: build --no-daemon --scan
       - uses: initdc/upload-artifact@feat/artifact-per-file
         with:
           artifact-per-file: true

@@ -228,3 +228,10 @@ if (os.isLinux() && findProperty('installerType') == null) {
 if (os.isWindows() && findProperty('installerType') == null) {
     assemble.dependsOn windowsInstaller
 }
+
+if (hasProperty('buildScan')) {
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+    }
+}

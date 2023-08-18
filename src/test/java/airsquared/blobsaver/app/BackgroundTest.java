@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021  airsquared
+ * Copyright (c) 2023  airsquared
  *
  * This file is part of blobsaver.
  *
@@ -18,26 +18,19 @@
 
 package airsquared.blobsaver.app;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
-import java.nio.file.Path;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class TSSTest extends BlobsaverTest {
-
-    @Test
-    public void normal(@TempDir Path savePath) throws TSS.TSSException {
-        TSS tss = new TSS.Builder().setDevice("iPhone12,8").setEcid("1").setSavePath(savePath.toString())
-                .build();
-        tss.call();
-    }
+class BackgroundTest extends BlobsaverTest {
 
     @Test
-    @Disabled
-    public void betas(@TempDir Path savePath) throws TSS.TSSException {
-        TSS tss = new TSS.Builder().setDevice("iPhone12,8").setEcid("1").setSavePath(savePath.toString())
-                .setIncludeBetas(true).build();
-        tss.call();
+    @EnabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
+    void background() {
+        Background.startBackground();
+        assertTrue(Background.isBackgroundEnabled());
+        Background.stopBackground();
+        assertFalse(Background.isBackgroundEnabled());
     }
 }

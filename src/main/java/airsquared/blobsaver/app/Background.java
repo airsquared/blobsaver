@@ -26,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.function.Predicate;
 
 class Background {
 
@@ -178,7 +177,6 @@ class Background {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
     }
 
     public static void startBackground() {
@@ -208,18 +206,11 @@ class Background {
 
     public static boolean isBackgroundEnabled() {
         if (Platform.isMac()) {
-            return outputMatches(s -> s.contains(backgroundLabel), "/bin/launchctl", "list");
+            return exitCode("/bin/launchctl", "list", backgroundLabel) == 0;
         } else if (Platform.isWindows()) {
-            return outputMatches(s -> s.contains("Ready") || s.contains("Running"), "schtasks", "/Query", "/TN", windowsTaskName);
+            return exitCode("schtasks", "/Query", "/TN", windowsTaskName) == 0;
         } else {
-            try {
-                return new ProcessBuilder("systemctl", "is-enabled", "--user", "--quiet", "blobsaver.timer")
-                        .start().waitFor() == 0;
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            return exitCode("systemctl", "is-enabled", "--user", "--quiet", "blobsaver.timer") == 0;
         }
     }
 
@@ -258,20 +249,22 @@ class Background {
         execute("systemctl", args);
     }
 
+    private static int exitCode(String... command) {
+        try {
+            return new ProcessBuilder(command).start().waitFor();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void execute(String program, String... args) {
         ArrayList<String> arguments = new ArrayList<>(args.length + 1);
         arguments.add(program);
         Collections.addAll(arguments, args);
         try {
             Utils.executeProgram(arguments);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private static boolean outputMatches(Predicate<String> predicate, String... args) {
-        try (var reader = new ProcessBuilder(args).redirectErrorStream(true).start().inputReader()) {
-            return reader.lines().anyMatch(predicate);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
