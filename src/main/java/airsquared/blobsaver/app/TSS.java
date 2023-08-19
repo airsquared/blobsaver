@@ -302,6 +302,9 @@ public class TSS extends Task<String> {
                     Stream<Utils.IOSVersion> signedBetas = getSignedBetas(deviceIdentifier);
                     return Stream.concat(signedFirmwares, signedBetas).toList();
                 } catch (Exception e) {
+                    if (e.getMessage().startsWith("HTTP Response was (GET https://www.betahub.cn/api/apple/firmwares/")) {
+                        throw new TSSException("There was an error retrieving beta versions; try without including beta versions.\n\nThis is a known issue. See issue #603 on GitHub for more information.", false, e);
+                    }
                     throw new TSSException("There was an error retrieving beta versions; try without including beta versions. For more information, try again with the debug log open.", false, e);
                 }
             } else { // all signed firmwares
