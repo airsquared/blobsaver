@@ -23,10 +23,8 @@ import javafx.concurrent.Task;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -265,10 +263,10 @@ public class TSS extends Task<String> {
         if (manualIpswURL != null) { // check URL
             try {
                 if (!ipswURLPattern.matcher(manualIpswURL).matches()) {
-                    throw new MalformedURLException("Doesn't match ipsw URL regex");
+                    throw new URISyntaxException(manualIpswURL, "Doesn't match ipsw URL regex");
                 }
-                new URL(manualIpswURL); // check URL
-            } catch (MalformedURLException e) {
+                new URI(manualIpswURL); // check URL
+            } catch (URISyntaxException e) {
                 throw new TSSException("The IPSW URL is not valid.\n\nMake sure it's a valid URL that ends with \".ipsw\" or \".plist\"", false, e);
             }
             if (manualIpswURL.startsWith("file:")) try {
@@ -456,7 +454,7 @@ public class TSS extends Task<String> {
     /**
      * Checked exception for all TSS related errors.
      */
-    static class TSSException extends Exception {
+    public static class TSSException extends Exception {
 
         public final String tssLog;
         public final boolean isReportable;

@@ -40,7 +40,7 @@ def os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(19)
+java.toolchain.languageVersion = JavaLanguageVersion.of(20)
 
 repositories {
     mavenCentral()

@@ -26,7 +26,8 @@ import com.sun.jna.ptr.PointerByReference;
 /**
  * https://github.com/libimobiledevice/libirecovery/blob/master/src/libirecovery.c
  */
-public class Libirecovery {
+@SuppressWarnings("UnusedReturnValue")
+public final class Libirecovery {
 
     public static int open(PointerByReference irecv_client) {
         return irecv_open_with_ecid(irecv_client, 0);

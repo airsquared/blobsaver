@@ -29,11 +29,11 @@ bugs/problems or have a feature request.
 
 ## Built With
 
-- JDK 19
+- JDK 20
 - [IntelliJ Idea](https://www.jetbrains.com/idea/)
 - [Gradle](https://gradle.org/)
 - [JLink Plugin](https://github.com/beryx/badass-jlink-plugin)
-- [Inno Setup](http://www.jrsoftware.org/isinfo.php) (Windows installer)
+- [Inno Setup](http://www.jrsoftware.org/isinfo.php) (Windows)
 
 See the full credits [here](libraries_used.txt).
 

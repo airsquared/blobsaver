@@ -37,7 +37,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.ByteOrder;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
@@ -411,11 +410,12 @@ final class Utils {
         }
     }
 
+    // assumes that ipswUrl has been checked with `new URI(ipswUrl)`
     static Path extractBuildManifest(String ipswUrl) throws IOException {
         Path buildManifest = Files.createTempFile("BuildManifest", ".plist");
         buildManifest.toFile().deleteOnExit();
         if (ipswUrl.matches("https?://.*apple.*\\.ipsw")) {
-            var fileName = Path.of(new URL(ipswUrl).getPath()).getFileName().toString();
+            var fileName = Path.of(URI.create(ipswUrl).getPath()).getFileName().toString();
             var manifestURL = ipswUrl.replace(fileName, "BuildManifest.plist");
             try {
                 return Network.downloadFile(manifestURL, buildManifest).body().toRealPath();
@@ -442,7 +442,7 @@ final class Utils {
     private static void extractManifestFromZip(String ipswUrl, Path extractTo) throws IOException {
         SeekableByteChannel channel = ipswUrl.startsWith("file:")
                 ? Files.newByteChannel(Path.of(URI.create(ipswUrl)), StandardOpenOption.READ)
-                : new Network.HttpChannel(new URL(ipswUrl));
+                : new Network.HttpChannel(URI.create(ipswUrl).toURL());
         try (channel; var ipsw = new ZipFile(channel, "ipsw", "UTF8", true, true);
              var stream = ipsw.getInputStream(ipsw.getEntry("BuildManifest.plist"))) {
             Files.copy(stream, extractTo, StandardCopyOption.REPLACE_EXISTING);

@@ -131,7 +131,7 @@ public class Main {
         }
 
         @Override
-        @SuppressWarnings("ConstantConditions")
+        @SuppressWarnings("DataFlowIssue")
         public void start(Stage primaryStage) {
             Main.primaryStage = primaryStage;
             Parent root = null;

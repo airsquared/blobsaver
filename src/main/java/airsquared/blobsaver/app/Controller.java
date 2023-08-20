@@ -296,7 +296,7 @@ public class Controller {
         Prefs.setDarkMode((Prefs.DarkMode) darkMode.getUserData());
     }
 
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings("DataFlowIssue")
     private void updateDarkMode(boolean enable) {
         if (enable) {
             // eventually replace with https://github.com/openjdk/jfx/pull/511 once released

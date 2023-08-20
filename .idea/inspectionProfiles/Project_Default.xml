@@ -5,5 +5,22 @@
     <inspection_tool class="EnhancedSwitchMigration" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myWarnOnlyOnExpressionConversion" value="true" />
     </inspection_tool>
+    <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredUrls">
+        <list>
+          <option value="http://www.w3.org/" />
+          <option value="http://json-schema.org/draft" />
+          <option value="http://java.sun.com/" />
+          <option value="http://xmlns.jcp.org/" />
+          <option value="http://javafx.com/javafx/" />
+          <option value="http://javafx.com/fxml" />
+          <option value="http://maven.apache.org/xsd/" />
+          <option value="http://maven.apache.org/POM/" />
+          <option value="http://schemas.xmlsoap.org/" />
+          <option value="http://www.google-analytics.com" />
+          <option value="http://www.apple.com" />
+        </list>
+      </option>
+    </inspection_tool>
   </profile>
 </component>
