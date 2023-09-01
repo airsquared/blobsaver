@@ -201,8 +201,8 @@ task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be i
     }
 }
 
-task bumpCaskPR(type: Exec) {
-    commandLine 'brew', 'bump-cask-pr', 'blobsaver', '--no-audit', '--no-style', '--version', version
+task bumpCaskPR(type: Exec) { // TODO: make into a github workflow
+    commandLine "${projectDir}/dist/macos/bump-cask-pr.bash", version
 }
 
 if (!os.isWindows()) { // never do jpackage on windows
