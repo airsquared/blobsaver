@@ -23,7 +23,8 @@ plugins {
     id 'application'
     id 'com.github.ben-manes.versions' version '0.46.0'
     id 'org.beryx.jlink' version '2.26.0'
-    id 'org.openjfx.javafxplugin' version '0.0.14'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'org.javamodularity.moduleplugin' version '1.8.12'
 
     id 'idea'
 }
@@ -77,7 +78,7 @@ application {
 }
 
 private String getJarDirectory() {
-    String dir = ""
+    String dir = ''
     if (DefaultNativePlatform.currentOperatingSystem.isMacOsX()) dir = 'macos/Contents'
     else if (DefaultNativePlatform.currentOperatingSystem.isWindows()) dir = 'windows/files'
     else if (DefaultNativePlatform.currentOperatingSystem.isLinux()) dir = 'linux'
@@ -111,7 +112,7 @@ jlink {
         imageOptions = [ '--copyright', copyright, '--description', description]
         installerOptions.addAll '--about-url', 'https://github.com/airsquared/blobsaver'
         vendor = 'airsquared'
-        installerOutputDir = file("${buildDir}/distributions/")
+        installerOutputDir = layout.buildDirectory.dir('distributions').get().asFile
 
         if (os.isMacOsX()) {
             installerType = 'dmg'
@@ -133,32 +134,31 @@ jlink {
     }
     if (os.isMacOsX()) jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/macos/Contents/MacOS" into "${buildDir}/jpackage/blobsaver.app/Contents/MacOS"
+            from "${projectDir}/dist/macos/Contents/MacOS" into layout.buildDirectory.dir('jpackage/blobsaver.app/Contents/MacOS')
         }
         copy {
-            from "${projectDir}/dist/macos/Contents/Frameworks" into "${buildDir}/jpackage/blobsaver.app/Contents/Frameworks"
+            from "${projectDir}/dist/macos/Contents/Frameworks" into layout.buildDirectory.dir('jpackage/blobsaver.app/Contents/Frameworks')
         }
         copy {
             from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
-            into "${buildDir}/jpackage/blobsaver.app/Contents/Resources"
+            into layout.buildDirectory.dir('jpackage/blobsaver.app/Contents/Resources')
         }
         exec { // needed to prevent "application is damaged" error when opening quarantined app
-            commandLine 'codesign', '--force', '--deep', '--sign', '-', "${buildDir}/jpackage/blobsaver.app"
+            commandLine 'codesign', '--force', '--deep', '--sign', '-', "${layout.buildDirectory.get()}/jpackage/blobsaver.app"
         }
     } else if (os.isWindows()) jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/windows/files", "${buildDir}/jpackage/blobsaver/runtime/bin/zip.dll"
+            from "${projectDir}/dist/windows/files", layout.buildDirectory.dir('jpackage/blobsaver/runtime/bin/zip.dll')
             rename 'LICENSE_windows', 'LICENSE'
             rename 'libraries_used_windows.txt', 'libraries_used.txt'
-            into "${buildDir}/jpackage/blobsaver"
+            into layout.buildDirectory.dir('jpackage/blobsaver')
         }
     } else jpackageImage.doLast {
         copy {
             from "${projectDir}/dist/linux", "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
-            into "${buildDir}/jpackage/blobsaver/lib"
+            into layout.buildDirectory.dir('jpackage/blobsaver/lib')
         }
     }
-
 }
 
 task createZip(type: Zip, dependsOn: jpackageImage) {
@@ -168,8 +168,8 @@ task createZip(type: Zip, dependsOn: jpackageImage) {
     } else {
         archiveFileName = "${project.name}-${project.version}.zip"
     }
-    from "${buildDir}/jpackage"
-    destinationDirectory = file("${buildDir}/distributions/")
+    from layout.buildDirectory.dir('jpackage')
+    destinationDirectory = layout.buildDirectory.dir('distributions')
 }
 
 task createTgz(type: Tar, dependsOn: jpackageImage) {
@@ -180,24 +180,24 @@ task createTgz(type: Tar, dependsOn: jpackageImage) {
         archiveFileName = "${project.name}-${project.version}.tgz"
     }
     compression = Compression.GZIP
-    from "${buildDir}/jpackage"
-    destinationDirectory = file("${buildDir}/distributions/")
+    from layout.buildDirectory.dir('jpackage')
+    destinationDirectory = layout.buildDirectory.dir('distributions')
 }
 
-task windowsInstaller(dependsOn: jpackageImage) { // requires inno setup to be installed
+task windowsInstaller(type: Exec, dependsOn: jpackageImage) { // requires inno setup to be installed
     doFirst {
         copy {
-            from "${projectDir}/dist/windows/blob.ico" into "${buildDir}/jpackage"
+            from "${projectDir}/dist/windows/blob.ico" into layout.buildDirectory.dir('jpackage')
         }
         copy {
-            from "${projectDir}/dist/windows/blobsaver.iss" into "${buildDir}/jpackage"
+            from "${projectDir}/dist/windows/blobsaver.iss" into layout.buildDirectory.dir('jpackage')
             filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright,
-                                           OutputDir: "${buildDir}\\distributions".toString()])
+                                           OutputDir: "${layout.buildDirectory.get()}\\distributions".toString()])
         }
-        exec {
-            commandLine 'iscc', '/Qp', "${buildDir}\\jpackage\\blobsaver.iss"
-        }
-        delete "${buildDir}/jpackage/blobsaver.iss"
+    }
+    commandLine 'iscc', '/Qp', "${layout.buildDirectory.get()}\\jpackage\\blobsaver.iss"
+    doLast {
+        delete layout.buildDirectory.dir('jpackage/blobsaver.iss')
     }
 }
 
