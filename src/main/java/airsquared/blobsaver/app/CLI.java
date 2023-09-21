@@ -93,7 +93,7 @@ public class CLI implements Callable<Void> {
 
     @Option(names = "--save-path", paramLabel = "<path>",
             description = "Directory to save blobs in. Can use the following variables: " +
-                    "$${DeviceIdentifier}, $${BoardConfig}, $${APNonce}, $${Generator}, $${DeviceModel}, $${ECID}, $${FullVersionString}, $${BuildID}, and $${MajorVersion}.")
+                    "$${DeviceIdentifier}, $${BoardConfig}, $${APNonce}, $${Generator}, $${DeviceModel}, $${ECID}, $${FullVersionString}, $${BuildID}, $${MajorVersion} and $${Name} (if using a saved device).")
     File savePath;
 
     @ArgGroup
