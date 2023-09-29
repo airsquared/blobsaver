@@ -4,6 +4,7 @@ open module airsquared.blobsaver {
     requires javafx.controls;
     requires javafx.fxml;
     requires jdk.crypto.ec; // needed for ssl support in jlink'd image
+    requires jdk.unsupported; // for Unsafe
 
     requires com.sun.jna;
     requires nsmenufx;

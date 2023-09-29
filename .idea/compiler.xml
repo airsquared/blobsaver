@@ -2,11 +2,11 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <option name="USE_RELEASE_OPTION" value="false" />
-    <bytecodeTargetLevel target="20" />
+    <bytecodeTargetLevel target="21" />
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="blobsaver.main" options="--add-exports javafx.graphics/com.sun.javafx.css=airsquared.blobsaver --add-exports java.base/jdk.internal.misc=airsquared.blobsaver" />
+      <module name="blobsaver.main" options="--add-exports javafx.graphics/com.sun.javafx.css=airsquared.blobsaver" />
     </option>
   </component>
 </project>

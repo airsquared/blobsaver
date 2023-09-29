@@ -15,7 +15,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '20'
+          java-version: '21'
           distribution: 'zulu'
       - name: Install Linux dependencies
         run: sudo apt-get install libplist-dev libimobiledevice-dev libirecovery-1.0-dev
@@ -24,6 +24,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build --no-daemon --scan
+          dependency-graph: generate-and-submit
       - uses: initdc/upload-artifact@feat/artifact-per-file
         with:
           artifact-per-file: true

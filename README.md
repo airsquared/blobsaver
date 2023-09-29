@@ -29,7 +29,7 @@ bugs/problems or have a feature request.
 
 ## Built With
 
-- JDK 20
+- JDK 21
 - [IntelliJ Idea](https://www.jetbrains.com/idea/)
 - [Gradle](https://gradle.org/)
 - [JLink Plugin](https://github.com/beryx/badass-jlink-plugin)

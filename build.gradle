@@ -21,10 +21,9 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.46.0'
-    id 'org.beryx.jlink' version '2.26.0'
+    id 'com.github.ben-manes.versions' version '0.48.0'
+    id 'org.beryx.jlink' version '3.0.0'
     id 'org.openjfx.javafxplugin' version '0.1.0'
-    id 'org.javamodularity.moduleplugin' version '1.8.12'
 
     id 'idea'
 }
@@ -37,11 +36,11 @@ version = '3.5.2'
 description = 'A cross-platform GUI and CLI app for saving SHSH blobs'
 String appIdentifier = 'airsquared.blobsaver.app'
 String copyright = 'Copyright (c) 2023 airsquared'
-def os = DefaultNativePlatform.currentOperatingSystem
+var os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(20)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 repositories {
     mavenCentral()
@@ -57,28 +56,29 @@ dependencies {
     implementation 'info.picocli:picocli:4.7.5'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.testfx:openjfx-monocle:jdk-12.0.1+2'
 }
 
 javafx {
-    version = '20'
+    version = '21'
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
-def addExports = ['--add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver', '--add-exports=java.base/jdk.internal.misc=airsquared.blobsaver']
+var addExports = '--add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver'
 
 compileJava {
-    options.compilerArgs.addAll addExports
+    options.compilerArgs.add addExports
 }
 
 application {
     mainModule = 'airsquared.blobsaver'
     mainClass = 'airsquared.blobsaver.app.Main'
-    applicationDefaultJvmArgs.addAll addExports
+    applicationDefaultJvmArgs.add addExports
 }
 
 private String getJarDirectory() {
-    String dir = ''
+    var dir = ''
     if (DefaultNativePlatform.currentOperatingSystem.isMacOsX()) dir = 'macos/Contents'
     else if (DefaultNativePlatform.currentOperatingSystem.isWindows()) dir = 'windows/files'
     else if (DefaultNativePlatform.currentOperatingSystem.isLinux()) dir = 'linux'
@@ -86,14 +86,12 @@ private String getJarDirectory() {
 }
 
 run {
-    systemProperty 'jar.directory', getJarDirectory()
+    systemProperty 'jar.directory', jarDirectory
 }
 
 test {
     useJUnitPlatform()
-    systemProperty 'jar.directory', getJarDirectory()
-    jvmArgs addExports
-    jvmArgs '--add-exports=javafx.graphics/com.sun.glass.ui=org.testfx.monocle'
+    systemProperty 'jar.directory', jarDirectory
 }
 
 jlink {
@@ -102,8 +100,7 @@ jlink {
                 '--dedup-legal-notices=error-if-not-same-content'
     }
     launcher {
-        jvmArgs = [ '-Djar.directory={{BIN_DIR}}' ]
-        jvmArgs.addAll addExports
+        jvmArgs = [ '-Djar.directory={{BIN_DIR}}', addExports ]
         if (findProperty('noConsole') != 'false') {
             noConsole = true
         }
@@ -116,17 +113,23 @@ jlink {
 
         if (os.isMacOsX()) {
             installerType = 'dmg'
-            String arch = DefaultNativePlatform.currentArchitecture.amd64 ? 'intel' : 'arm'
+            var arch = DefaultNativePlatform.currentArchitecture.amd64 ? 'intel' : 'arm'
             installerName = "${name}-${arch}"
-            imageOptions.addAll '--mac-package-identifier', appIdentifier
+            //noinspection GroovyAssignabilityCheck
+            imageOptions.addAll '--mac-package-identifier', appIdentifier,
+                    '--app-content', "${projectDir}/dist/macos/Contents/Frameworks," +
+                                    "${projectDir}/dist/macos/Contents/MacOS"
             icon = "${projectDir}/dist/macos/Contents/Resources/blob.icns"
         } else if (os.isWindows()) {
             installerOptions.addAll '--win-dir-chooser', '--win-menu', '--win-shortcut'
             icon = "${projectDir}/dist/windows/blob.ico"
+            imageOptions.addAll '--app-content', fileTree("${projectDir}/dist/windows/files").join(',')
         } else {
             installerOptions.addAll '--linux-shortcut', '--linux-menu-group', 'Utility;Archiving;Java',
                     '--linux-rpm-license-type', 'GPLv3'
-            icon = "${projectDir}/src/main/resources/airsquared/blobsaver/app/blob_emoji.png"
+            icon = "${projectDir}/src/main/resources/airsquared/blobsaver/app/blob.png"
+            imageOptions.addAll '--app-content', fileTree("${projectDir}/dist/linux").join(',') + ',' +
+                                                "${projectDir}/LICENSE,${projectDir}/libraries_used.txt"
         }
         if (findProperty('installerType') != null) {
             installerType = findProperty('installerType')
@@ -134,29 +137,11 @@ jlink {
     }
     if (os.isMacOsX()) jpackageImage.doLast {
         copy {
-            from "${projectDir}/dist/macos/Contents/MacOS" into layout.buildDirectory.dir('jpackage/blobsaver.app/Contents/MacOS')
-        }
-        copy {
-            from "${projectDir}/dist/macos/Contents/Frameworks" into layout.buildDirectory.dir('jpackage/blobsaver.app/Contents/Frameworks')
-        }
-        copy {
             from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
             into layout.buildDirectory.dir('jpackage/blobsaver.app/Contents/Resources')
         }
         exec { // needed to prevent "application is damaged" error when opening quarantined app
             commandLine 'codesign', '--force', '--deep', '--sign', '-', "${layout.buildDirectory.get()}/jpackage/blobsaver.app"
-        }
-    } else if (os.isWindows()) jpackageImage.doLast {
-        copy {
-            from "${projectDir}/dist/windows/files", layout.buildDirectory.dir('jpackage/blobsaver/runtime/bin/zip.dll')
-            rename 'LICENSE_windows', 'LICENSE'
-            rename 'libraries_used_windows.txt', 'libraries_used.txt'
-            into layout.buildDirectory.dir('jpackage/blobsaver')
-        }
-    } else jpackageImage.doLast {
-        copy {
-            from "${projectDir}/dist/linux", "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
-            into layout.buildDirectory.dir('jpackage/blobsaver/lib')
         }
     }
 }

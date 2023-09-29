@@ -2,7 +2,7 @@
   <configuration default="false" name="Main (macOS)" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="airsquared.blobsaver.app.Main" />
     <module name="blobsaver.main" />
-    <option name="VM_PARAMETERS" value="-Djar.directory=$ProjectFileDir$/dist/macos/Contents --add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver --add-exports=java.base/jdk.internal.misc=airsquared.blobsaver --add-opens=java.base/sun.security.validator=airsquared.blobsaver" />
+    <option name="VM_PARAMETERS" value="-Djar.directory=$ProjectFileDir$/dist/macos/Contents --add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver --add-opens=java.base/sun.security.validator=airsquared.blobsaver" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
