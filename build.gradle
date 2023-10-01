@@ -77,13 +77,8 @@ application {
     applicationDefaultJvmArgs.add addExports
 }
 
-private String getJarDirectory() {
-    var dir = ''
-    if (DefaultNativePlatform.currentOperatingSystem.isMacOsX()) dir = 'macos/Contents'
-    else if (DefaultNativePlatform.currentOperatingSystem.isWindows()) dir = 'windows/files'
-    else if (DefaultNativePlatform.currentOperatingSystem.isLinux()) dir = 'linux'
-    return "${projectDir}/dist/${dir}"
-}
+var jarDirectory = os.isMacOsX() ? 'macos/Contents' : os.isWindows() ? 'windows/files' : 'linux'
+jarDirectory =  "${projectDir}/dist/${jarDirectory}"
 
 run {
     systemProperty 'jar.directory', jarDirectory

@@ -392,7 +392,7 @@ public class Controller {
                 new SeparatorMenuItem(), tk.createBringAllToFrontItem());
         tk.autoAddWindowMenuItems(menuBar.getMenus().get(3));
 
-        menuBar.getMenus().get(4).getItems().remove(11); // remove about
+        menuBar.getMenus().get(4).getItems().removeLast(); // remove about
 
         tk.setApplicationMenu(applicationMenu);
         tk.setGlobalMenuBar(menuBar);
