@@ -665,6 +665,13 @@ public class Controller {
                 .setIncludeBetas(betaCheckBox.isSelected())
                 .saveToTSSSaver(saveToTSSSaverCheckBox.isSelected())
                 .saveToSHSHHost(saveToSHSHHostCheckBox.isSelected());
+        if (pathField.getText().contains("${Name}") && deviceName == null) {
+            final Alert deviceNameAlert = new Alert(Alert.AlertType.WARNING);
+            deviceNameAlert.setTitle("Warning");
+            deviceNameAlert.setHeaderText("Warning");
+            deviceNameAlert.setContentText("You are using ${Name} variable but your device does not have a name yet. Maybe you forgot to save it or did not select it in the list first?");
+            deviceNameAlert.showAndWait();
+        }
         if (!boardConfigField.isDisabled()) {
             builder.setBoardConfig(boardConfigField.getText());
         }
