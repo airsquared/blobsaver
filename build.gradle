@@ -118,7 +118,7 @@ jlink {
         } else if (os.isWindows()) {
             installerOptions.addAll '--win-dir-chooser', '--win-menu', '--win-shortcut'
             icon = "${projectDir}/dist/windows/blob.ico"
-            imageOptions.addAll '--app-content', fileTree("${projectDir}/dist/windows/files").join(',')
+            imageOptions.addAll '--app-content', file("${projectDir}/dist/windows/files").listFiles().join(',')
         } else {
             installerOptions.addAll '--linux-shortcut', '--linux-menu-group', 'Utility;Archiving;Java',
                     '--linux-rpm-license-type', 'GPLv3'

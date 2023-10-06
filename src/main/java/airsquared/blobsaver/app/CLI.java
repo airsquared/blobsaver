@@ -165,7 +165,11 @@ public class CLI implements Callable<Void> {
                 exportPath = new File(exportPath, "blobsaver.xml");
             }
             Prefs.export(exportPath);
-            System.out.println(success("Successfully exported saved devices."));
+            if (exportPath.toString().startsWith("/dev")) {
+                System.err.println(success("Successfully exported saved devices."));
+            } else {
+                System.out.println(success("Successfully exported saved devices."));
+            }
         }
         return null;
     }
@@ -174,7 +178,7 @@ public class CLI implements Callable<Void> {
     void clearAppData() {
         System.out.print("Are you sure you would like to permanently clear all blobsaver data? ");
         var answer = new Scanner(System.in).nextLine();
-        if (answer.toLowerCase().matches("y|ye|yes")) {
+        if (answer.matches("(?i)y|ye|yes")) {
             Utils.clearAppData();
             System.out.println("The application data has been removed.");
         }
