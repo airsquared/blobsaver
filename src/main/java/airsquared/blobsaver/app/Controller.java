@@ -57,6 +57,7 @@ public class Controller {
 
     @FXML private TextField ecidField, boardConfigField, apnonceField, generatorField, versionField, identifierField,
             pathField, ipswField;
+    private String deviceName;
 
     @FXML private CheckBox apnonceCheckBox, allSignedVersionsCheckBox, identifierCheckBox, betaCheckBox,
             manualURLCheckBox, saveToTSSSaverCheckBox, saveToSHSHHostCheckBox;
@@ -204,6 +205,7 @@ public class Controller {
         }
         deleteDeviceMenu.setText("Remove \"" + savedDevice + "\"");
 
+        deviceName = savedDevice.getName();
         ecidField.setText(savedDevice.getEcid());
         pathField.setText(savedDevice.getSavePath());
         if (!betaCheckBox.isDisabled()) {
@@ -324,7 +326,8 @@ public class Controller {
     public void locationHelp() {
         ButtonType openURL = new ButtonType("Open URL");
         Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                "You can use the following variables which will be automatically replaced by their respective values: ${DeviceIdentifier}, ${BoardConfig}, ${APNonce}, ${Generator}, ${DeviceModel}, ${ECID}, ${FullVersionString}, ${BuildID}, and ${MajorVersion}." +
+                "You can use the following variables which will be automatically replaced by their respective values: ${DeviceIdentifier}, ${BoardConfig}, ${APNonce}, ${Generator}, ${DeviceModel}, ${ECID}, ${FullVersionString}, ${BuildID} and ${MajorVersion}." +
+                        "\nIf using a saved device you can also use ${Name}." +
                         "\n\nExamples: /Users/airsquared/Blobs/${DeviceModel}/${MajorVersion}" +
                         "\n/Users/airsquared/Blobs/${DeviceIdentifier}/${MajorVersion}/${FullVersionString}\n\n" +
                         "Click \"Open URL\" to see how to automatically upload blobs you save to the cloud.", openURL, ButtonType.OK);
@@ -655,12 +658,20 @@ public class Controller {
 
     private TSS createTSS(String runningAlertTitle) {
         TSS.Builder builder = new TSS.Builder()
+                .setName(deviceName)
                 .setDevice(identifierCheckBox.isSelected() ?
                         identifierField.getText() : Devices.modelToIdentifier(deviceModelChoiceBox.getValue()))
                 .setEcid(ecidField.getText()).setSavePath(pathField.getText())
                 .setIncludeBetas(betaCheckBox.isSelected())
                 .saveToTSSSaver(saveToTSSSaverCheckBox.isSelected())
                 .saveToSHSHHost(saveToSHSHHostCheckBox.isSelected());
+        if (pathField.getText().contains("${Name}") && deviceName == null) {
+            final Alert deviceNameAlert = new Alert(Alert.AlertType.WARNING);
+            deviceNameAlert.setTitle("Warning");
+            deviceNameAlert.setHeaderText("Warning");
+            deviceNameAlert.setContentText("You are using ${Name} variable but your device does not have a name yet. Maybe you forgot to save it or did not select it in the list first?");
+            deviceNameAlert.showAndWait();
+        }
         if (!boardConfigField.isDisabled()) {
             builder.setBoardConfig(boardConfigField.getText());
         }

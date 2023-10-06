@@ -280,7 +280,8 @@ class Background {
     }
 
     public static void saveBlobs(Prefs.SavedDevice savedDevice) {
-        TSS.Builder builder = new TSS.Builder().setDevice(savedDevice.getIdentifier())
+        TSS.Builder builder = new TSS.Builder().setName(savedDevice.getName())
+                .setDevice(savedDevice.getIdentifier())
                 .setEcid(savedDevice.getEcid()).setSavePath(savedDevice.getSavePath())
                 .setIncludeBetas(savedDevice.doesIncludeBetas());
         savedDevice.getBoardConfig().ifPresent(builder::setBoardConfig);

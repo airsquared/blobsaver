@@ -51,6 +51,7 @@ public class TSS extends Task<String> {
     private static final Pattern ipswURLPattern = Pattern.compile("(https?://|file:/).*\\.(ipsw|plist)");
     private static final Pattern versionPattern = Pattern.compile("[0-9]+\\.[0-9]+\\.?[0-9]*(?<!\\.)");
 
+    private final String name;
     private final String deviceIdentifier;
     private final String ecid;
     private final String savePath;
@@ -68,7 +69,8 @@ public class TSS extends Task<String> {
     /**
      * Private constructor; use {@link TSS.Builder} instead
      */
-    private TSS(String deviceIdentifier, String ecid, String savePath, String boardConfig, boolean includeBetas, String manualVersion, String manualIpswURL, String apnonce, String generator, boolean saveToTSSSaver, boolean saveToSHSHHost) {
+    private TSS(String name, String deviceIdentifier, String ecid, String savePath, String boardConfig, boolean includeBetas, String manualVersion, String manualIpswURL, String apnonce, String generator, boolean saveToTSSSaver, boolean saveToSHSHHost) {
+        this.name = name;
         this.deviceIdentifier = deviceIdentifier;
         this.ecid = ecid;
         this.boardConfig = boardConfig;
@@ -189,7 +191,8 @@ public class TSS extends Task<String> {
         if (!input.contains("${")) return input;
         String template = input;
 
-        var variables = Map.of("${DeviceIdentifier}", deviceIdentifier,
+        var variables = Map.of("${Name}", Utils.defIfNull(name, "UnknownName"),
+                            "${DeviceIdentifier}", deviceIdentifier,
                             "${BoardConfig}", getBoardConfig(),
                             "${APNonce}", Utils.defIfNull(apnonce, "UnknownAPNonce"),
                             "${Generator}", Utils.defIfNull(generator, "UnknownGenerator"),
@@ -382,9 +385,13 @@ public class TSS extends Task<String> {
 
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
-        private String device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce, generator;
+        private String name, device, ecid, savePath, boardConfig, manualVersion, manualIpswURL, apnonce, generator;
         private boolean includeBetas, saveToTSSSaver, saveToSHSHHost;
 
+        public Builder setName(String name) {
+            this.name = name;
+            return this;
+        }
         public Builder setDevice(String device) {
             this.device = device;
             return this;
@@ -443,7 +450,8 @@ public class TSS extends Task<String> {
         }
 
         public TSS build() {
-            return new TSS(Objects.requireNonNull(device, "Device"),
+            return new TSS(name,
+                    Objects.requireNonNull(device, "Device"),
                     Objects.requireNonNull(ecid, "ECID"),
                     Objects.requireNonNull(savePath, "Save Path"),
                     boardConfig, includeBetas, manualVersion, manualIpswURL, apnonce, generator, saveToTSSSaver, saveToSHSHHost);
