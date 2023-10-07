@@ -80,18 +80,22 @@ public class Controller {
                 .orElse(FXCollections.emptyObservableList()));
         versionLabel.textProperty().bind(deviceTypeChoiceBox.valueProperty().map(Devices::getOSNameForType)
                 .orElse("Version"));
-        deviceList.getSelectionModel().selectedItemProperty().addListener((a, b, device) -> loadSavedDevice(device));
+        deviceList.getSelectionModel().selectedItemProperty().addListener((a,b, device) -> loadSavedDevice(device));
+        deleteDeviceMenu.textProperty().bind(Bindings.concat("Remove ",
+                Bindings.when(deleteDeviceMenu.disableProperty())
+                    .then("Saved Device")
+                    .otherwise(Bindings.concat('"', deviceList.getSelectionModel().selectedItemProperty(), '"'))));
         deleteDeviceMenu.disableProperty().bind(deviceList.getSelectionModel().selectedItemProperty().isNull());
         backgroundSettingsMenu.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Hide Background Settings").otherwise("Show Background Settings"));
-        backgroundSettingsMenu.setOnAction(e -> backgroundSettingsButton.fire());
+        backgroundSettingsMenu.setOnAction(__ -> backgroundSettingsButton.fire());
         savedDevicesLabel.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Select Devices").otherwise("Saved Devices"));
         backgroundSettingsButton.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Back").otherwise("Auto-Save Settings"));
         savedDevicesVBox.effectProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then(Utils.borderGlow).otherwise((DropShadow) null));
-        allSignedVersionsCheckBox.selectedProperty().addListener(ignored -> {
+        allSignedVersionsCheckBox.selectedProperty().addListener(__ -> {
             if (!allSignedVersionsCheckBox.isSelected()) {
                 saveToTSSSaverCheckBox.setSelected(false);
                 saveToSHSHHostCheckBox.setSelected(false);
@@ -199,11 +203,7 @@ public class Controller {
     }
 
     private void loadSavedDevice(Prefs.SavedDevice savedDevice) {
-        if (savedDevice == null) {
-            deleteDeviceMenu.setText("Remove Saved Device");
-            return;
-        }
-        deleteDeviceMenu.setText("Remove \"" + savedDevice + "\"");
+        if (savedDevice == null) return;
 
         deviceName = savedDevice.getName();
         ecidField.setText(savedDevice.getEcid());
@@ -423,7 +423,7 @@ public class Controller {
         if (backgroundSettingsButton.isSelected()) {
             deviceList.setCellFactory(CheckBoxListCell.forListView(device -> {
                 final SimpleBooleanProperty property = new SimpleBooleanProperty(device.isBackground());
-                property.addListener((obs, old, newValue) -> addBackgroundHandler(device, property));
+                property.addListener((a, b, c) -> addBackgroundHandler(device, property));
                 return property;
             }));
         } else {
@@ -595,12 +595,12 @@ public class Controller {
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
         var task = new LibimobiledeviceUtil.GetApnonceTask(false);
-        task.setOnSucceeded(event -> {
+        task.setOnSucceeded(__ -> {
             apnonceField.setText(task.getApnonceResult());
             generatorField.setText(task.getGeneratorResult());
             Utils.forEachButton(alert2, button -> button.setDisable(false));
         });
-        task.setOnFailed(event -> {
+        task.setOnFailed(__ -> {
             task.getException().printStackTrace();
             if (task.getException() instanceof LibimobiledeviceUtil.LibimobiledeviceException e) {
                 e.showErrorAlert();
@@ -635,15 +635,7 @@ public class Controller {
     public void donate() { Utils.openURL("https://www.paypal.me/airsqrd"); }
 
     public void goButtonHandler() {
-        if (checkInputs()) return;
-
-        Utils.executeInThreadPool(createTSS("Saving blobs..."));
-    }
-
-    /**
-     * @return true if inputs are wrong, otherwise true
-     */
-    private boolean checkInputs() {
+        // check inputs
         boolean incorrect = Utils.isFieldEmpty(!identifierCheckBox.isSelected(), deviceTypeChoiceBox.getValue(), deviceTypeChoiceBox);
         incorrect |= Utils.isFieldEmpty(!identifierCheckBox.isSelected(), deviceModelChoiceBox.getValue(), deviceModelChoiceBox);
         incorrect |= Utils.isFieldEmpty(true, ecidField);
@@ -653,7 +645,17 @@ public class Controller {
         incorrect |= Utils.isFieldEmpty(true, pathField);
         incorrect |= Utils.isFieldEmpty(!allSignedVersionsCheckBox.isSelected() && !manualURLCheckBox.isSelected(), versionField);
         incorrect |= Utils.isFieldEmpty(manualURLCheckBox, ipswField);
-        return incorrect;
+
+        if (pathField.getText() != null && pathField.getText().contains("${Name}") && deviceName == null) {
+            final Alert deviceNameAlert = new Alert(Alert.AlertType.WARNING,
+                    "You are using the ${Name} variable but no saved device has been selected. Maybe you forgot to save or select the device first?",
+                    ButtonType.CANCEL, ButtonType.OK);
+            deviceNameAlert.showAndWait();
+            incorrect |= !ButtonType.OK.equals(deviceNameAlert.getResult());
+        }
+        if (incorrect) return;
+
+        Utils.executeInThreadPool(createTSS("Saving blobs..."));
     }
 
     private TSS createTSS(String runningAlertTitle) {
@@ -665,13 +667,6 @@ public class Controller {
                 .setIncludeBetas(betaCheckBox.isSelected())
                 .saveToTSSSaver(saveToTSSSaverCheckBox.isSelected())
                 .saveToSHSHHost(saveToSHSHHostCheckBox.isSelected());
-        if (pathField.getText().contains("${Name}") && deviceName == null) {
-            final Alert deviceNameAlert = new Alert(Alert.AlertType.WARNING);
-            deviceNameAlert.setTitle("Warning");
-            deviceNameAlert.setHeaderText("Warning");
-            deviceNameAlert.setContentText("You are using ${Name} variable but your device does not have a name yet. Maybe you forgot to save it or did not select it in the list first?");
-            deviceNameAlert.showAndWait();
-        }
         if (!boardConfigField.isDisabled()) {
             builder.setBoardConfig(boardConfigField.getText());
         }
@@ -696,14 +691,14 @@ public class Controller {
         Utils.forEachButton(runningAlert, button -> button.setDisable(true));
         runningAlert.getDialogPane().getScene().getWindow().setOnCloseRequest(Event::consume);
 
-        tss.setOnScheduled(event -> runningAlert.show());
-        tss.setOnSucceeded(event -> {
+        tss.setOnScheduled(__ -> runningAlert.show());
+        tss.setOnSucceeded(__ -> {
             runningAlert.close();
             Alert alert = new Alert(Alert.AlertType.INFORMATION, tss.getValue());
             alert.setHeaderText("Success!");
             alert.showAndWait();
         });
-        tss.setOnFailed(event -> {
+        tss.setOnFailed(__ -> {
             runningAlert.close();
             tss.getException().printStackTrace();
             parseException(tss.getException());

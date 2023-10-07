@@ -126,14 +126,14 @@ public class CLI implements Callable<Void> {
         }
         if (removeDevice != null) {
             removeDevice.delete();
-            System.out.println("Deleted " + removeDevice + ".");
+            System.out.println(STR."Deleted \{removeDevice}.");
         }
         if (saveDevice != null) {
             checkArgs("ecid", "save-path", "identifier");
             var saved = new Prefs.SavedDeviceBuilder(saveDevice)
                     .setIdentifier(device).setEcid(ecid).setSavePath(savePath.getCanonicalPath()).setBoardConfig(boardConfig)
                     .setApnonce(apnonce).setGenerator(generator).setIncludeBetas(version.includeBetas).save();
-            System.out.println(success("Saved " + saved + "."));
+            System.out.println(success(STR."Saved \{saved}."));
         }
         if (enableBackground != null) {
             if (!saveBlobs) {
@@ -141,11 +141,11 @@ public class CLI implements Callable<Void> {
                 Background.saveBlobs(enableBackground);
             }
             enableBackground.setBackground(true);
-            System.out.println(success("\nEnabled background for " + enableBackground + "."));
+            System.out.println(success(STR."\nEnabled background for \{enableBackground}."));
         }
         if (disableBackground != null) {
             disableBackground.setBackground(false);
-            System.out.println("Disabled background for " + enableBackground + ".");
+            System.out.println(STR."Disabled background for \{enableBackground}.");
         }
         if (backgroundControls.startBackground) {
             Background.startBackground();
@@ -251,7 +251,7 @@ public class CLI implements Callable<Void> {
                 if (Main.appVersion.equals(newVersion.version())) {
                     output[3] = "%nYou are on the latest version.";
                 } else {
-                    output[3] = "%nNew Update Available: " + newVersion + ". Update using your package manager or at%n https://github.com/airsquared/blobsaver/releases";
+                    output[3] = STR."%nNew Update Available: \{newVersion}. Update using your package manager or at%n https://github.com/airsquared/blobsaver/releases";
                 }
             } catch (Exception e) {
                 output[3] = "%nUnable to check for updates.";
@@ -262,7 +262,7 @@ public class CLI implements Callable<Void> {
     }
 
     private static String success(String s) {
-        return Help.Ansi.AUTO.string("@|bold,green " + s + "|@");
+        return Help.Ansi.AUTO.string(STR."@|bold,green \{s}|@");
     }
 
     private void checkArgs(String... names) {

@@ -41,6 +41,7 @@ var os = DefaultNativePlatform.currentOperatingSystem
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+tasks.withType(JavaCompile).forEach {it.options.compilerArgs.add '--enable-preview' }
 
 repositories {
     mavenCentral()
@@ -74,7 +75,7 @@ compileJava {
 application {
     mainModule = 'airsquared.blobsaver'
     mainClass = 'airsquared.blobsaver.app.Main'
-    applicationDefaultJvmArgs.add addExports
+    applicationDefaultJvmArgs.addAll '--enable-preview', addExports
 }
 
 var jarDirectory = os.isMacOsX() ? 'macos/Contents' : os.isWindows() ? 'windows/files' : 'linux'
@@ -87,6 +88,7 @@ run {
 test {
     useJUnitPlatform()
     systemProperty 'jar.directory', jarDirectory
+    jvmArgs '--enable-preview'
 }
 
 jlink {
@@ -95,7 +97,7 @@ jlink {
                 '--dedup-legal-notices=error-if-not-same-content'
     }
     launcher {
-        jvmArgs = [ '-Djar.directory={{BIN_DIR}}', addExports ]
+        jvmArgs = [ '--enable-preview', '-Djar.directory={{BIN_DIR}}', addExports ]
         if (findProperty('noConsole') != 'false') {
             noConsole = true
         }

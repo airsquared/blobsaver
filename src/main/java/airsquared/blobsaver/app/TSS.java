@@ -172,8 +172,8 @@ public class TSS extends Task<String> {
         }
         var versionStringOnly = ios.versionString().trim().replaceFirst(" .*", ""); // strip out 'beta' labels
         // https://github.com/1Conan/tsschecker/blob/0bc6174c3c2f77a0de525b71e7d8ec0987f07aa1/tsschecker/tsschecker.c#L1262
-        String fileName = "%s_%s_%s_%s-%s_%s.shsh2"
-                .formatted(parseECID(), deviceIdentifier, getBoardConfig(), versionStringOnly, ios.buildid(), apnonce);
+        String fileName = STR.
+                "\{parseECID()}_\{deviceIdentifier}_\{getBoardConfig()}_\{versionStringOnly}-\{ios.buildid()}_\{apnonce}.shsh2";
 
         if (Files.exists(Path.of(parsePathWithVersion(ios), fileName))) {
             System.out.println("Already Saved: " + fileName);
@@ -206,10 +206,10 @@ public class TSS extends Task<String> {
 
     private String parsePathWithVersion(Utils.IOSVersion ios) {
         if (!savePath.contains("${")) return savePath;
-        var template = savePath;
+        String template = savePath;
 
         var majorVersion = ios.versionString() != null ? ios.versionString().replaceFirst("\\..*", "") : "UnknownVersion";
-        Map<String, String> variables = Map.of(
+        var variables = Map.of(
                 "${FullVersionString}", Utils.defIfNull(ios.versionString(), "UnknownVersion"),
                 "${BuildID}", Utils.defIfNull(ios.buildid(), "UnknownBuildID"),
                 "${MajorVersion}", majorVersion);
@@ -312,7 +312,7 @@ public class TSS extends Task<String> {
                 return getSignedFirmwares(deviceIdentifier).toList();
             }
         } catch (FileNotFoundException e) {
-            var message = "The device \"" + deviceIdentifier + "\" could not be found.";
+            var message = STR."The device \"\{deviceIdentifier}\" could not be found.";
             if (includeBetas) {
                 message += " This device may not have any beta versions available; try disabling 'Include Betas'.";
             }
@@ -350,9 +350,9 @@ public class TSS extends Task<String> {
     private void parseTSSLog(String tsscheckerLog) throws TSSException {
         if (containsIgnoreCase(tsscheckerLog, "Saved shsh blobs")) {
             return; // success
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ecid=" + ecid + ", but parsing failed")) {
-            throw new TSSException("\"" + ecid + "\"" + " is not a valid ECID. Try using the 'Read from device' button.", false);
-        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")
+        } else if (containsIgnoreCase(tsscheckerLog, STR."[Error] [TSSC] manually specified ecid=\{ecid}, but parsing failed")) {
+            throw new TSSException("\"" + ecid + "\" is not a valid ECID. Try using the 'Read from device' button.", false);
+        } else if (containsIgnoreCase(tsscheckerLog, STR."[Error] [TSSC] manually specified ApNonce=\{apnonce}, but parsing failed")
                 || containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] parsed APNoncelen != requiredAPNoncelen")) {
             throw new TSSException("\"" + apnonce + "\" is not a valid APNonce", false);
         } else if (containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Erase")
@@ -518,7 +518,7 @@ public class TSS extends Task<String> {
                 Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
         System.out.println(response.body());
 
-        @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
+        var responseBody = new Gson().fromJson(response.body(), Map.class);
 
         if (responseBody == null) {
             responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append("Response code=").append(response.statusCode());
@@ -559,7 +559,7 @@ public class TSS extends Task<String> {
                 Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
         System.out.println(response.body());
 
-        @SuppressWarnings("rawtypes") Map responseBody = new Gson().fromJson(response.body(), Map.class);
+        var responseBody = new Gson().fromJson(response.body(), Map.class);
 
         if (responseBody.get("code").equals((double) 0)) {
             responseBuilder.append("Also saved blobs online to SHSH Host.");
