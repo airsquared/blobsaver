@@ -303,7 +303,7 @@ public class TSS extends Task<String> {
                     Stream<Utils.IOSVersion> signedBetas = getSignedBetas(deviceIdentifier);
                     return Stream.concat(signedFirmwares, signedBetas).toList();
                 } catch (Exception e) {
-                    if (e.getMessage().startsWith("HTTP Response was (GET https://www.betahub.cn/api/")) {
+                    if (e.getMessage() != null && e.getMessage().startsWith("HTTP Response was (GET https://www.betahub.cn/api/")) {
                         throw new TSSException("There was an error retrieving beta versions; try disabling 'Include Betas'.\n\nThis is a known issue. See issue #614 on GitHub for more information or if you can help.", false, e);
                     }
                     throw new TSSException("There was an error retrieving beta versions; try disabling 'Include Betas'. For more information, try again with the debug log open.", false, e);
