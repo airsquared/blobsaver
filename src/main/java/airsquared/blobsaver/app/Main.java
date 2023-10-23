@@ -91,12 +91,11 @@ public class Main {
     }
 
     /**
-     * Apple decided use some old distrusted certificate for the iOS 15.5 IPSW, causing this error:
+     * Apple decided to use some old distrusted certificate for the iOS 15.5 IPSW, causing this error:
      * {@code javax.net.ssl.SSLHandshakeException: TLS Server certificate issued after 2019-12-31 and anchored by a distrusted legacy Symantec root CA: CN=GeoTrust Primary Certification Authority - G2, OU=(c) 2007 GeoTrust Inc. - For authorized use only, O=GeoTrust Inc., C=US }
-     *
+     * <p>
      * This uses reflection/unsafe to make the certificate "trusted" anyway.
-     *s
-     * Writing to private static final fields is from https://stackoverflow.com/a/61150853/5938387
+     * Writing to private static final fields is from <a href="https://stackoverflow.com/a/61150853/5938387">...</a>
      */
     @SuppressWarnings({"Java9ReflectionClassVisibility", "deprecation"})
     static void fixCertificateError() {

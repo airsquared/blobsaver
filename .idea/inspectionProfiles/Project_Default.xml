@@ -3,9 +3,6 @@
     <option name="myName" value="Project Default" />
     <inspection_tool class="ConfigurationAvoidance" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="Duplicates" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="EnhancedSwitchMigration" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="myWarnOnlyOnExpressionConversion" value="true" />
-    </inspection_tool>
     <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="ignoredUrls">
         <list>
@@ -23,5 +20,6 @@
         </list>
       </option>
     </inspection_tool>
+    <inspection_tool class="ThrowablePrintStackTrace" enabled="true" level="TYPO" enabled_by_default="true" editorAttributes="TYPO" />
   </profile>
 </component>

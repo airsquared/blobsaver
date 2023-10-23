@@ -184,7 +184,7 @@ public class LibimobiledeviceUtil {
     }
 
     /**
-     * @return false if task was cancelled during the Thread.sleep
+     * @return false if task was canceled during the Thread.sleep
      */
     private static boolean sleep(long millis) {
         try {
@@ -354,7 +354,7 @@ public class LibimobiledeviceUtil {
 
     public static class LibimobiledeviceException extends Exception {
 
-        public final ErrorCodeType errorType;
+        private final ErrorCodeType errorType;
         public final int errorCode;
         public final boolean reportable;
 

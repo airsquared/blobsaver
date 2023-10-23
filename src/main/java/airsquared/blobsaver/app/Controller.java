@@ -80,7 +80,7 @@ public class Controller {
                 .orElse(FXCollections.emptyObservableList()));
         versionLabel.textProperty().bind(deviceTypeChoiceBox.valueProperty().map(Devices::getOSNameForType)
                 .orElse("Version"));
-        deviceList.getSelectionModel().selectedItemProperty().addListener((a,b, device) -> loadSavedDevice(device));
+        deviceList.getSelectionModel().selectedItemProperty().addListener((_,_, device) -> loadSavedDevice(device));
         deleteDeviceMenu.textProperty().bind(Bindings.concat("Remove ",
                 Bindings.when(deleteDeviceMenu.disableProperty())
                     .then("Saved Device")
@@ -88,21 +88,21 @@ public class Controller {
         deleteDeviceMenu.disableProperty().bind(deviceList.getSelectionModel().selectedItemProperty().isNull());
         backgroundSettingsMenu.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Hide Background Settings").otherwise("Show Background Settings"));
-        backgroundSettingsMenu.setOnAction(__ -> backgroundSettingsButton.fire());
+        backgroundSettingsMenu.setOnAction(_ -> backgroundSettingsButton.fire());
         savedDevicesLabel.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Select Devices").otherwise("Saved Devices"));
         backgroundSettingsButton.textProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then("Back").otherwise("Auto-Save Settings"));
         savedDevicesVBox.effectProperty().bind(Bindings.when(backgroundSettingsButton.selectedProperty())
                 .then(Utils.borderGlow).otherwise((DropShadow) null));
-        allSignedVersionsCheckBox.selectedProperty().addListener(__ -> {
+        allSignedVersionsCheckBox.selectedProperty().addListener(_ -> {
             if (!allSignedVersionsCheckBox.isSelected()) {
                 saveToTSSSaverCheckBox.setSelected(false);
                 saveToSHSHHostCheckBox.setSelected(false);
                 betaCheckBox.setSelected(false);
             }
         });
-        betaCheckBox.selectedProperty().addListener(__ -> betaCheckBox.setEffect(null));
+        betaCheckBox.selectedProperty().addListener(_ -> betaCheckBox.setEffect(null));
         switch (Prefs.getDarkMode()) {
             case DISABLED -> darkDisabled.setSelected(true);
             case SYNC_WITH_OS -> darkSync.setSelected(true);
@@ -357,7 +357,7 @@ public class Controller {
                 new ButtonType("License"), new ButtonType("Github Repo"), ButtonType.CLOSE);
         alert.initOwner(Main.primaryStage);
         alert.initModality(Modality.WINDOW_MODAL);
-        alert.getDialogPane().getScene().getWindow().focusedProperty().addListener((a, b, focused) -> {
+        alert.getDialogPane().getScene().getWindow().focusedProperty().addListener((_,_, focused) -> {
             if (!focused) alert.close();
         });
         //Activate default behavior for close button
@@ -423,7 +423,7 @@ public class Controller {
         if (backgroundSettingsButton.isSelected()) {
             deviceList.setCellFactory(CheckBoxListCell.forListView(device -> {
                 final SimpleBooleanProperty property = new SimpleBooleanProperty(device.isBackground());
-                property.addListener((a, b, c) -> addBackgroundHandler(device, property));
+                property.addListener((_,_,_) -> addBackgroundHandler(device, property));
                 return property;
             }));
         } else {
@@ -482,7 +482,7 @@ public class Controller {
     }
 
     public void startBackgroundHandler() {
-        if (Background.isBackgroundEnabled()) { //stops background if already in background
+        if (Background.isBackgroundEnabled()) {
             Background.stopBackground();
             updateBackgroundSettings();
         } else {
@@ -595,12 +595,12 @@ public class Controller {
         Utils.forEachButton(alert2, button -> button.setDisable(true));
 
         var task = new LibimobiledeviceUtil.GetApnonceTask(false);
-        task.setOnSucceeded(__ -> {
+        task.setOnSucceeded(_ -> {
             apnonceField.setText(task.getApnonceResult());
             generatorField.setText(task.getGeneratorResult());
             Utils.forEachButton(alert2, button -> button.setDisable(false));
         });
-        task.setOnFailed(__ -> {
+        task.setOnFailed(_ -> {
             task.getException().printStackTrace();
             if (task.getException() instanceof LibimobiledeviceUtil.LibimobiledeviceException e) {
                 e.showErrorAlert();
@@ -691,14 +691,14 @@ public class Controller {
         Utils.forEachButton(runningAlert, button -> button.setDisable(true));
         runningAlert.getDialogPane().getScene().getWindow().setOnCloseRequest(Event::consume);
 
-        tss.setOnScheduled(__ -> runningAlert.show());
-        tss.setOnSucceeded(__ -> {
+        tss.setOnScheduled(_ -> runningAlert.show());
+        tss.setOnSucceeded(_ -> {
             runningAlert.close();
             Alert alert = new Alert(Alert.AlertType.INFORMATION, tss.getValue());
             alert.setHeaderText("Success!");
             alert.showAndWait();
         });
-        tss.setOnFailed(__ -> {
+        tss.setOnFailed(_ -> {
             runningAlert.close();
             tss.getException().printStackTrace();
             parseException(tss.getException());

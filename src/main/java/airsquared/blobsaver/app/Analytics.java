@@ -100,6 +100,7 @@ final class Analytics {
         return Prefs.getAnalyticsUUID();
     }
 
+    @SuppressWarnings("ThrowablePrintedToSystemOut")
     private static void sendRequest(String url) {
         try {
             Network.makeVoidRequest(url);

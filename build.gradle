@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.48.0'
+    id 'com.github.ben-manes.versions' version '0.49.0'
     id 'org.beryx.jlink' version '3.0.0'
     id 'org.openjfx.javafxplugin' version '0.1.0'
 
@@ -62,7 +62,7 @@ dependencies {
 }
 
 javafx {
-    version = '21'
+    version = '21.0.1'
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
