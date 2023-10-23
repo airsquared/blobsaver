@@ -29,10 +29,7 @@ import java.io.PrintStream;
 
 class DebugWindow {
 
-    private static final PrintStream sysOut = System.out;
-    private static final PrintStream sysErr = System.err;
     private static final Stage debugStage = new Stage();
-    private static final PrintStream myPrintStream;
 
     static {
         var vBox = new VBox();
@@ -45,41 +42,31 @@ class DebugWindow {
         vBox.getChildren().add(textArea);
         debugStage.setTitle("Debug Log");
         debugStage.setScene(new Scene(vBox));
-        debugStage.setOnCloseRequest((event) -> {
-            hide();
-            event.consume();
+        final PrintStream sysOut = System.out;
+        final PrintStream sysErr = System.err;
+        debugStage.setOnHiding(_ -> {
+            System.setOut(sysOut);
+            System.setErr(sysErr);
         });
 
-        myPrintStream = new PrintStream(new OutputStream() {
+        final var myPrintStream = new PrintStream(new OutputStream() {
             @Override
             public void write(int b) {
                 sysOut.write(b);
-                Utils.runSafe(() -> textArea.appendText(String.valueOf((char) b)));
+                Utils.runSafe(() -> textArea.appendText(Character.toString(b)));
             }
+        });
+        debugStage.setOnShowing(_ -> {
+            System.setOut(myPrintStream);
+            System.setErr(myPrintStream);
         });
     }
 
-    static void show() {
-        debugStage.show();
-        System.setOut(myPrintStream);
-        System.setErr(myPrintStream);
-    }
-
-    static void hide() {
-        debugStage.hide();
-        System.setOut(sysOut);
-        System.setErr(sysErr);
-    }
-
-    static boolean isShowing() {
-        return debugStage.isShowing();
-    }
-
     static void toggleShowing() {
-        if (isShowing()) {
-            hide();
+        if (debugStage.isShowing()) {
+            debugStage.hide();
         } else {
-            show();
+            debugStage.show();
         }
     }
 

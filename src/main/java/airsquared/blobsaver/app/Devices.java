@@ -195,6 +195,6 @@ public final class Devices {
         loader.load("devicemodels/iPhones.properties", iPhones::add);
         loader.load("devicemodels/iPads.properties", iPads::add);
         loader.load("devicemodels/iBridges.properties", iBridgeList::add);
-        loader.load("devicemodels/others.properties", o -> {});
+        loader.load("devicemodels/others.properties", _ -> {});
     }
 }
