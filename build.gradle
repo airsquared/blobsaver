@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 plugins {
     id 'application'
     id 'com.github.ben-manes.versions' version '0.49.0'
-    id 'org.beryx.jlink' version '3.0.0'
+    id 'org.beryx.jlink' version '3.0.1'
     id 'org.openjfx.javafxplugin' version '0.1.0'
 
     id 'idea'
@@ -32,7 +32,7 @@ idea.module.outputDir file('out/production/classes') // fix running via IntelliJ
 /*
  * REMEMBER: also update the version string in Main.java
  */
-version = '3.5.2'
+version = '3.6.0'
 description = 'A cross-platform GUI and CLI app for saving SHSH blobs'
 String appIdentifier = 'airsquared.blobsaver.app'
 String copyright = 'Copyright (c) 2023 airsquared'
