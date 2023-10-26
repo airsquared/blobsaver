@@ -38,7 +38,7 @@ import static com.sun.jna.Platform.isWindows;
 
 public class Main {
 
-    static final String appVersion = "v3.5.2";
+    static final String appVersion = "v3.6.0";
     static final String copyright = "Copyright (c) 2023 airsquared";
     static Stage primaryStage;
     // make sure to set system property before running (automatically set if running from gradle)
