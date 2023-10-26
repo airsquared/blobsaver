@@ -67,16 +67,13 @@ final class Utils {
     private static File tsschecker, blobsaverExecutable;
     private static File licenseFile, librariesUsedFile;
 
-    static ExecutorService threadPool;
+    private final static ExecutorService threadPool = Executors.newCachedThreadPool(r -> {
+        var t = new Thread(r);
+        t.setDaemon(true); // don't prevent application from exiting
+        return t;
+    });
 
     public static void executeInThreadPool(Runnable command) {
-        if (threadPool == null) {
-            threadPool = Executors.newCachedThreadPool(r -> {
-                Thread t = new Thread(r);
-                t.setDaemon(true); // don't prevent application from exiting
-                return t;
-            });
-        }
         threadPool.execute(command);
     }
 

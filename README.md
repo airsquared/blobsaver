@@ -35,7 +35,7 @@ bugs/problems or have a feature request.
 - [JLink Plugin](https://github.com/beryx/badass-jlink-plugin)
 - [Inno Setup](http://www.jrsoftware.org/isinfo.php) (Windows)
 
-See the full credits [here](libraries_used.txt).
+See the full credits [here](dist/libraries_used.txt).
 
 ## License [![GitHub license](https://img.shields.io/github/license/airsquared/blobsaver.svg)](https://github.com/airsquared/blobsaver/blob/master/LICENSE)
 This project is licensed under GNU GPL v3.0-only - see the [LICENSE](https://github.com/airsquared/blobsaver/blob/master/LICENSE) file for details

@@ -354,7 +354,7 @@ public class Controller {
 
     public void aboutMenuHandler(Event ignored) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "", new ButtonType("Libraries Used"),
-                new ButtonType("License"), new ButtonType("Github Repo"), ButtonType.CLOSE);
+                new ButtonType("License"), new ButtonType("GitHub Repo"), ButtonType.CLOSE);
         alert.initOwner(Main.primaryStage);
         alert.initModality(Modality.WINDOW_MODAL);
         alert.getDialogPane().getScene().getWindow().focusedProperty().addListener((_,_, focused) -> {
@@ -371,8 +371,8 @@ public class Controller {
 
         alert.showAndWait();
         switch (alert.getResult().getText()) {
-            case "Github Repo" -> Utils.openURL("https://github.com/airsquared/blobsaver");
-            case "View License" -> Utils.openURL(Utils.getLicenseFile().toURI().toString());
+            case "GitHub Repo" -> Utils.openURL("https://github.com/airsquared/blobsaver");
+            case "License" -> Utils.openURL(Utils.getLicenseFile().toURI().toString());
             case "Libraries Used" -> Utils.openURL(Utils.getLibrariesUsedFile().toURI().toString());
         }
     }

@@ -93,7 +93,7 @@ test {
 
 jlink {
     if (findProperty('noCompress') != 'true') {
-        addOptions '--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages', '--strip-native-commands',
+        addOptions '--strip-debug', '--compress=2', '--no-header-files', '--no-man-pages', '--strip-native-commands',
                 '--dedup-legal-notices=error-if-not-same-content'
     }
     launcher {
@@ -114,31 +114,19 @@ jlink {
             installerName = "${name}-${arch}"
             //noinspection GroovyAssignabilityCheck
             imageOptions.addAll '--mac-package-identifier', appIdentifier,
-                    '--app-content', "${projectDir}/dist/macos/Contents/Frameworks," +
-                                    "${projectDir}/dist/macos/Contents/MacOS"
-            icon = "${projectDir}/dist/macos/Contents/Resources/blob.icns"
+                    '--app-content', file('dist/macos/Contents').listFiles().join(',')
+            icon = 'dist/macos/blob.icns'
         } else if (os.isWindows()) {
-            installerOptions.addAll '--win-dir-chooser', '--win-menu', '--win-shortcut'
-            icon = "${projectDir}/dist/windows/blob.ico"
-            imageOptions.addAll '--app-content', file("${projectDir}/dist/windows/files").listFiles().join(',')
+            icon = 'dist/windows/blob.ico'
+            imageOptions.addAll '--app-content', file('dist/windows/files').listFiles().join(',')
         } else {
             installerOptions.addAll '--linux-shortcut', '--linux-menu-group', 'Utility;Archiving;Java',
                     '--linux-rpm-license-type', 'GPLv3'
-            icon = "${projectDir}/src/main/resources/airsquared/blobsaver/app/blob.png"
-            imageOptions.addAll '--app-content', fileTree("${projectDir}/dist/linux").join(',') + ',' +
-                                                "${projectDir}/LICENSE,${projectDir}/libraries_used.txt"
+            icon = 'src/main/resources/airsquared/blobsaver/app/blob.png'
+            imageOptions.addAll '--app-content', file('dist/linux').listFiles().join(',')
         }
         if (findProperty('installerType') != null) {
             installerType = findProperty('installerType')
-        }
-    }
-    if (os.isMacOsX()) jpackageImage.doLast {
-        copy {
-            from "${projectDir}/LICENSE", "${projectDir}/libraries_used.txt"
-            into layout.buildDirectory.dir('jpackage/blobsaver.app/Contents/Resources')
-        }
-        exec { // needed to prevent "application is damaged" error when opening quarantined app
-            commandLine 'codesign', '--force', '--deep', '--sign', '-', "${layout.buildDirectory.get()}/jpackage/blobsaver.app"
         }
     }
 }
@@ -169,10 +157,10 @@ task createTgz(type: Tar, dependsOn: jpackageImage) {
 task windowsInstaller(type: Exec, dependsOn: jpackageImage) { // requires inno setup to be installed
     doFirst {
         copy {
-            from "${projectDir}/dist/windows/blob.ico" into layout.buildDirectory.dir('jpackage')
+            from 'dist/windows/blob.ico' into layout.buildDirectory.dir('jpackage')
         }
         copy {
-            from "${projectDir}/dist/windows/blobsaver.iss" into layout.buildDirectory.dir('jpackage')
+            from '/dist/windows/blobsaver.iss' into layout.buildDirectory.dir('jpackage')
             filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright,
                                            OutputDir: "${layout.buildDirectory.get()}\\distributions".toString()])
         }

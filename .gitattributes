@@ -1,6 +1,6 @@
 # Declare files that will always have CRLF line endings on checkout.
 /dist/windows/files/LICENSE text eol=crlf
-/libraries_used.txt text eol=lf
+/dist/libraries_used.txt text eol=lf
 /dist/windows/files/libraries_used.txt text eol=crlf
 gradlew.bat text eol=crlf
 gradlew text eol=lf

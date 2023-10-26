@@ -285,7 +285,7 @@ public class CLI implements Callable<Void> {
                 .findAny().orElseThrow(() -> new TypeConversionException("Must be one of " + Prefs.getSavedDevices() + "\n"));
     }
 
-    private static int handleExecutionException(Exception ex, CommandLine cmd, ParseResult parseResult) throws Exception {
+    private static int handleExecutionException(Exception ex, CommandLine cmd, ParseResult __) throws Exception {
         boolean messageOnly = ex instanceof ExecutionException
                 // if either the exception is not reportable or there is a tssLog present
                 || ex instanceof TSS.TSSException e && (!e.isReportable || e.tssLog != null)
@@ -300,7 +300,7 @@ public class CLI implements Callable<Void> {
         throw ex;
     }
 
-    private static int handleParameterException(ParameterException ex, String[] args) {
+    private static int handleParameterException(ParameterException ex, String[] __) {
         CommandLine cmd = ex.getCommandLine();
         CommandSpec spec = cmd.getCommandSpec();
         boolean isRootCommand = spec == spec.root();
