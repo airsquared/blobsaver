@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.49.0'
+    id 'com.github.ben-manes.versions' version '0.50.0'
     id 'org.beryx.jlink' version '3.0.1'
     id 'org.openjfx.javafxplugin' version '0.1.0'
 
@@ -41,7 +41,6 @@ var os = DefaultNativePlatform.currentOperatingSystem
 startScripts.enabled = distZip.enabled = distTar.enabled = false
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-tasks.withType(JavaCompile).forEach {it.options.compilerArgs.add '--enable-preview' }
 
 repositories {
     mavenCentral()
@@ -66,16 +65,16 @@ javafx {
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
-var addExports = '--add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver'
+var addJvmArgs = ['--enable-preview', '--add-exports=javafx.graphics/com.sun.javafx.css=airsquared.blobsaver']
 
-compileJava {
-    options.compilerArgs.add addExports
+tasks.withType(JavaCompile).forEach {
+    it.options.compilerArgs.addAll addJvmArgs
 }
 
 application {
     mainModule = 'airsquared.blobsaver'
     mainClass = 'airsquared.blobsaver.app.Main'
-    applicationDefaultJvmArgs.addAll '--enable-preview', addExports
+    applicationDefaultJvmArgs.addAll addJvmArgs
 }
 
 var jarDirectory = os.isMacOsX() ? 'macos/Contents' : os.isWindows() ? 'windows/files' : 'linux'
@@ -97,7 +96,7 @@ jlink {
                 '--dedup-legal-notices=error-if-not-same-content'
     }
     launcher {
-        jvmArgs = [ '--enable-preview', '-Djar.directory={{BIN_DIR}}', addExports ]
+        jvmArgs = addJvmArgs + '-Djar.directory={{BIN_DIR}}'
         if (findProperty('noConsole') != 'false') {
             noConsole = true
         }
@@ -106,7 +105,7 @@ jlink {
         imageOptions = [ '--copyright', copyright, '--description', description]
         installerOptions.addAll '--about-url', 'https://github.com/airsquared/blobsaver'
         vendor = 'airsquared'
-        installerOutputDir = layout.buildDirectory.dir('distributions').get().asFile
+        installerOutputDir = file(layout.buildDirectory.dir('distributions'))
 
         if (os.isMacOsX()) {
             installerType = 'dmg'
@@ -160,9 +159,9 @@ task windowsInstaller(type: Exec, dependsOn: jpackageImage) { // requires inno s
             from 'dist/windows/blob.ico' into layout.buildDirectory.dir('jpackage')
         }
         copy {
-            from '/dist/windows/blobsaver.iss' into layout.buildDirectory.dir('jpackage')
-            filter(ReplaceTokens, tokens: [AppName: project.name, AppVersion: version, AppCopyright: copyright,
-                                           OutputDir: "${layout.buildDirectory.get()}\\distributions".toString()])
+            from 'dist/windows/blobsaver.iss' into layout.buildDirectory.dir('jpackage')
+            filter(ReplaceTokens, tokens: [Name: project.name, Version: version, Copyright: copyright,
+                                           OutputDir: layout.buildDirectory.dir('distributions').get().toString()])
         }
     }
     commandLine 'iscc', '/Qp', "${layout.buildDirectory.get()}\\jpackage\\blobsaver.iss"
