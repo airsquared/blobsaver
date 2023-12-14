@@ -32,7 +32,7 @@ jobs:
           path: build/distributions/*
       - name: Upload reports on failure
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: failure-${{ runner.os }}
           path: build/reports/
