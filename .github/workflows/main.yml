@@ -21,7 +21,7 @@ jobs:
         run: sudo apt-get install libplist-dev libimobiledevice-dev libirecovery-1.0-dev
         if: runner.os == 'Linux'
       - name: Gradle build
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: build --no-daemon --scan
           dependency-graph: generate-and-submit
