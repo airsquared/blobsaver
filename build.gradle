@@ -57,7 +57,7 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.testfx:openjfx-monocle:17.0.10'
+    testImplementation 'org.testfx:openjfx-monocle:21.0.2'
 }
 
 javafx {
