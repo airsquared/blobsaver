@@ -35,7 +35,7 @@ public final class Devices {
 
     private static final List<String> iPhones = new ArrayList<>(), iPads = new ArrayList<>();
 
-    private static final ObservableList<String> iPhoneList, iPadList, iBridgeList = FXCollections.observableArrayList();
+    private static final ObservableList<String> iPhoneList, iPadList, iBridgeList = FXCollections.observableArrayList(), macsList = FXCollections.observableArrayList();
 
     private static final ObservableList<String> iPodList = unmodifiableArrayList("iPod Touch 3", "iPod Touch 4",
             "iPod Touch 5", "iPod Touch 6", "iPod Touch 7 (iPod9,1)");
