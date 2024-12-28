@@ -110,7 +110,7 @@ public final class Devices {
     }
 
     /**
-     * @return either "iPhone", "iPod", "iPad", "AppleTV", or "T2 Mac".
+     * @return either "iPhone", "iPod", "iPad", "AppleTV", "T2 Mac" or "Mac".
      */
     public static String getDeviceType(String identifier) {
         if (identifier.startsWith("iPhone")) {
@@ -123,6 +123,8 @@ public final class Devices {
             return "AppleTV";
         } else if (identifier.startsWith("iBridge")) {
             return "T2 Mac";
+        } else if (identifier.startsWith("Mac")) {
+            return "Mac";
         }
         throw new IllegalArgumentException("Not found: " + identifier);
     }
@@ -134,6 +136,7 @@ public final class Devices {
             case "iPad" -> iPadList;
             case "AppleTV" -> AppleTVList;
             case "T2 Mac" -> iBridgeList;
+            case "Mac" -> macsList;
             default -> FXCollections.emptyObservableList();
         };
     }
@@ -144,6 +147,7 @@ public final class Devices {
             case "iPad" -> "iOS/iPadOS";
             case "AppleTV" -> "tvOS";
             case "T2 Mac" -> "bridgeOS";
+            case "Mac" -> "macOS";
             default -> null;
         };
     }
@@ -196,5 +200,6 @@ public final class Devices {
         loader.load("devicemodels/iPads.properties", iPads::add);
         loader.load("devicemodels/iBridges.properties", iBridgeList::add);
         loader.load("devicemodels/others.properties", _ -> {});
+        loader.load("devicemodels/Macs.properties", macsList::add);
     }
 }
