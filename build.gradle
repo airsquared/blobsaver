@@ -55,7 +55,7 @@ dependencies {
     implementation 'org.apache.commons:commons-compress:1.26.0'
     implementation 'info.picocli:picocli:4.7.5'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.testfx:openjfx-monocle:21.0.2'
 }
