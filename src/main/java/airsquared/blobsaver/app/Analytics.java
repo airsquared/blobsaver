@@ -83,11 +83,11 @@ final class Analytics {
         if (Prefs.getDisableAnalytics()) {
             return;
         }
-        sendRequest(STR."\{getBaseUrl()}&t=pageview&dl=\{encode(page)}&an=blobsaver&av=\{encode(Main.appVersion)}&ul=\{encode(Locale.getDefault().toLanguageTag())}");
+        sendRequest(getBaseUrl() + "&t=pageview&dl=" + encode(page) + "&an=blobsaver&av=" + encode(Main.appVersion) + "&ul=" + encode(Locale.getDefault().toLanguageTag()));
     }
 
     private static String getBaseUrl() {
-        return STR."http://www.google-analytics.com/collect?v=1&aip=1&ds=app&tid=\{trackingID}&cid=\{getUUID()}";
+        return "http://www.google-analytics.com/collect?v=1&aip=1&ds=app&tid=" + trackingID + "&cid=" + getUUID();
     }
 
     private static String getUUID() {

@@ -374,7 +374,7 @@ final class Utils {
     }
 
     static Stream<IOSVersion> getBetaHubList(String deviceIdentifier, boolean betas) throws IOException {
-        String url = STR."https://www.betahub.cn/api/apple/firmwares/\{deviceIdentifier}?type=\{betas ? 2 : 1}";
+        String url = "https://www.betahub.cn/api/apple/firmwares/" + deviceIdentifier + "?type=" + (betas ? 2 : 1);
 
         JsonElement response = Network.makeJsonRequest(url);
         try {

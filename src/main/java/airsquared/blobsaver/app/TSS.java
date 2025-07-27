@@ -167,13 +167,12 @@ public class TSS extends Task<String> {
     }
 
     private boolean checkAlreadySaved(Utils.IOSVersion ios) {
-        if (ios.versionString() == null) {
+        if (ios.versionString() == null || apnonce == null) {
             return false;
         }
         var versionStringOnly = ios.versionString().trim().replaceFirst(" .*", ""); // strip out 'beta' labels
         // https://github.com/1Conan/tsschecker/blob/0bc6174c3c2f77a0de525b71e7d8ec0987f07aa1/tsschecker/tsschecker.c#L1262
-        String fileName = STR.
-                "\{parseECID()}_\{deviceIdentifier}_\{getBoardConfig()}_\{versionStringOnly}-\{ios.buildid()}_\{apnonce}.shsh2";
+        String fileName = parseECID() + "_" + deviceIdentifier + "_" + getBoardConfig() + "_" + versionStringOnly + "-" + ios.buildid() + "_" + apnonce + ".shsh2";
 
         if (Files.exists(Path.of(parsePathWithVersion(ios), fileName))) {
             System.out.println("Already Saved: " + fileName);
@@ -312,7 +311,7 @@ public class TSS extends Task<String> {
                 return getSignedFirmwares(deviceIdentifier).toList();
             }
         } catch (FileNotFoundException e) {
-            var message = STR."The device \"\{deviceIdentifier}\" could not be found.";
+            var message = "The device \"" + deviceIdentifier + "\" could not be found.";
             if (includeBetas) {
                 message += " This device may not have any beta versions available; try disabling 'Include Betas'.";
             }
@@ -324,7 +323,7 @@ public class TSS extends Task<String> {
     }
 
     private ArrayList<String> constructArgs() {
-        ArrayList<String> args = new ArrayList<>(17);
+        var args = new ArrayList<String>(17);
         String tsscheckerPath = Utils.getTsschecker().getAbsolutePath();
         Collections.addAll(args, tsscheckerPath, "--nocache", "--save", "--device", deviceIdentifier, "--ecid", ecid);
         Collections.addAll(args, "--boardconfig", getBoardConfig());
@@ -350,9 +349,9 @@ public class TSS extends Task<String> {
     private void parseTSSLog(String tsscheckerLog) throws TSSException {
         if (containsIgnoreCase(tsscheckerLog, "Saved shsh blobs")) {
             return; // success
-        } else if (containsIgnoreCase(tsscheckerLog, STR."[Error] [TSSC] manually specified ecid=\{ecid}, but parsing failed")) {
+        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ecid=" + ecid + ", but parsing failed")) {
             throw new TSSException("\"" + ecid + "\" is not a valid ECID. Try using the 'Read from device' button.", false);
-        } else if (containsIgnoreCase(tsscheckerLog, STR."[Error] [TSSC] manually specified ApNonce=\{apnonce}, but parsing failed")
+        } else if (containsIgnoreCase(tsscheckerLog, "[Error] [TSSC] manually specified ApNonce=" + apnonce + ", but parsing failed")
                 || containsIgnoreCase(tsscheckerLog, "[Error] [TSSR] parsed APNoncelen != requiredAPNoncelen")) {
             throw new TSSException("\"" + apnonce + "\" is not a valid APNonce", false);
         } else if (containsIgnoreCase(tsscheckerLog, "could not get BuildIdentity for installType=Erase")
@@ -497,7 +496,7 @@ public class TSS extends Task<String> {
     }
 
     private void saveBlobsTSSSaver(StringBuilder responseBuilder) throws IOException, InterruptedException {
-        Map<Object, Object> deviceParameters = new HashMap<>();
+        var deviceParameters = new HashMap<>();
 
         deviceParameters.put("ecid", String.valueOf(parseECID()));
         deviceParameters.put("deviceIdentifier", deviceIdentifier);
@@ -534,7 +533,7 @@ public class TSS extends Task<String> {
             responseBuilder.append("\n");
         }
 
-        Map<Object, Object> deviceParameters = new HashMap<>();
+        var deviceParameters = new HashMap<>();
 
         deviceParameters.put("ecid", ecid);
         deviceParameters.put("boardconfig", getBoardConfig());

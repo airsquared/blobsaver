@@ -52,25 +52,25 @@ class Background {
     private static void macosBackgroundFile() {
         long interval = Prefs.getBackgroundTimeUnit().toSeconds(Prefs.getBackgroundInterval());
         //language=XML
-        String plist = STR."""
+        String plist = """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
                 <plist>
                 <dict>
                 <key>Label</key>
-                <string>\{backgroundLabel}</string>
+                <string>%s</string>
                 <key>ProgramArguments</key>
                 <array>
-                  <string>\{executablePath()}</string>
+                  <string>%s</string>
                   <string>--background-autosave</string>
                 </array>
                 <key>RunAtLoad</key>
                 <true/>
                 <key>StartInterval</key>
-                <integer>\{interval}</integer>
+                <integer>%d</integer>
                 </dict>
                 </plist>
-                """;
+                """.formatted(backgroundLabel, executablePath(), interval);
         try {
             Files.createDirectories(plistFilePath.getParent());
             Files.writeString(plistFilePath, plist);
@@ -81,24 +81,24 @@ class Background {
     }
 
     private static void linuxBackgroundFile() {
-        String service = STR."""
+        String service = """
                 [Unit]
                 Description=Save blobs in the background
-
+                
                 [Service]
                 Type=oneshot
-                ExecStart=\{executablePath()} --background-autosave""";
-        String timer = STR."""
+                ExecStart=%s --background-autosave""".formatted(executablePath());
+        String timer = """
                 [Unit]
                 Description=Save blobs in the background
-                                
+                
                 [Timer]
                 OnBootSec=1min
-                OnUnitInactiveSec=\{Prefs.getBackgroundIntervalMinutes()}min
-                                
+                OnUnitInactiveSec=%dmin
+                
                 [Install]
                 WantedBy=timers.target
-                """;
+                """.formatted(Prefs.getBackgroundIntervalMinutes());
         try {
             Files.createDirectories(systemdDir);
             Files.writeString(systemdDir.resolve("blobsaver.service"), service);
@@ -110,26 +110,26 @@ class Background {
     }
 
     private static Path windowsBackgroundFile() {
-        String xml = STR."""
+        String xml = """
                 <?xml version="1.0" encoding="UTF-16"?>
                 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
                   <RegistrationInfo>
                     <Author>airsquared</Author>
                     <Description>Save blobs in the background</Description>
-                    <URI>\{windowsTaskName}</URI>
+                    <URI>%s</URI>
                   </RegistrationInfo>
                   <Triggers>
                     <LogonTrigger>
                       <Repetition>
-                        <Interval>PT\{Prefs.getBackgroundIntervalMinutes()}M</Interval>
+                        <Interval>PT%dM</Interval>
                         <StopAtDurationEnd>false</StopAtDurationEnd>
                       </Repetition>
                       <Enabled>true</Enabled>
-                      <UserId>\{System.getProperty("user.name")}</UserId>
+                      <UserId>%s</UserId>
                     </LogonTrigger>
                     <RegistrationTrigger>
                       <Repetition>
-                        <Interval>PT\{Prefs.getBackgroundIntervalMinutes()}M</Interval>
+                        <Interval>PT%dM</Interval>
                         <StopAtDurationEnd>false</StopAtDurationEnd>
                       </Repetition>
                       <Enabled>true</Enabled>
@@ -137,7 +137,7 @@ class Background {
                   </Triggers>
                   <Principals>
                     <Principal id="Author">
-                      <UserId>\{System.getProperty("user.name")}</UserId>
+                      <UserId>%s</UserId>
                       <LogonType>InteractiveToken</LogonType>
                       <RunLevel>LeastPrivilege</RunLevel>
                     </Principal>
@@ -165,12 +165,12 @@ class Background {
                   </Settings>
                   <Actions Context="Author">
                     <Exec>
-                      <Command>"\{executablePath()}"</Command>
+                      <Command>"%s"</Command>
                       <Arguments>--background-autosave</Arguments>
                     </Exec>
                   </Actions>
                 </Task>
-                """;
+                """.formatted(windowsTaskName, Prefs.getBackgroundIntervalMinutes(), System.getProperty("user.name"), Prefs.getBackgroundIntervalMinutes(), System.getProperty("user.name"), executablePath());
         try {
             Path path = Files.createTempFile("blobsaver_background_service", ".xml");
             Files.writeString(path, xml);

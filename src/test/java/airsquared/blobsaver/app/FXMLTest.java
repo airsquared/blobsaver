@@ -28,8 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FXMLTest extends BlobsaverTest {
 
@@ -44,9 +43,9 @@ public class FXMLTest extends BlobsaverTest {
 
         HBox box = FXMLLoader.load(Main.class.getResource("blobsaver.fxml"));
         List<Node> children = box.getChildren();
-        assertTrue(children.get(0) instanceof VBox);
-        assertTrue(children.get(1) instanceof VBox);
-        assertEquals(children.get(1).getId(), "savedDevicesVBox");
+        assertInstanceOf(VBox.class, children.get(0));
+        assertInstanceOf(VBox.class, children.get(1));
+        assertEquals("savedDevicesVBox", children.get(1).getId());
 
         Platform.exit();
     }

@@ -21,8 +21,8 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id 'application'
-    id 'com.github.ben-manes.versions' version '0.51.0'
-    id 'org.beryx.jlink' version '3.0.1'
+    id 'com.github.ben-manes.versions' version '0.52.0'
+    id 'org.beryx.jlink' version '3.1.1'
     id 'org.openjfx.javafxplugin' version '0.1.0'
 
     id 'idea'
@@ -47,13 +47,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.google.code.gson:gson:2.13.1'
     implementation ('de.jangassen:nsmenufx:3.1.0') {
         exclude group: 'net.java.dev.jna', module: 'jna' //different jna version
     }
-    implementation 'net.java.dev.jna:jna-jpms:5.14.0'
-    implementation 'org.apache.commons:commons-compress:1.26.0'
-    implementation 'info.picocli:picocli:4.7.5'
+    implementation 'net.java.dev.jna:jna-jpms:5.17.0'
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'info.picocli:picocli:4.7.7'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -61,7 +61,7 @@ dependencies {
 }
 
 javafx {
-    version = '21.0.2'
+    version = '21.0.8'
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
