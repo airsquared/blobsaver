@@ -19,6 +19,7 @@
 package airsquared.blobsaver.app;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import javafx.concurrent.Task;
 
 import java.io.FileNotFoundException;
@@ -191,12 +192,12 @@ public class TSS extends Task<String> {
         String template = input;
 
         var variables = Map.of("${Name}", Utils.defIfNull(name, "UnknownName"),
-                            "${DeviceIdentifier}", deviceIdentifier,
-                            "${BoardConfig}", getBoardConfig(),
-                            "${APNonce}", Utils.defIfNull(apnonce, "UnknownAPNonce"),
-                            "${Generator}", Utils.defIfNull(generator, "UnknownGenerator"),
-                            "${DeviceModel}", Devices.identifierToModel(deviceIdentifier),
-                            "${ECID}", ecid);
+                "${DeviceIdentifier}", deviceIdentifier,
+                "${BoardConfig}", getBoardConfig(),
+                "${APNonce}", Utils.defIfNull(apnonce, "UnknownAPNonce"),
+                "${Generator}", Utils.defIfNull(generator, "UnknownGenerator"),
+                "${DeviceModel}", Devices.identifierToModel(deviceIdentifier),
+                "${ECID}", ecid);
         for (Map.Entry<String, String> entry : variables.entrySet()) {
             template = template.replace(entry.getKey(), entry.getValue());
         }
@@ -391,6 +392,7 @@ public class TSS extends Task<String> {
             this.name = name;
             return this;
         }
+
         public Builder setDevice(String device) {
             this.device = device;
             return this;
@@ -517,7 +519,14 @@ public class TSS extends Task<String> {
                 Network.makePOSTRequest("https://tsssaver.1conan.com/v2/api/save.php", deviceParameters, headers, true);
         System.out.println(response.body());
 
-        var responseBody = new Gson().fromJson(response.body(), Map.class);
+        Map responseBody;
+        try {
+            responseBody = new Gson().fromJson(response.body(), Map.class);
+        } catch (JsonSyntaxException e) {
+            responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append(response.body())
+                    .append("\nThis is likely an issue with the third-party service, not blobsaver.");
+            return;
+        }
 
         if (responseBody == null) {
             responseBuilder.append("Error encountered while trying to save blobs to TSSSaver: ").append("Response code=").append(response.statusCode());
@@ -558,7 +567,14 @@ public class TSS extends Task<String> {
                 Network.makePOSTRequest("https://api.arx8x.net/shsh3/", deviceParameters, headers, false);
         System.out.println(response.body());
 
-        var responseBody = new Gson().fromJson(response.body(), Map.class);
+        Map responseBody;
+        try {
+            responseBody = new Gson().fromJson(response.body(), Map.class);
+        } catch (JsonSyntaxException e) {
+            responseBuilder.append("Error encountered while trying to save blobs to SHSH Host: ").append(response.body())
+                    .append("\nThis is likely an issue with the third-party service, not blobsaver.");
+            return;
+        }
 
         if (responseBody.get("code").equals((double) 0)) {
             responseBuilder.append("Also saved blobs online to SHSH Host.");

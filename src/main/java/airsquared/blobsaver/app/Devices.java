@@ -35,15 +35,18 @@ public final class Devices {
 
     private static final List<String> iPhones = new ArrayList<>(), iPads = new ArrayList<>();
 
-    private static final ObservableList<String> iPhoneList, iPadList, iBridgeList = FXCollections.observableArrayList();
+    private static final ObservableList<String> iPhoneList, iPadList,
+            iBridgeList = FXCollections.observableArrayList(), macList = FXCollections.observableArrayList();
 
     private static final ObservableList<String> iPodList = unmodifiableArrayList("iPod Touch 3", "iPod Touch 4",
             "iPod Touch 5", "iPod Touch 6", "iPod Touch 7 (iPod9,1)");
 
     private static final ObservableList<String> AppleTVList = unmodifiableArrayList("Apple TV 2G", "Apple TV 3",
             "Apple TV 3 (2013)", "Apple TV 4 (2015)", "Apple TV 4K", "Apple TV 4K (2021) (AppleTV11,1)", "Apple TV 4K (2022) (AppleTV14,1)");
+    private static final ObservableList<String> visionList = unmodifiableArrayList("Apple Vision Pro (RealityDevice14,1)");
 
-    private static final ObservableList<String> deviceTypes = unmodifiableArrayList("iPhone", "iPod", "iPad", "AppleTV", "T2 Mac");
+    private static final ObservableList<String> deviceTypes = unmodifiableArrayList("iPhone", "iPod", "iPad",
+            "AppleTV", "Mac", "T2 Mac", "Apple Vision");
 
     private static final Map<String, String> boardConfigs = (Map) new Properties();
 
@@ -110,7 +113,7 @@ public final class Devices {
     }
 
     /**
-     * @return either "iPhone", "iPod", "iPad", "AppleTV", or "T2 Mac".
+     * @return either "iPhone", "iPod", "iPad", "AppleTV", "Mac",  "T2 Mac".
      */
     public static String getDeviceType(String identifier) {
         if (identifier.startsWith("iPhone")) {
@@ -121,8 +124,12 @@ public final class Devices {
             return "iPad";
         } else if (identifier.startsWith("AppleTV")) {
             return "AppleTV";
+        } else if (identifier.startsWith("Mac")) {
+            return "Mac";
         } else if (identifier.startsWith("iBridge")) {
             return "T2 Mac";
+        } else if (identifier.startsWith("RealityDevice")) {
+            return "Apple Vision";
         }
         throw new IllegalArgumentException("Not found: " + identifier);
     }
@@ -133,7 +140,9 @@ public final class Devices {
             case "iPod" -> iPodList;
             case "iPad" -> iPadList;
             case "AppleTV" -> AppleTVList;
+            case "Mac" -> macList;
             case "T2 Mac" -> iBridgeList;
+            case "Apple Vision" -> visionList;
             default -> FXCollections.emptyObservableList();
         };
     }
@@ -143,7 +152,9 @@ public final class Devices {
             case "iPhone", "iPod" -> "iOS";
             case "iPad" -> "iOS/iPadOS";
             case "AppleTV" -> "tvOS";
+            case "Mac" -> "macOS";
             case "T2 Mac" -> "bridgeOS";
+            case "Apple Vision" -> "visionOS";
             default -> null;
         };
     }
@@ -194,6 +205,7 @@ public final class Devices {
 
         loader.load("devicemodels/iPhones.properties", iPhones::add);
         loader.load("devicemodels/iPads.properties", iPads::add);
+        loader.load("devicemodels/Macs.properties", macList::add);
         loader.load("devicemodels/iBridges.properties", iBridgeList::add);
         loader.load("devicemodels/others.properties", _ -> {});
     }
