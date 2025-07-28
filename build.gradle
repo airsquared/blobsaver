@@ -35,7 +35,7 @@ idea.module.outputDir file('out/production/classes') // fix running via IntelliJ
 version = '3.6.0'
 description = 'A cross-platform GUI and CLI app for saving SHSH blobs'
 String appIdentifier = 'airsquared.blobsaver.app'
-String copyright = 'Copyright (c) 2023 airsquared'
+String copyright = 'Copyright (c) 2025 airsquared'
 var os = DefaultNativePlatform.currentOperatingSystem
 
 startScripts.enabled = distZip.enabled = distTar.enabled = false
@@ -55,7 +55,7 @@ dependencies {
     implementation 'org.apache.commons:commons-compress:1.27.1'
     implementation 'info.picocli:picocli:4.7.7'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.testfx:openjfx-monocle:21.0.2'
 }
@@ -187,9 +187,6 @@ if (findProperty('installerType') == 'zip') {
 }
 if (findProperty('installerType') == 'portable') {
     jpackage.enabled = false
-}
-if (os.isMacOsX() && findProperty('installerType') == null) {
-    jpackage.finalizedBy createZip
 }
 if (os.isLinux() && findProperty('installerType') == null) {
     jpackage.finalizedBy createTgz
