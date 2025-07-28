@@ -556,10 +556,10 @@ public class Controller {
             ecidField.setText(Utils.isNumeric(ecid) ? "0x" + ecid : ecid);
             // read device model
             String deviceIdentifier = LibimobiledeviceUtil.getDeviceModelIdentifier();
-            try {
+            if (Devices.containsIdentifier(deviceIdentifier)) {
                 deviceTypeChoiceBox.setValue(Devices.getDeviceType(deviceIdentifier));
                 deviceModelChoiceBox.setValue(Devices.identifierToModel(deviceIdentifier));
-            } catch (IllegalArgumentException e) {
+            } else {
                 Utils.setSelectedFire(identifierCheckBox, true);
                 identifierField.setText(deviceIdentifier);
             }

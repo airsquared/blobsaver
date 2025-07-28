@@ -73,9 +73,9 @@ public final class Devices {
         if (Prefs.getShowOldDevices()) {
             iPhoneList.setAll(iPhones);
             iPadList.setAll(iPads);
-        } else if (!iPhoneList.get(0).equals("iPhone 8 (iPhone10,1)")) {
-            iPhoneList.remove(0, iPhoneList.indexOf("iPhone 8 (iPhone10,1)"));
-            iPadList.remove(0, iPadList.indexOf("iPad Pro 9.7 (Wifi)"));
+        } else if (!iPhoneList.getFirst().equals("iPhone XS (Global) (iPhone11,2)")) {
+            iPhoneList.remove(0, iPhoneList.indexOf("iPhone XS (Global) (iPhone11,2)"));
+            iPadList.remove(0, iPadList.indexOf("iPad 7 (WiFi)(iPad7,11)"));
         }
     }
 
