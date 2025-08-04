@@ -52,7 +52,7 @@ dependencies {
         exclude group: 'net.java.dev.jna', module: 'jna' //different jna version
     }
     implementation 'net.java.dev.jna:jna-jpms:5.17.0'
-    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'org.apache.commons:commons-compress:1.28.0'
     implementation 'info.picocli:picocli:4.7.7'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
