@@ -47,7 +47,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.13.1'
+    implementation 'com.google.code.gson:gson:2.13.2'
     implementation ('de.jangassen:nsmenufx:3.1.0') {
         exclude group: 'net.java.dev.jna', module: 'jna' //different jna version
     }
