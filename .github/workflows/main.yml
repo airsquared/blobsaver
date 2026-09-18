@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest, macos-13]
+        os: [ubuntu-latest, windows-latest, macOS-latest, macos-15-intel]
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -19,7 +19,9 @@ jobs:
           distribution: 'zulu'
       - uses: gradle/actions/setup-gradle@v4
       - name: Install Linux dependencies
-        run: sudo apt-get install libplist-dev libimobiledevice-dev libirecovery-1.0-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libplist-dev libimobiledevice-dev libirecovery-1.0-dev
         if: runner.os == 'Linux'
       - name: Gradle build
         run: ./gradlew build --no-daemon
